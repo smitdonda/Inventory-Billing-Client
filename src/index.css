@@ -1,0 +1,163 @@
+/* chaert */
+@media screen and (max-width:650px){
+  .product-chart{
+    width:300px !important;
+    height: 150px !important;
+  }
+}
+@media screen and (max-width:400px){
+  .product-chart{
+    width: 180px !important;
+    height: 100px !important;
+  }
+}
+
+
+/* input type="number" */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* sidebar*/
+.sidebar {
+  margin: 0;
+  padding: 0;
+  width: 160px;
+  position: fixed;
+  height: 100%;
+}
+
+.sidebar a {
+  display: block;
+  padding: 15px;
+  text-decoration: none;
+}
+div.content {
+  margin-left:160px;
+  padding: 1px 16px;
+}
+
+/* @media screen and (max-width: 700px) {
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+  }
+  .sidebar a {float: left;}
+  div.content {margin-left: 0;}
+}
+
+@media screen and (max-width: 400px) {
+  .sidebar a {
+    text-align: center;
+    float: none;
+  }
+} */
+
+@media screen and (max-width:500px){
+    .sidebar{
+      width: 150px;
+      font-size: 18px;
+    }
+}
+
+
+
+/* hme */
+.icons{
+  width: 70px;
+  height: 70px;
+  border-radius: 10%;
+}
+.new-bill{
+  width: 300px;
+  height: 120px;
+
+}
+
+@media screen and (max-width:500px){
+  .new-bill{
+    width: 200px;
+    height: 150px;
+  }
+}
+@media screen and (max-width:800px){
+  .new-bill {
+    width: 210px;
+    height: 100px;
+    margin-left: 30px;
+  }
+}
+@media screen and (max-width:1200px){
+  .new-bill {
+    width: 210px;
+    height: 100px;
+    margin-left: 30px;
+  }
+}
+@media screen and (max-width:1400px){
+  .new-bill {
+    width: 210px;
+    height: 100px;
+    margin-left: 30px;
+  }
+}
+
+
+
+.users-form{
+  border-radius: 10px;
+  background-color: rgba(255, 255,255,0.2);
+} 
+
+
+.btn-login {
+  font-size: 0.9rem;
+  letter-spacing: 0.05rem;
+  padding: 0.75rem 1rem;
+}
+
+/* navbar login and signin */
+.navbar { background-color: #222; }
+  .navbar-brand {
+    font-size: 1.4em;
+  }
+  .form-center {
+    position: absolute !important;
+    left: 25%;
+    right: 25%;
+  }
+
+
+
+  @media(max-width:700px)
+  {
+      #bill-form{
+          margin-right: 10%;
+      }
+  }
+  @media(max-width:600px)
+  {
+    div.content {
+      margin-left:160px;
+      padding: 1px 16px;
+    }
+      #bill-form{
+          margin-left: 10%;
+          margin-right: 10%;
+      }
+  }
+  @media(max-width:500px)
+  {
+    div.content {
+      margin-left:120px;
+      padding: 1px 16px;
+    }
+      #bill-form{
+          width:100%;;
+          margin-left: 10%;
+          margin-right: 10%;
+      }
+  }
