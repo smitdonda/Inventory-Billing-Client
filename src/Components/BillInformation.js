@@ -44,7 +44,7 @@ function BillInformation() {
         <div style={{ marginTop: "90px" }}>
           <div className="d-flex justify-content-end align-items-center">
             <Link
-              href="/billform/new"
+              to="/billform/new"
               className="btn btn-ghost-*  text-white shadow-none"
               style={{ backgroundColor: "#0d47a1" }}
             >

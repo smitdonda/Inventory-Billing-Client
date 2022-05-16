@@ -39,7 +39,7 @@ function ProducstDetails() {
         <div className="" style={{ marginTop: "100px" }}>
           <div className="d-flex  justify-content-end">
             <Link
-              href="/products/new"
+              to="/products/new"
               className="btn text-white"
               style={{ backgroundColor: "#0d47a1" }}
             >

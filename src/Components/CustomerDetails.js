@@ -42,7 +42,7 @@ function AllBilldetails() {
         <div style={{ marginTop: "100px" }}>
           <div className="d-flex  justify-content-end">
             <Link
-              href="/customars/new"
+              to="/customars/new"
               className="btn text-white shadow-none "
               style={{ backgroundColor: "#0d47a1" }}
             >
