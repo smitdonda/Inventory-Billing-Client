@@ -43,13 +43,13 @@ function BillInformation() {
       <div className="content" >
         <div style={{ marginTop: "90px" }}>
           <div className="d-flex justify-content-end align-items-center">
-            <a
+            <Link
               href="/billform/new"
               className="btn btn-ghost-*  text-white shadow-none"
               style={{ backgroundColor: "#0d47a1" }}
             >
               Generate New Bill
-            </a>
+            </Link>
           </div>
           <h2 className="text-center">Bill Information</h2>
           <hr />

@@ -38,13 +38,13 @@ function ProducstDetails() {
       <div className="content">
         <div className="" style={{ marginTop: "100px" }}>
           <div className="d-flex  justify-content-end">
-            <a
+            <Link
               href="/products/new"
               className="btn text-white"
               style={{ backgroundColor: "#0d47a1" }}
             >
               Add New Product
-            </a>
+            </Link>
           </div>
           <div className="container">
             <h3>Products</h3>

@@ -41,13 +41,13 @@ function AllBilldetails() {
       <div className="content">
         <div style={{ marginTop: "100px" }}>
           <div className="d-flex  justify-content-end">
-            <a
+            <Link
               href="/customars/new"
               className="btn text-white shadow-none "
               style={{ backgroundColor: "#0d47a1" }}
             >
               Add New Customar
-            </a>
+            </Link>
           </div>
         </div>
         <div className="container">
