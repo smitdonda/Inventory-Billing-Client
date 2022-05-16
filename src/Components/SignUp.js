@@ -8,7 +8,7 @@ function SignUp() {
   let navigate = useNavigate();
 
   let handleSubmit = async (values) => {
-    let res = await axios.post("http://localhost:5000/users/signup", values);
+    let res = await axios.post("https://bill-book-server.herokuapp.com/users/signup", values);
     if (res.data.statusCode === 200) {
       navigate("/");
     }
