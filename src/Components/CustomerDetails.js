@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { Table, Button } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import axios from "axios";
-import { BillBook } from "../App";
 import Header from "./Header";
 import SiderBar from "./SiderBar";
 
@@ -28,7 +27,7 @@ function AllBilldetails() {
     "https://bill-book-server.herokuapp.com/users/deletecustomer/";
   let handleDelete = async (id) => {
     let del = await axios.delete(deletecustomerurl + id);
-    if (del.status == 200) {
+    if (del.status === 200) {
       customerData();
     }
   };

@@ -1,12 +1,12 @@
 import React from "react";
 import HomeIcon from "@mui/icons-material/Home";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import PersonIcon from "@mui/icons-material/Person";
 import InfoIcon from "@mui/icons-material/Info";
 import CategoryIcon from "@mui/icons-material/Category";
 
 function SiderBar() {
-  let navigate = useNavigate();
+  // let navigate = useNavigate();
 
   return (
     <div className="sidebar bg-dark" style={{ marginTop: "60px" }}>

@@ -22,7 +22,7 @@ function Products() {
 
   if (id !== "new") {
     if (context.products) {
-      let findindex = context?.products?.findIndex((e) => e._id == id);
+      let findindex = context?.products?.findIndex((e) => e._id === id);
       var Edata = context?.products[findindex];
     }
     var handleSubmit = async (values) => {

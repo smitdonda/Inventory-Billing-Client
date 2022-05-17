@@ -19,10 +19,12 @@ function BillForm() {
   let navigate = useNavigate();
 
   //bill info post method
-  let postbillifourl = "https://bill-book-server.herokuapp.com/users/addbillinformation/";
+  let postbillifourl =
+    "https://bill-book-server.herokuapp.com/users/addbillinformation/";
 
   // bill Information updated  // all Bill details updated  // updated customer product data
-  let updatebillinfourl = "https://bill-book-server.herokuapp.com/users/updatebillinfo/";
+  let updatebillinfourl =
+    "https://bill-book-server.herokuapp.com/users/updatebillinfo/";
 
   if (id !== "new") {
     // update all bill info
@@ -43,7 +45,7 @@ function BillForm() {
             // products edit qty
             await axios.put(
               "https://bill-book-server.herokuapp.com/users/putproducts/" +
-              context?.products[pfindIndex]._id,
+                context?.products[pfindIndex]._id,
               {
                 availableproductqty:
                   context?.products[pfindIndex]?.availableproductqty,
@@ -78,7 +80,7 @@ function BillForm() {
             // products edit qty
             await axios.put(
               "https://bill-book-server.herokuapp.com/users/putproducts/" +
-              context.products[pfindIndex]._id,
+                context.products[pfindIndex]._id,
               {
                 availableproductqty:
                   context.products[pfindIndex].availableproductqty,
@@ -127,19 +129,21 @@ function BillForm() {
 
   // produts delete
   // one product object delete
-  let handleDelete = (i) => {
+  let handleDelete = (e) => {
+    debugger;
     // subtractions of  context.custdata.totalproductsprice and gsttex
-    let sub = context?.custdata?.totalproductsprice - context?.prod[i].gsttex;
+    let sub = context?.custdata?.totalproductsprice - e.gsttex;
     context.custdata.totalproductsprice = sub;
     context.setCustData(context.custdata);
     // splice the product object
-    context.prod.splice(i, 1);
+    context.prod.splice(context.prod.indexOf(e), 1);
     context.setProd(context.prod);
   };
+
   return (
     <>
       <SiderBar />
-      <Header />  
+      <Header />
       <div className="content">
         <div style={{ marginTop: "90px" }} id="bill-form">
           <div className="text-center">
@@ -157,7 +161,7 @@ function BillForm() {
                     id="dropdown-basic"
                     size="md"
                   >
-                   Select Customers
+                    Select Customers
                   </Dropdown.Toggle>
                   <Dropdown.Menu>
                     {context?.customers?.map((e, i) => {
@@ -187,16 +191,16 @@ function BillForm() {
                 {id !== "new" ? (
                   <Button
                     type="submit"
-                    className="bg-warning text-dark mr-3  shadow none"
-                    style={{ fontSize: "18px" }}
+                    variant="warning"
+                    className="mr-3  shadow-none"
                   >
                     Update
                   </Button>
                 ) : (
                   <Button
                     type="submit"
-                    className="bg-success mr-3  shadow none"
-                    style={{ fontSize: "18px" }}
+                    variant="success"
+                    className="mr-3  shadow-none"
                   >
                     Save
                   </Button>
@@ -311,18 +315,16 @@ function BillForm() {
           {/* add product modal */}
           <div className="d-flex justify-content-end ">
             <Button
-              variant="primary"
               className="mt-4 mb-3 mr-4  shadow none"
               onClick={() => {
-                context.setEditProduct({});
                 context.setModalShow(true);
+                context.setEditProduct({});
                 context.setNewOne(true);
               }}
             >
               Add Products
             </Button>
             <ProductsModal
-              path="/productsmodel"
               show={context.modalShow}
               onHide={() => context.setModalShow(false)}
             />
@@ -330,76 +332,76 @@ function BillForm() {
 
           {/* table product */}
           <div>
-            {context?.prod ? (
-              <Table bordered responsive="sm" className="  text-center mb-5">
-                <thead>
-                  <tr className="bg-dark text-white">
-                    <th scope="col">No.</th>
-                    <th scope="col">Product Name</th>
-                    <th scope="col">Quantity</th>
-                    <th scope="col">Unitprice</th>
-                    <th scope="col">Tax</th>
-                    <th scope="col">Product Total</th>
-                    <th scope="col">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {context?.prod?.map((e, i) => {
-                    return (
-                      <tr key={i}>
-                        <th scope="col">{i + 1}</th>
-                        <td>{e?.productname}</td>
-                        <td>{e?.quantity}</td>
-                        <td>{e?.unitprice}</td>
-                        <td>
-                          {e?.gst?.map((g, i) => {
-                            return (
-                              <div key={i}>
-                                <li type="none">
-                                  {g?.title}&nbsp;
-                                  {g?.taxAmount ? <>{g?.taxAmount}</> : <></>}
-                                </li>
-                              </div>
-                            );
-                          })}
-                        </td>
-                        <td>{e?.gsttex ? <>{e?.gsttex}</> : <></>}</td>
-                        <td className="d-flex flex-row justify-content-center align-items-center">
-                          <Button
-                            className="btn btn-warning mr-2 shadow none rounded-circle"
-                            onClick={() => {
-                              context.setModalShow(true);
-                              context.editProduct = e;
-                              context.setEditProduct(context.editProduct);
-                              context.setNewOne(false);
-                            }}
-                          >
-                            <EditIcon style={{ fontSize: "20px" }} />
-                          </Button>
-                          <Button
-                            className="btn btn-danger shadow none rounded-circle"
-                            onClick={() => {
-                              handleDelete(i);
-                            }}
-                          >
-                            <DeleteIcon style={{ fontSize: "20px" }} />
-                          </Button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                  <tr className="bg-dark text-white">
-                    <td colSpan="4"></td>
-                    <td className="font-weight-bold">Total Products Price</td>
-                    <td colSpan="2" className="h6">
-                      {context?.custdata?.totalproductsprice}
-                    </td>
-                  </tr>
-                </tbody>
-              </Table>
-            ) : (
-              <></>
-            )}
+            <Table bordered responsive="sm" className="  text-center mb-5">
+              <thead>
+                <tr className="bg-dark text-white">
+                  <th scope="col">No.</th>
+                  <th scope="col">Product Name</th>
+                  <th scope="col">Quantity</th>
+                  <th scope="col">Unitprice</th>
+                  <th scope="col">Tax</th>
+                  <th scope="col">Product Total</th>
+                  <th scope="col">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {context?.prod?.map((e, i) => {
+                  return (
+                    <tr key={i}>
+                      <th scope="col">{i + 1}</th>
+                      <td>{e?.productname}</td>
+                      <td>{e?.quantity}</td>
+                      <td>{e?.unitprice}</td>
+                      <td>
+                        {e?.gst?.map((g, i) => {
+                          return (
+                            <div key={i}>
+                              <li type="none">
+                                {g?.title}&nbsp;
+                                {g?.taxAmount ? <>{g?.taxAmount}</> : <></>}
+                              </li>
+                            </div>
+                          );
+                        })}
+                      </td>
+                      <td>{e?.gsttex ? <>{e?.gsttex}</> : <></>}</td>
+                      <td className="d-flex flex-row justify-content-center align-items-center">
+                        <Button
+                          variant="warning"
+                          size="sm"
+                          className="mr-2 shadow-none rounded-circle"
+                          onClick={() => {
+                            context.setModalShow(true);
+                            context.editProduct = e;
+                            context.setEditProduct(context.editProduct);
+                            context.setNewOne(false);
+                          }}
+                        >
+                          <EditIcon />
+                        </Button>
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          className="shadow-none rounded-circle"
+                          onClick={() => {
+                            handleDelete(e);
+                          }}
+                        >
+                          <DeleteIcon />
+                        </Button>
+                      </td>
+                    </tr>
+                  );
+                })}
+                <tr className="bg-dark text-white">
+                  <td colSpan="4"></td>
+                  <td className="font-weight-bold">Total Products Price</td>
+                  <td colSpan="2" className="h6">
+                    {context?.custdata?.totalproductsprice}
+                  </td>
+                </tr>
+              </tbody>
+            </Table>
           </div>
         </div>
       </div>

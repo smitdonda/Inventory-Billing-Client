@@ -3,13 +3,13 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import Header from "./Header";
 import SiderBar from "./SiderBar";
-import { Row, Col } from "react-bootstrap";
 
 function MyProfile() {
   let [myprofile, setMyProfile] = useState();
-  let profileurl = "https://bill-book-server.herokuapp.com/users/getmyprofile";
   let ProfileData = async () => {
-    let mypro = await axios.get(profileurl);
+    let mypro = await axios.get(
+      "https://bill-book-server.herokuapp.com/users/getmyprofile"
+    );
     if (mypro) {
       setMyProfile(mypro.data.profile[0]);
     }
@@ -19,13 +19,9 @@ function MyProfile() {
   }, []);
   return (
     <>
-      <Row>
-        <Col>
-          <Header></Header>
-        </Col>
-      </Row>
+      <Header></Header>
       <SiderBar />
-      <div>
+      <div className="content">
         <div style={{ marginTop: "100px" }}>
           <div>
             <h2 className="text-center text-uppercase">

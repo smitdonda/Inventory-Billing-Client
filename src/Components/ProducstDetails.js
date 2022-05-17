@@ -26,7 +26,7 @@ function ProducstDetails() {
     "https://bill-book-server.herokuapp.com/users/deleteproduct/";
   let handleDelete = async (id, e) => {
     let del = await axios.delete(deleteproducturl + id);
-    if (del.status == 200) {
+    if (del.status === 200) {
       productsData();
     }
   };

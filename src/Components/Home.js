@@ -24,8 +24,7 @@ function Home() {
     }
   }
   const productChartOptions = {
-    title: "Products char",
-    pieHole: 0.3,
+    title: "Products chart",
   };
 
   // auth post method  and chacked token or not
@@ -148,16 +147,16 @@ function Home() {
           </div>
 
           {/* chart and product and aqty */}
-          <div className="d-flex flex-wrap justify-content-around mb-5 p-2">
+          <div className="d-flex flex-wrap justify-content-around p-2">
             {/* graph */}
             <div className="border border-2 d-flex flex-wrap justify-content-center  align-items-center">
               <Chart
-                className="product-chart col-xl-12 "
+                className="product-chart "
                 chartType="PieChart"
                 loader={<div>Loading Chart...</div>}
                 data={productChartData}
+                width= "100%"
                 options={productChartOptions}
-                rootProps={{ "data-testid": "3" }}
               />
             </div>
             {/* Products aqty */}

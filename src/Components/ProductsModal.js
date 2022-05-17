@@ -7,6 +7,7 @@ import { BillBook } from "../App";
 function ProductsModal(props) {
   let context = useContext(BillBook);
   let selectedGSTs;
+
   return (
     <>
       <Modal
@@ -52,15 +53,15 @@ function ProductsModal(props) {
               const errors = {};
               if (!values.productname) {
                 errors.productname = "Required";
-              }
-              if (!values.unitprice) {
-                errors.unitprice = "Required";
-              }
-              if (!values.quantity) {
-                errors.quantity = "Required";
-              }
-              if (!values.gst) {
-                errors.gst = "Required";
+                if (!values.unitprice) {
+                  errors.unitprice = "Required";
+                }
+                if (!values.quantity) {
+                  errors.quantity = "Required";
+                }
+                if (!values.gst) {
+                  errors.gst = "Required";
+                }
               }
               return errors;
             }}
