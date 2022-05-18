@@ -66,7 +66,7 @@ function ProducstDetails() {
                 {products?.map((e, i) => {
                   return (
                     <tr key={i}>
-                      <td>{i + 1}</td>
+                      <th>{i + 1}</th>
                       <td className="text-left">{e.productname}</td>
                       <td>{e.availableproductqty}</td>
                       <td>{e.unitprice}</td>

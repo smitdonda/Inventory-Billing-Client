@@ -129,6 +129,7 @@ function BillForm() {
 
   // produts delete
   // one product object delete
+
   let handleDelete = (e) => {
     debugger;
     // subtractions of  context.custdata.totalproductsprice and gsttex
@@ -332,7 +333,7 @@ function BillForm() {
 
           {/* table product */}
           <div>
-            <Table bordered responsive="sm" className="  text-center mb-5">
+            <Table bordered responsive="sm" className="text-center mb-5">
               <thead>
                 <tr className="bg-dark text-white">
                   <th scope="col">No.</th>

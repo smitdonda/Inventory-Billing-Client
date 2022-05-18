@@ -73,7 +73,7 @@ function AllBilldetails() {
               {customers?.map((e, i) => {
                 return (
                   <tr key={i}>
-                    <td>{i + 1}</td>
+                    <th>{i + 1}</th>
                     <td className="text-left">{e.name}</td>
                     <td className="text-left">{e.email}</td>
                     <td>{e.date}</td>
