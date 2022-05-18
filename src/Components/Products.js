@@ -140,7 +140,7 @@ function Products() {
                   type="submit"
                   className="shadow none"
                 >
-                  Udate
+                  Update
                 </Button>
               ) : (
                 <Button className="shadow none" type="submit">
