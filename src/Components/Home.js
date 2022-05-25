@@ -39,7 +39,7 @@ function Home() {
 
       // auth post method
       let res = await axios.post(
-        "http://localhost:5000/users/auth",
+        "https://bill-book-server.herokuapp.com/auth",
         { purpose: "validate access" },
         config
       );
