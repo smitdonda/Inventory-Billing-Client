@@ -13,18 +13,18 @@ import SiderBar from "./SiderBar";
 
 function BillForm() {
   let context = useContext(BillBook);
-
+  console.log(context);
   let { id } = useParams();
 
   let navigate = useNavigate();
 
   //bill info post method
   let postbillifourl =
-    "https://bill-book-server.herokuapp.com/users/addbillinformation/";
+    "https://inventory-billing-server-1.vercel.app/users/addbillinformation/";
 
   // bill Information updated  // all Bill details updated  // updated customer product data
   let updatebillinfourl =
-    "https://bill-book-server.herokuapp.com/users/updatebillinfo/";
+    "https://inventory-billing-server-1.vercel.app/users/updatebillinfo/";
 
   if (id !== "new") {
     // update all bill info
@@ -44,7 +44,7 @@ function BillForm() {
 
             // products edit qty
             await axios.put(
-              "https://bill-book-server.herokuapp.com/users/putproducts/" +
+              "https://inventory-billing-server-1.vercel.app/users/putproducts/" +
                 context?.products[pfindIndex]._id,
               {
                 availableproductqty:
@@ -79,7 +79,7 @@ function BillForm() {
               values.products[i].quantity;
             // products edit qty
             await axios.put(
-              "https://bill-book-server.herokuapp.com/users/putproducts/" +
+              "https://inventory-billing-server-1.vercel.app/users/putproducts/" +
                 context.products[pfindIndex]._id,
               {
                 availableproductqty:

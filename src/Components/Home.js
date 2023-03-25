@@ -39,7 +39,7 @@ function Home() {
 
       // auth post method
       let res = await axios.post(
-        "https://bill-book-server.herokuapp.com/auth",
+        "https://inventory-billing-server-1.vercel.app/auth",
         { purpose: "validate access" },
         config
       );
@@ -155,7 +155,7 @@ function Home() {
                 chartType="PieChart"
                 loader={<div>Loading Chart...</div>}
                 data={productChartData}
-                width= "100%"
+                width="100%"
                 options={productChartOptions}
               />
             </div>

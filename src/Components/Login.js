@@ -8,7 +8,10 @@ function Login() {
   let navigate = useNavigate();
 
   let handleSubmit = async (values) => {
-    let res = await axios.post("https://bill-book-server.herokuapp.com/users/login", values);
+    let res = await axios.post(
+      "https://inventory-billing-server-1.vercel.app/users/login",
+      values
+    );
     if (res.data.statusCode === 200) {
       sessionStorage.setItem("token", res.data.token);
       sessionStorage.setItem("username", res.data.username);
@@ -37,14 +40,17 @@ function Login() {
     },
   });
   return (
-    <div className="bg-dark d-flex justify-content-center align-items-center" style={{ height: "100vh" }}>
+    <div
+      className="bg-dark d-flex justify-content-center align-items-center"
+      style={{ height: "100vh" }}
+    >
       <div className="container ">
         <div className="col-lg-4 col-xl-5 m-auto">
           <div>
             <form
               onSubmit={formik.handleSubmit}
               className="p-4 border border-3 "
-              style={{borderRadius:"2%"}}
+              style={{ borderRadius: "2%" }}
             >
               <h2 className="card-title mb-4 text-center text-primary ">
                 Login
@@ -103,7 +109,10 @@ function Login() {
               <hr className="text-white" />
               <div className="text-white">
                 <h3>Demo Credentials</h3>
-                <p>Email:&nbsp;user@gmail.com &nbsp;&nbsp; Password:&nbsp;User@123</p>
+                <p>
+                  Email:&nbsp;user@gmail.com &nbsp;&nbsp;
+                  Password:&nbsp;User@123
+                </p>
               </div>
             </form>
           </div>

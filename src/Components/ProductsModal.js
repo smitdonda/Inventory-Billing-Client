@@ -202,7 +202,7 @@ function ProductsModal(props) {
                   ) : (
                     <Button
                       type="submit"
-                      className="btn btn-warning shadow none"
+                      className="btn btn-warning shadow-none"
                       disabled={isSubmitting}
                     >
                       Update

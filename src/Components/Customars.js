@@ -15,8 +15,10 @@ function Customars() {
 
   let { id } = useParams();
 
-  let customerurl = "https://bill-book-server.herokuapp.com/users/postcustomers/ ";
-  let putcustomersurl = "https://bill-book-server.herokuapp.com/users/putcustomers/";
+  let customerurl =
+    "https://inventory-billing-server-1.vercel.app/users/postcustomers/ ";
+  let putcustomersurl =
+    "https://inventory-billing-server-1.vercel.app/users/putcustomers/";
 
   if (id !== "new") {
     if (context && context.customers) {

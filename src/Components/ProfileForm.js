@@ -14,9 +14,11 @@ function ProfileForm() {
   let navigate = useNavigate();
   let { id } = useParams();
 
-  let putproducturl = "https://bill-book-server.herokuapp.com/users/putmyprofile/";
+  let putproducturl =
+    "https://inventory-billing-server-1.vercel.app/users/putmyprofile/";
 
-  let companyurl = "https://bill-book-server.herokuapp.com/users/myprofilepost/";
+  let companyurl =
+    "https://inventory-billing-server-1.vercel.app/users/myprofilepost/";
 
   // find the Id data
 

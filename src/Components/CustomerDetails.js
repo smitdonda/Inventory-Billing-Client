@@ -9,7 +9,8 @@ import SiderBar from "./SiderBar";
 
 function AllBilldetails() {
   // get customers URL
-  let customerurl = "https://bill-book-server.herokuapp.com/users/getcustomers";
+  let customerurl =
+    "https://inventory-billing-server-1.vercel.app/users/getcustomers";
   let [customers, setCustomers] = useState();
   let customerData = async () => {
     let cust = await axios.get(customerurl);
@@ -24,7 +25,7 @@ function AllBilldetails() {
 
   // Delete Customers Information
   let deletecustomerurl =
-    "https://bill-book-server.herokuapp.com/users/deletecustomer/";
+    "https://inventory-billing-server-1.vercel.app/users/deletecustomer/";
   let handleDelete = async (id) => {
     let del = await axios.delete(deletecustomerurl + id);
     if (del.status === 200) {

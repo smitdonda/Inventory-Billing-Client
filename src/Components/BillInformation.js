@@ -14,7 +14,7 @@ function BillInformation() {
 
   // get all Bill Information
   let getbillinfourl =
-    "https://bill-book-server.herokuapp.com/users/getbillinformation";
+    "https://inventory-billing-server-1.vercel.app/users/getbillinformation";
   let [allbilldetails, setAllBillDetails] = useState();
   let billData = async () => {
     let bill = await axios.get(getbillinfourl);
@@ -25,7 +25,7 @@ function BillInformation() {
 
   // Delete all Bill Information
   let daletebillinfourl =
-    "https://bill-book-server.herokuapp.com/users/deletebillinfo/";
+    "https://inventory-billing-server-1.vercel.app/users/deletebillinfo/";
   let handleDelete = async (id) => {
     let del = await axios.delete(daletebillinfourl + id);
     if (del.status === 200) {
@@ -40,7 +40,7 @@ function BillInformation() {
     <>
       <SiderBar />
       <Header />
-      <div className="content" >
+      <div className="content">
         <div style={{ marginTop: "90px" }}>
           <div className="d-flex justify-content-end align-items-center">
             <Link

@@ -8,7 +8,7 @@ function MyProfile() {
   let [myprofile, setMyProfile] = useState();
   let ProfileData = async () => {
     let mypro = await axios.get(
-      "https://bill-book-server.herokuapp.com/users/getmyprofile"
+      "https://inventory-billing-server-1.vercel.app/users/getmyprofile"
     );
     if (mypro) {
       setMyProfile(mypro.data.profile[0]);

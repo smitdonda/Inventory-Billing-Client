@@ -15,10 +15,12 @@ function Products() {
   let { id } = useParams();
 
   // products post url
-  let productsurl = "https://bill-book-server.herokuapp.com/users/postproducts";
+  let productsurl =
+    "https://inventory-billing-server-1.vercel.app/users/postproducts";
 
   // product put url
-  let putproducturl = "https://bill-book-server.herokuapp.com/users/putproducts/";
+  let putproducturl =
+    "https://inventory-billing-server-1.vercel.app/users/putproducts/";
 
   if (id !== "new") {
     if (context.products) {
@@ -135,11 +137,7 @@ function Products() {
                 ) : null}
               </div>
               {id !== "new" ? (
-                <Button
-                  variant="warning"
-                  type="submit"
-                  className="shadow none"
-                >
+                <Button variant="warning" type="submit" className="shadow none">
                   Update
                 </Button>
               ) : (

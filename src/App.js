@@ -51,7 +51,8 @@ function App() {
   const [collapsed, setCollapsed] = useState(false);
 
   // customer get method
-  let customerurl = "https://bill-book-server.herokuapp.com/users/getcustomers";
+  let customerurl =
+    "https://inventory-billing-server-1.vercel.app/users/getcustomers";
   let [customers, setCustomers] = useState();
 
   let customerData = async () => {
@@ -64,7 +65,7 @@ function App() {
 
   // products product get method
   let getproductsurl =
-    "https://bill-book-server.herokuapp.com/users/getproducts";
+    "https://inventory-billing-server-1.vercel.app/users/getproducts";
   let [products, setproducts] = useState();
 
   let productsData = async () => {
@@ -77,7 +78,7 @@ function App() {
 
   // Bill Info get method
   let getbillinfourl =
-    "https://bill-book-server.herokuapp.com/users/getbillinformation";
+    "https://inventory-billing-server-1.vercel.app/users/getbillinformation";
   let [allbilldetails, setAllBillDetails] = useState();
 
   let billData = async () => {
@@ -89,7 +90,8 @@ function App() {
   };
 
   // my profile get method
-  let profileurl = "https://bill-book-server.herokuapp.com/users/getmyprofile";
+  let profileurl =
+    "https://inventory-billing-server-1.vercel.app/users/getmyprofile";
   let [myprofile, setMyProfile] = useState();
 
   let profileData = async () => {

@@ -8,7 +8,10 @@ function SignUp() {
   let navigate = useNavigate();
 
   let handleSubmit = async (values) => {
-    let res = await axios.post("https://bill-book-server.herokuapp.com/users/signup", values);
+    let res = await axios.post(
+      "https://inventory-billing-server-1.vercel.app/users/signup",
+      values
+    );
     if (res.data.statusCode === 200) {
       navigate("/");
     }

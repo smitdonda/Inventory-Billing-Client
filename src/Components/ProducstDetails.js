@@ -9,7 +9,7 @@ import SiderBar from "./SiderBar";
 
 function ProducstDetails() {
   let getproductsurl =
-    "https://bill-book-server.herokuapp.com/users/getproducts";
+    "https://inventory-billing-server-1.vercel.app/users/getproducts";
   let [products, setproducts] = useState([]);
   let productsData = async () => {
     let data = await axios.get(getproductsurl);
@@ -23,7 +23,7 @@ function ProducstDetails() {
   }, []);
 
   let deleteproducturl =
-    "https://bill-book-server.herokuapp.com/users/deleteproduct/";
+    "https://inventory-billing-server-1.vercel.app/users/deleteproduct/";
   let handleDelete = async (id, e) => {
     let del = await axios.delete(deleteproducturl + id);
     if (del.status === 200) {
