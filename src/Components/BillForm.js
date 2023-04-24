@@ -131,7 +131,6 @@ function BillForm() {
   // one product object delete
 
   let handleDelete = (e) => {
-    debugger;
     // subtractions of  context.custdata.totalproductsprice and gsttex
     let sub = context?.custdata?.totalproductsprice - e.gsttex;
     context.custdata.totalproductsprice = sub;
