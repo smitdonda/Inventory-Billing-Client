@@ -1,12 +1,10 @@
 import React, { useContext } from "react";
 import { Button } from "react-bootstrap";
 import axios from "axios";
-import { BillBook } from "../App";
+import { BillBook } from "../../../App";
 import { useNavigate, useParams } from "react-router-dom";
 import { useFormik } from "formik";
 import * as yup from "yup";
-import Header from "./Header";
-import SiderBar from "./SiderBar";
 
 function Products() {
   let context = useContext(BillBook);
@@ -14,20 +12,14 @@ function Products() {
   let navigate = useNavigate();
   let { id } = useParams();
 
-  // products post url
-  let productsurl =
-    "https://inventory-billing-server-1.vercel.app/users/postproducts";
-
-  // product put url
-  let putproducturl =
-    "https://inventory-billing-server-1.vercel.app/users/putproducts/";
-
   if (id !== "new") {
     if (context.products) {
       let findindex = context?.products?.findIndex((e) => e._id === id);
       var Edata = context?.products[findindex];
     }
     var handleSubmit = async (values) => {
+      // product put url
+      let putproducturl = `${process.env.REACT_APP_BACKEND_URL}/users/putproducts/`;
       let res = await axios.put(putproducturl + id, values);
       if (res) {
         if (res.status === 200) {
@@ -37,6 +29,8 @@ function Products() {
     };
   } else {
     handleSubmit = async (values) => {
+      // products post url
+      let productsurl = `${process.env.REACT_APP_BACKEND_URL}/users/postproducts`;
       let data = await axios.post(productsurl, values);
       if (data) {
         if (data.status === 200) {
@@ -65,10 +59,8 @@ function Products() {
 
   return (
     <>
-      <SiderBar />
-      <Header />
       <div className="content">
-        <div style={{ marginTop: "100px" }}>
+        <div>
           <h2 className="text-center">Products Form</h2>
           <div className="container col-sm-6 d-flex justify-content-center align-items-center">
             <form className="col-md-6 m-auto" onSubmit={formik.handleSubmit}>

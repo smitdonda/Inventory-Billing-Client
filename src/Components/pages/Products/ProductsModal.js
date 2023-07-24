@@ -2,11 +2,12 @@ import React, { useContext } from "react";
 import Multiselect from "multiselect-react-dropdown";
 import { ErrorMessage, Field, Form, Formik } from "formik";
 import { Dropdown, Modal, Button } from "react-bootstrap";
-import { BillBook } from "../App";
+import { BillBook } from "../../../App";
 
 function ProductsModal(props) {
   let context = useContext(BillBook);
   let selectedGSTs;
+  
 
   return (
     <>

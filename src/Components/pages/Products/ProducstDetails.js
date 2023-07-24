@@ -4,15 +4,12 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { Link } from "react-router-dom";
 import axios from "axios";
-import Header from "./Header";
-import SiderBar from "./SiderBar";
 
 function ProducstDetails() {
-  let getproductsurl =
-    "https://inventory-billing-server-1.vercel.app/users/getproducts";
   let [products, setproducts] = useState([]);
   let productsData = async () => {
-    let data = await axios.get(getproductsurl);
+    const url = `${process.env.REACT_APP_BACKEND_URL}/users/getproducts`;
+    let data = await axios.get(url);
     if (data) {
       setproducts(data.data.product);
     }
@@ -22,10 +19,9 @@ function ProducstDetails() {
     productsData();
   }, []);
 
-  let deleteproducturl =
-    "https://inventory-billing-server-1.vercel.app/users/deleteproduct/";
   let handleDelete = async (id, e) => {
-    let del = await axios.delete(deleteproducturl + id);
+    const url = `${process.env.REACT_APP_BACKEND_URL}/users/deleteproduct/`;
+    let del = await axios.delete(url + id);
     if (del.status === 200) {
       productsData();
     }
@@ -33,10 +29,8 @@ function ProducstDetails() {
 
   return (
     <>
-      <SiderBar />
-      <Header />
       <div className="content">
-        <div className="" style={{ marginTop: "100px" }}>
+        <div>
           <div className="d-flex  justify-content-end">
             <Link
               to="/products/new"

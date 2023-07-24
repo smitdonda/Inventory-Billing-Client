@@ -1,30 +1,26 @@
 import React, { useContext } from "react";
-import ProductsModal from "../Components/ProductsModal";
+import ProductsModal from "../Products/ProductsModal";
 import { useNavigate, useParams } from "react-router-dom";
 import { Dropdown, Table, Button } from "react-bootstrap";
-import { BillBook } from "../App";
+import { BillBook } from "../../../App";
 import axios from "axios";
 import { useFormik } from "formik";
 import * as yup from "yup";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import Header from "./Header";
-import SiderBar from "./SiderBar";
 
 function BillForm() {
   let context = useContext(BillBook);
-  console.log(context);
+
   let { id } = useParams();
 
   let navigate = useNavigate();
 
   //bill info post method
-  let postbillifourl =
-    "https://inventory-billing-server-1.vercel.app/users/addbillinformation/";
+  let postbillifourl = `${process.env.REACT_APP_BACKEND_URL}/users/addbillinformation`;
 
   // bill Information updated  // all Bill details updated  // updated customer product data
-  let updatebillinfourl =
-    "https://inventory-billing-server-1.vercel.app/users/updatebillinfo/";
+  let updatebillinfourl = `${process.env.REACT_APP_BACKEND_URL}/users/updatebillinfo`;
 
   if (id !== "new") {
     // update all bill info
@@ -44,7 +40,7 @@ function BillForm() {
 
             // products edit qty
             await axios.put(
-              "https://inventory-billing-server-1.vercel.app/users/putproducts/" +
+              `${process.env.REACT_APP_BACKEND_URL}/users/putproducts/` +
                 context?.products[pfindIndex]._id,
               {
                 availableproductqty:
@@ -79,7 +75,7 @@ function BillForm() {
               values.products[i].quantity;
             // products edit qty
             await axios.put(
-              "https://inventory-billing-server-1.vercel.app/users/putproducts/" +
+              `${process.env.REACT_APP_BACKEND_URL}/users/putproducts/` +
                 context.products[pfindIndex]._id,
               {
                 availableproductqty:
@@ -142,10 +138,8 @@ function BillForm() {
 
   return (
     <>
-      <SiderBar />
-      <Header />
       <div className="content">
-        <div style={{ marginTop: "90px" }} id="bill-form">
+        <div id="bill-form">
           <div className="text-center">
             <h2>Bill Form</h2>
             <hr />

@@ -1,19 +1,19 @@
 import React from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useFormik } from "formik";
 import * as yup from "yup";
 
-function SignUp() {
+function Registration() {
   let navigate = useNavigate();
 
   let handleSubmit = async (values) => {
     let res = await axios.post(
-      "https://inventory-billing-server-1.vercel.app/users/signup",
+      `${process.env.REACT_APP_BACKEND_URL}/users/signup`,
       values
     );
     if (res.data.statusCode === 200) {
-      navigate("/");
+      navigate("/login");
     }
   };
 
@@ -143,21 +143,21 @@ function SignUp() {
                 <div style={{ color: "red" }}>{formik.errors.cpassword}</div>
               ) : null}
             </div>
-            <div>
+            <div className="mb-2 d-flex justify-content-end">
               <button
-                className="btn btn-md btn-primary shadow-none text-uppercase "
+                className="btn btn-md btn-signup btn-primary shadow-none text-uppercase "
                 type="submit"
               >
                 Register
               </button>
             </div>
 
-            <a
-              className="d-block text-center text-bold mt-2 text-muted "
-              href="/login"
+            <Link
+              className="d-block text-center mt-2 text-white text-decoration-none h6"
+              to="/login"
             >
               Have an account? Sign In
-            </a>
+            </Link>
           </form>
         </div>
       </div>
@@ -165,4 +165,4 @@ function SignUp() {
   );
 }
 
-export default SignUp;
+export default Registration;

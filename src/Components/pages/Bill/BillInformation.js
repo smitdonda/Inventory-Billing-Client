@@ -1,20 +1,17 @@
 import React, { useState, useEffect, useContext } from "react";
 import { Button, Table } from "react-bootstrap";
 import { Link } from "react-router-dom";
-import { BillBook } from "../App";
+import { BillBook } from "../../../App";
 import axios from "axios";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import Header from "./Header";
-import SiderBar from "./SiderBar";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 
 function BillInformation() {
   let context = useContext(BillBook);
 
   // get all Bill Information
-  let getbillinfourl =
-    "https://inventory-billing-server-1.vercel.app/users/getbillinformation";
+  let getbillinfourl = `${process.env.REACT_APP_BACKEND_URL}/users/getbillinformation`;
   let [allbilldetails, setAllBillDetails] = useState();
   let billData = async () => {
     let bill = await axios.get(getbillinfourl);
@@ -24,9 +21,8 @@ function BillInformation() {
   };
 
   // Delete all Bill Information
-  let daletebillinfourl =
-    "https://inventory-billing-server-1.vercel.app/users/deletebillinfo/";
   let handleDelete = async (id) => {
+    let daletebillinfourl = `${process.env.REACT_APP_BACKEND_URL}/users/deletebillinfo/`;
     let del = await axios.delete(daletebillinfourl + id);
     if (del.status === 200) {
       billData();
@@ -38,10 +34,8 @@ function BillInformation() {
 
   return (
     <>
-      <SiderBar />
-      <Header />
       <div className="content">
-        <div style={{ marginTop: "90px" }}>
+        <div>
           <div className="d-flex justify-content-end align-items-center">
             <Link
               to="/billform/new"

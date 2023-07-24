@@ -2,11 +2,9 @@ import React, { useContext } from "react";
 import { Button } from "react-bootstrap";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
-import { BillBook } from "../App";
+import { BillBook } from "../../../App";
 import { useFormik } from "formik";
 import * as yup from "yup";
-import Header from "./Header";
-import SiderBar from "./SiderBar";
 
 function ProfileForm() {
   let context = useContext(BillBook);
@@ -14,17 +12,12 @@ function ProfileForm() {
   let navigate = useNavigate();
   let { id } = useParams();
 
-  let putproducturl =
-    "https://inventory-billing-server-1.vercel.app/users/putmyprofile/";
-
-  let companyurl =
-    "https://inventory-billing-server-1.vercel.app/users/myprofilepost/";
-
   // find the Id data
 
   if (id !== "new") {
     var handleSubmit = async (values) => {
-      let res = await axios.put(putproducturl + id, values);
+      let url = `${process.env.REACT_APP_BACKEND_URL}/users/putmyprofile/`;
+      let res = await axios.put(url + id, values);
       if (res) {
         if (res.status === 200) {
           navigate("/myprofile");
@@ -34,6 +27,7 @@ function ProfileForm() {
   } else {
     // Post method my profille
     handleSubmit = async (values) => {
+      let companyurl =  `${process.env.REACT_APP_BACKEND_URL}/users/myprofilepost/` ;
       let res = await axios.post(companyurl, values);
       if (res) {
         if (res.status === 200) {
@@ -93,11 +87,8 @@ function ProfileForm() {
 
   return (
     <>
-      <SiderBar />
-      <Header />
-
       <div className="content">
-        <div style={{ marginTop: "90px" }}>
+        <div>
           <div>
             <h2 className="text-center">Company Details </h2>
           </div>

@@ -1,26 +1,36 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Navbar, Button, Nav } from "react-bootstrap";
+import { Button, Nav } from "react-bootstrap";
 import LoginIcon from "@mui/icons-material/Login";
 import LogoutIcon from "@mui/icons-material/Logout";
 
 function Header() {
   let navigate = useNavigate();
-  // logOut
 
-  var token = sessionStorage.getItem("token");
+  // logOut
+  var token = localStorage.getItem("token");
   let logOut = () => {
-    sessionStorage.clear();
+    localStorage.clear();
     navigate("/login");
   };
 
+  const openSidenav = () => {
+    document.getElementById("mySidenav").style.width = "240px";
+    document.getElementById("main").style.marginLeft = "240px";
+    document.getElementById("menuToggle").style.display = "none";
+  };
+  
   return (
-      <Navbar expand="sm" fixed="top" variant="dark" >
-        <Navbar.Brand href="/">
-          <h2 className="text-white">Bill Book</h2>
-        </Navbar.Brand>
-        <Navbar.Toggle aria-controls="basic-navbar-nav bg-white" />
-        <Navbar.Collapse id="basic-navbar-nav">
+    <div>
+      <div class="header bg-dark">
+        <span
+          className="text-white"
+          style={{ fontSize: "25px", cursor: "pointer" }}
+          onClick={() => openSidenav()}
+        >
+          <sapn id="menuToggle">&#9776;</sapn> Bill Book
+        </span>
+        <div class="header-right">
           <Nav className="ml-auto">
             <Nav.Item>
               {token ? (
@@ -48,8 +58,9 @@ function Header() {
               )}
             </Nav.Item>
           </Nav>
-        </Navbar.Collapse>
-      </Navbar>
+        </div>
+      </div>
+    </div>
   );
 }
 

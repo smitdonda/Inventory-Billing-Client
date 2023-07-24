@@ -1,6 +1,6 @@
 import React from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useFormik } from "formik";
 import * as yup from "yup";
 
@@ -9,12 +9,12 @@ function Login() {
 
   let handleSubmit = async (values) => {
     let res = await axios.post(
-      "https://inventory-billing-server-1.vercel.app/users/login",
+      `${process.env.REACT_APP_BACKEND_URL}/users/login`,
       values
     );
     if (res.data.statusCode === 200) {
-      sessionStorage.setItem("token", res.data.token);
-      sessionStorage.setItem("username", res.data.username);
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("userInfo", res.data);
       navigate("/");
     }
   };
@@ -92,20 +92,20 @@ function Login() {
                   <div style={{ color: "red" }}>{formik.errors.password}</div>
                 ) : null}
               </div>
-              <div className="mb-2">
+              <div className="mb-2 d-flex justify-content-end">
                 <button
-                  className="btn btn-sm btn-primary shadow-none text-uppercase"
+                  className="btn btn-login btn-primary shadow-none text-uppercase"
                   type="submit"
                 >
                   Login
                 </button>
               </div>
-              <a
+              <Link
                 className="d-block text-center mt-2 text-white text-decoration-none h6"
-                href="/signup"
+                to="/signup"
               >
                 Have New account? Sign Up
-              </a>
+              </Link>
               <hr className="text-white" />
               <div className="text-white">
                 <h3>Demo Credentials</h3>

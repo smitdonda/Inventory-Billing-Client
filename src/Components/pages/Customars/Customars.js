@@ -4,21 +4,16 @@ import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import { useFormik } from "formik";
 import * as yup from "yup";
-import { BillBook } from "../App";
-import Header from "./Header";
-import SiderBar from "./SiderBar";
+import { BillBook } from "../../../App";
+import { seCustomersInfoAction } from "../../redux/customersInfo";
+import { useDispatch } from "react-redux";
 
 function Customars() {
   let context = useContext(BillBook);
-
+  const dispatch = useDispatch();
   let navigate = useNavigate();
 
   let { id } = useParams();
-
-  let customerurl =
-    "https://inventory-billing-server-1.vercel.app/users/postcustomers/ ";
-  let putcustomersurl =
-    "https://inventory-billing-server-1.vercel.app/users/putcustomers/";
 
   if (id !== "new") {
     if (context && context.customers) {
@@ -27,6 +22,7 @@ function Customars() {
     }
 
     var handleSubmit = async (values) => {
+      let putcustomersurl = `${process.env.REACT_APP_BACKEND_URL}/users/putcustomers/`;
       let res = await axios.put(putcustomersurl + id, values);
       if (res) {
         if (res.status === 200) {
@@ -36,9 +32,11 @@ function Customars() {
     };
   } else {
     handleSubmit = async (values) => {
+      let customerurl = `${process.env.REACT_APP_BACKEND_URL}/users/postcustomers`;
       let cust = await axios.post(customerurl, values);
       if (cust) {
         if (cust.status === 200) {
+          dispatch(seCustomersInfoAction(values));
           navigate("/customersdetails");
         }
       }
@@ -72,10 +70,8 @@ function Customars() {
 
   return (
     <>
-      <SiderBar />
-      <Header />
       <div className="content">
-        <div className="container" style={{ marginTop: "100px" }}>
+        <div>
           <h2 className="text-dark text-center">Customer Form</h2>
           <hr className="mt-3 mb-4 m-auto" style={{ width: "30%" }} />
           <form

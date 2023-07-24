@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
-import Header from "./Header";
-import SiderBar from "./SiderBar";
 
 function MyProfile() {
   let [myprofile, setMyProfile] = useState();
   let ProfileData = async () => {
     let mypro = await axios.get(
-      "https://inventory-billing-server-1.vercel.app/users/getmyprofile"
+      `${process.env.REACT_APP_BACKEND_URL}/users/getmyprofile`
     );
     if (mypro) {
       setMyProfile(mypro.data.profile[0]);
@@ -19,10 +17,8 @@ function MyProfile() {
   }, []);
   return (
     <>
-      <Header></Header>
-      <SiderBar />
       <div className="content">
-        <div style={{ marginTop: "100px" }}>
+        <div>
           <div>
             <h2 className="text-center text-uppercase">
               {myprofile?.companyname}

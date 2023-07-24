@@ -4,13 +4,11 @@ import { Link } from "react-router-dom";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import axios from "axios";
-import Header from "./Header";
-import SiderBar from "./SiderBar";
+import { useSelector } from "react-redux";
 
 function AllBilldetails() {
   // get customers URL
-  let customerurl =
-    "https://inventory-billing-server-1.vercel.app/users/getcustomers";
+  let customerurl = `${process.env.REACT_APP_BACKEND_URL}/users/getcustomers`;
   let [customers, setCustomers] = useState();
   let customerData = async () => {
     let cust = await axios.get(customerurl);
@@ -18,14 +16,15 @@ function AllBilldetails() {
       setCustomers(cust.data.customer);
     }
   };
+  const { customersInfo } = useSelector((state) => state.customers);
+  console.log("customersInfo", customersInfo);
 
   useEffect(() => {
     customerData();
   }, []);
 
   // Delete Customers Information
-  let deletecustomerurl =
-    "https://inventory-billing-server-1.vercel.app/users/deletecustomer/";
+  let deletecustomerurl = `${process.env.REACT_APP_BACKEND_URL}/users/deletecustomer/`;
   let handleDelete = async (id) => {
     let del = await axios.delete(deletecustomerurl + id);
     if (del.status === 200) {
@@ -35,11 +34,8 @@ function AllBilldetails() {
 
   return (
     <>
-      <Header />
-      <SiderBar />
-
       <div className="content">
-        <div style={{ marginTop: "100px" }}>
+        <div>
           <div className="d-flex  justify-content-end">
             <Link
               to="/customars/new"
@@ -50,7 +46,7 @@ function AllBilldetails() {
             </Link>
           </div>
         </div>
-        <div className="container">
+        <div>
           <h2>Customers Information</h2>
           <br />
           <Table
@@ -63,8 +59,7 @@ function AllBilldetails() {
                 <th scope="col">No.</th>
                 <th scope="col">Name</th>
                 <th scope="col">Email id</th>
-                <th scope="col">date</th>
-                <th scope="col">Address</th>
+                <th scope="col">Date</th>
                 <th scope="col">Phone no.</th>
                 <th scope="col">GST No.</th>
                 <th scope="col">Action</th>
@@ -78,7 +73,6 @@ function AllBilldetails() {
                     <td className="text-left">{e.name}</td>
                     <td className="text-left">{e.email}</td>
                     <td>{e.date}</td>
-                    <td className="text-left">{e.address}</td>
                     <td>{e.phone}</td>
                     <td>{e.gstno}</td>
                     <td>

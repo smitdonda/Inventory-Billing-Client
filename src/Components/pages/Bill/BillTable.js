@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useContext } from "react";
 import { Table } from "react-bootstrap";
-import { BillBook } from "../App";
+import { BillBook } from "../../../App";
 import { useParams } from "react-router-dom";
 import Pdf from "react-to-pdf";
-import Header from "./Header";
-import SiderBar from "./SiderBar";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 
 const ref = React.createRef();
@@ -24,9 +22,9 @@ function BillTable() {
   let InvoiceData = () => {
     if (context.allbilldetails) {
       let InvoiceFindIndex = context.allbilldetails.findIndex(
-        (invoice) => invoice._id === id
+        (invoice) => invoice?._id === id
       );
-      setInvoiceObj(context.allbilldetails[InvoiceFindIndex]);
+      setInvoiceObj(context?.allbilldetails[InvoiceFindIndex]);
       setInvoceId(InvoiceFindIndex + 1);
     }
   };
@@ -37,11 +35,9 @@ function BillTable() {
 
   return (
     <>
-      <SiderBar />
-      <Header />
-      <div className="content"> 
-        <div style={{ marginTop: "90px" }}>
-          <div className="">
+      <div className="content">
+        <div>
+          <div>
             <div className="d-flex justify-content-end align-items-end mb-1">
               <h3>Genrate PDF</h3>
             </div>

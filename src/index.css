@@ -1,18 +1,3 @@
-/* chaert */
-@media screen and (max-width:650px){
-  .product-chart{
-    width:300px !important;
-    height: 150px !important;
-  }
-}
-@media screen and (max-width:400px){
-  .product-chart{
-    width: 180px !important;
-    height: 100px !important;
-  }
-}
-
-
 /* input type="number" */
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
@@ -20,144 +5,113 @@ input::-webkit-inner-spin-button {
   margin: 0;
 }
 
-/* sidebar*/
-.sidebar {
-  margin: 0;
-  padding: 0;
-  width: 160px;
-  position: fixed;
-  height: 100%;
-}
-
-.sidebar a {
-  display: block;
-  padding: 15px;
-  text-decoration: none;
-}
-div.content {
-  margin-left:160px;
-  padding: 1px 16px;
-}
-
-/* @media screen and (max-width: 700px) {
-  .sidebar {
-    width: 100%;
-    height: auto;
-    position: relative;
-  }
-  .sidebar a {float: left;}
-  div.content {margin-left: 0;}
-}
-
-@media screen and (max-width: 400px) {
-  .sidebar a {
-    text-align: center;
-    float: none;
-  }
-} */
-
-@media screen and (max-width:500px){
-    .sidebar{
-      width: 150px;
-      font-size: 18px;
-    }
-}
-
-
-
-/* hme */
-.icons{
-  width: 70px;
-  height: 70px;
-  border-radius: 10%;
-}
-.new-bill{
-  width: 300px;
-  height: 120px;
-
-}
-
-@media screen and (max-width:500px){
-  .new-bill{
-    width: 200px;
-    height: 150px;
-  }
-}
-@media screen and (max-width:800px){
-  .new-bill {
-    width: 210px;
-    height: 100px;
-    margin-left: 30px;
-  }
-}
-@media screen and (max-width:1200px){
-  .new-bill {
-    width: 210px;
-    height: 100px;
-    margin-left: 30px;
-  }
-}
-@media screen and (max-width:1400px){
-  .new-bill {
-    width: 210px;
-    height: 100px;
-    margin-left: 30px;
-  }
-}
-
-
-
-.users-form{
+.users-form {
   border-radius: 10px;
-  background-color: rgba(255, 255,255,0.2);
-} 
+  background-color: rgba(255, 255, 255, 0.2);
+}
 
-
-.btn-login {
+.btn-login .btn-signup {
   font-size: 0.9rem;
   letter-spacing: 0.05rem;
   padding: 0.75rem 1rem;
 }
 
-/* navbar login and signin */
-.navbar { background-color: #222; }
-  .navbar-brand {
-    font-size: 1.4em;
-  }
-  .form-center {
-    position: absolute !important;
-    left: 25%;
-    right: 25%;
-  }
+/* Dashboard icons  */
+.icons {
+  width: 60px;
+  height: 60px;
+  border-radius: 10%;
+}
+.new-bill {
+  width: 280px;
+  height: 100px;
+}
 
+.sidenav {
+  height: 100%;
+  width: 0;
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  overflow-x: hidden;
+  transition: 0.5s;
+  padding-top: 60px;
+}
 
+.sidenav a {
+  padding: 8px 8px 8px 32px;
+  text-decoration: none;
+  font-size: 20px;
+  color: #818181;
+  display: block;
+  /* transition: 0.3s; */
+}
 
-  @media(max-width:700px)
-  {
-      #bill-form{
-          margin-right: 10%;
-      }
+.sidenav a:hover {
+  color: #f1f1f1;
+}
+
+.sidenav .closebtn {
+  position: absolute;
+  top: 0;
+  right: 25px;
+  font-size: 36px;
+  margin-left: 50px;
+  cursor: pointer;
+}
+
+#main {
+  transition: 0.5s;
+}
+.content {
+  padding: 30px 20px;
+}
+
+@media screen and (max-height: 450px) {
+  .sidenav {
+    padding-top: 15px;
   }
-  @media(max-width:600px)
-  {
-    div.content {
-      margin-left:160px;
-      padding: 1px 16px;
-    }
-      #bill-form{
-          margin-left: 10%;
-          margin-right: 10%;
-      }
+  .sidenav a {
+    font-size: 15px;
   }
-  @media(max-width:500px)
-  {
-    div.content {
-      margin-left:120px;
-      padding: 1px 16px;
-    }
-      #bill-form{
-          width:100%;;
-          margin-left: 10%;
-          margin-right: 10%;
-      }
+}
+
+@media (max-width: 600px) {
+  #main {
+    margin-left: 0px;
   }
+}
+
+@media (min-width: 500px) {
+  #mySidenav {
+    width: 220px;
+  }
+  #main {
+    margin-left: 220px;
+  }
+  #menuToggle {
+    display: none;
+  }
+}
+.header {
+  overflow: hidden;
+  background-color: #f1f1f1;
+  padding: 15px;
+}
+
+.header a {
+  float: left;
+  text-align: center;
+  padding: 12px;
+  text-decoration: none;
+  font-size: 16px;
+  line-height: 25px;
+}
+
+.header-right {
+  float: right;
+  text-decoration: none;
+  font-size: 16px;
+  line-height: 25px;
+}

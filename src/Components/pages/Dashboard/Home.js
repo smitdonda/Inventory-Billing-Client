@@ -1,17 +1,11 @@
-import React, { useContext, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import AddBill from "../Images/AddBill.png";
-import { BillBook } from "../App";
-import axios from "axios";
-import Header from "./Header";
-import SiderBar from "./SiderBar";
+import React, { useContext } from "react";
+import { Link } from "react-router-dom";
+import { BillBook } from "../../../App";
 
 import Chart from "react-google-charts";
 
 function Home() {
   let context = useContext(BillBook);
-
-  let navigate = useNavigate();
 
   // products chart
   const productChartData = [["Task", "Hours per Day"]];
@@ -27,54 +21,23 @@ function Home() {
     title: "Products chart",
   };
 
-  // auth post method  and chacked token or not
-  let chackAuth = async () => {
-    let token = sessionStorage.getItem("token");
-    if (token) {
-      let config = {
-        headers: {
-          token: token,
-        },
-      };
-
-      // auth post method
-      let res = await axios.post(
-        "https://inventory-billing-server-1.vercel.app/auth",
-        { purpose: "validate access" },
-        config
-      );
-      if (res.data.statusCode !== 200) {
-        sessionStorage.clear();
-        navigate("/login");
-      }
-    } else {
-      navigate("/login");
-    }
-  };
-  useEffect(() => {
-    chackAuth();
-    // seleteddata();
-  }, []);
-
   return (
     <>
-      <SiderBar />
-      <Header />
       <div className="content">
         <div
           className="d-flex flex-wrap row justify-content-center align-items-center"
-          style={{ marginTop: "100px", zIndex: "1" }}
+          style={{ zIndex: "1" }}
         >
           {/*Add new bill  */}
           <div className="col d-flex flex-row justify-content-center align-items-center">
             <Link
               to="/billform/new"
               style={{ borderLeft: "10px solid #ffbb33" }}
-              className="text-decoration-none new-bill d-flex flex-row justify-content-center align-items-center shadow-lg p-3 mb-5 rounded"
+              className="text-decoration-none new-bill d-flex flex-row justify-content-center align-items-center gap-3 shadow-lg p-3 mb-5 rounded"
             >
               <div className="icons bg-warning d-flex justify-content-center align-items-center">
                 <img
-                  src={AddBill}
+                  src={require("../../../Images/AddBill.png")}
                   style={{ width: "50px", height: "50px" }}
                   alt="Add Bill"
                 />
@@ -88,7 +51,7 @@ function Home() {
           <div className="col d-flex flex-row justify-content-center align-items-center">
             <Link
               to="/billinformation"
-              className="new-bill text-decoration-none d-flex flex-row justify-content-center align-items-center shadow-lg p-3 mb-5 rounded  "
+              className="new-bill text-decoration-none d-flex flex-row justify-content-center align-items-center gap-3 shadow-lg p-3 mb-5 rounded  "
               style={{ borderLeft: "10px solid seagreen" }}
             >
               <div className="icons bg-success d-flex  justify-content-center align-items-center">
@@ -110,7 +73,7 @@ function Home() {
           <div className="col  d-flex flex-row justify-content-center align-items-center">
             <Link
               to="/customersdetails"
-              className="new-bill text-decoration-none d-flex flex-row justify-content-center align-items-center shadow-lg p-3 mb-5 rounded"
+              className="new-bill text-decoration-none d-flex flex-row justify-content-center align-items-center gap-3 shadow-lg p-3 mb-5 rounded"
               style={{ borderLeft: "10px solid #4285F4" }}
             >
               <div className="icons bg-primary d-flex justify-content-center align-items-center">
@@ -131,7 +94,7 @@ function Home() {
             <Link
               to="/productsdetails"
               style={{ borderLeft: "10px solid #ff4444" }}
-              className="new-bill text-decoration-none d-flex flex-row justify-content-center align-items-center shadow-lg p-3 mb-5 bg-body rounded"
+              className="new-bill text-decoration-none d-flex flex-row justify-content-center align-items-center gap-3 shadow-lg p-3 mb-5 bg-body rounded"
             >
               <div className="icons bg-danger d-flex  justify-content-center align-items-center">
                 <i
