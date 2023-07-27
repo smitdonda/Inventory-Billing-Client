@@ -8,25 +8,25 @@ import { useSelector } from "react-redux";
 
 function AllBilldetails() {
   // get customers URL
-  let customerurl = `${process.env.REACT_APP_BACKEND_URL}/users/getcustomers`;
-  let [customers, setCustomers] = useState();
+  let [customers, setCustomers] = useState([]);
   let customerData = async () => {
-    let cust = await axios.get(customerurl);
+    let url = `${process.env.REACT_APP_BACKEND_URL}/users/getcustomers`;
+    let cust = await axios.get(url);
     if (cust) {
-      setCustomers(cust.data.customer);
+      setCustomers(cust.data.customers);
     }
   };
   const { customersInfo } = useSelector((state) => state.customers);
-  console.log("customersInfo", customersInfo);
+  // console.log("customersInfo", customersInfo);
 
   useEffect(() => {
     customerData();
   }, []);
 
   // Delete Customers Information
-  let deletecustomerurl = `${process.env.REACT_APP_BACKEND_URL}/users/deletecustomer/`;
   let handleDelete = async (id) => {
-    let del = await axios.delete(deletecustomerurl + id);
+    let url = `${process.env.REACT_APP_BACKEND_URL}/users/deletecustomer/`;
+    let del = await axios.delete(url + id);
     if (del.status === 200) {
       customerData();
     }

@@ -64,7 +64,7 @@ function Products() {
           <h2 className="text-center">Products Form</h2>
           <div className="container col-sm-6 d-flex justify-content-center align-items-center">
             <form className="col-md-6 m-auto" onSubmit={formik.handleSubmit}>
-              <div className="form-group mt-5 mb-2">
+              <div className="form-group mt-5 mb-3">
                 <div className="form-floating">
                   <input
                     id="productname"
@@ -85,7 +85,7 @@ function Products() {
                   </div>
                 ) : null}
               </div>
-              <div className="form-group">
+              <div className="form-group mt-3">
                 <div className="form-floating">
                   <input
                     id="availableproductqty"
@@ -109,7 +109,7 @@ function Products() {
                   </div>
                 ) : null}
               </div>
-              <div className="form-group">
+              <div className="form-group mt-3">
                 <div className="form-floating">
                   <input
                     id="unitprice"
@@ -128,15 +128,21 @@ function Products() {
                   <div style={{ color: "red" }}>{formik.errors.unitprice}</div>
                 ) : null}
               </div>
-              {id !== "new" ? (
-                <Button variant="warning" type="submit" className="shadow none">
-                  Update
-                </Button>
-              ) : (
-                <Button className="shadow none" type="submit">
-                  Submit
-                </Button>
-              )}
+              <div className="form-group mt-3">
+                {id !== "new" ? (
+                  <Button
+                    variant="warning"
+                    type="submit"
+                    className="shadow none"
+                  >
+                    Update
+                  </Button>
+                ) : (
+                  <Button className="shadow none" type="submit">
+                    Submit
+                  </Button>
+                )}
+              </div>
             </form>
           </div>
         </div>

@@ -11,7 +11,7 @@ function ProducstDetails() {
     const url = `${process.env.REACT_APP_BACKEND_URL}/users/getproducts`;
     let data = await axios.get(url);
     if (data) {
-      setproducts(data.data.product);
+      setproducts(data.data.products);
     }
   };
 
@@ -31,7 +31,7 @@ function ProducstDetails() {
     <>
       <div className="content">
         <div>
-          <div className="d-flex  justify-content-end">
+          <div className="d-flex justify-content-end">
             <Link
               to="/products/new"
               className="btn text-white"

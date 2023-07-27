@@ -9,8 +9,6 @@ import CategoryIcon from "@mui/icons-material/Category";
 function Sidebar() {
   let location = useLocation();
 
-  console.log(location.pathname);
-
   const SiderBarData = [
     {
       to: "/myprofile",

@@ -8,14 +8,18 @@ function Login() {
   let navigate = useNavigate();
 
   let handleSubmit = async (values) => {
-    let res = await axios.post(
-      `${process.env.REACT_APP_BACKEND_URL}/users/login`,
-      values
-    );
-    if (res.data.statusCode === 200) {
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("userInfo", res.data);
-      navigate("/");
+    try {
+      let res = await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/users/login`,
+        values
+      );
+      if (res.data.statusCode === 200) {
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("userInfo", res.data);
+        navigate("/");
+      }
+    } catch (error) {
+      console.log("Error", error);
     }
   };
 

@@ -22,23 +22,31 @@ function Customars() {
     }
 
     var handleSubmit = async (values) => {
-      let putcustomersurl = `${process.env.REACT_APP_BACKEND_URL}/users/putcustomers/`;
-      let res = await axios.put(putcustomersurl + id, values);
-      if (res) {
-        if (res.status === 200) {
-          navigate("/customersdetails");
+      try {
+        let url = `${process.env.REACT_APP_BACKEND_URL}/users/putcustomers/`;
+        let res = await axios.put(url + id, values);
+        if (res) {
+          if (res.status === 200) {
+            navigate("/customersdetails");
+          }
         }
+      } catch (error) {
+        console.log("Error", error.message);
       }
     };
   } else {
     handleSubmit = async (values) => {
-      let customerurl = `${process.env.REACT_APP_BACKEND_URL}/users/postcustomers`;
-      let cust = await axios.post(customerurl, values);
-      if (cust) {
-        if (cust.status === 200) {
-          dispatch(seCustomersInfoAction(values));
-          navigate("/customersdetails");
+      try {
+        let url = `${process.env.REACT_APP_BACKEND_URL}/users/postcustomers`;
+        let cust = await axios.post(url, values);
+        if (cust) {
+          if (cust.status === 200) {
+            dispatch(seCustomersInfoAction(values));
+            navigate("/customersdetails");
+          }
         }
+      } catch (error) {
+        console.log("Error", error.message);
       }
     };
   }
@@ -79,7 +87,7 @@ function Customars() {
             onSubmit={formik.handleSubmit}
             style={{ marginTop: "100px" }}
           >
-            <div className="mb-4">
+            <div className="form-group mb-3">
               <div className="form-floating">
                 <input
                   id="name"
@@ -98,7 +106,7 @@ function Customars() {
                 <div style={{ color: "red" }}>{formik.errors.name}</div>
               ) : null}
             </div>
-            <div className="form-group mt-2">
+            <div className="form-group mt-3">
               <div className="form-floating">
                 <input
                   id="email"
@@ -118,7 +126,7 @@ function Customars() {
               ) : null}
             </div>
             <div className="row">
-              <div className="form-group col mt-2">
+              <div className="form-group col mt-3">
                 <div className="form-floating">
                   <input
                     id="phone"
@@ -137,7 +145,7 @@ function Customars() {
                   <div className="text-danger">{formik.errors.phone}</div>
                 ) : null}
               </div>
-              <div className="form-group col mt-2">
+              <div className="form-group col mt-3">
                 <div className="form-floating">
                   <input
                     id="date"
@@ -156,7 +164,7 @@ function Customars() {
                 ) : null}
               </div>
             </div>
-            <div className="form-group mt-2">
+            <div className="form-group mt-3">
               <div className="form-floating">
                 <input
                   id="gstno"
@@ -175,7 +183,7 @@ function Customars() {
                 <div className="text-danger">{formik.errors.gstno}</div>
               ) : null}
             </div>
-            <div className="form-group mt-2">
+            <div className="form-group mt-3">
               <div className="form-floating">
                 <input
                   id="address"
@@ -193,7 +201,7 @@ function Customars() {
                 <div className="text-danger">{formik.errors.address}</div>
               ) : null}
             </div>
-            <div>
+            <div className="form-group mt-2">
               {id !== "new" ? (
                 <Button type="submit" className="btn btn-warning shadow-none">
                   Update

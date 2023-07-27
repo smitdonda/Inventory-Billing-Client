@@ -20,7 +20,7 @@ function BillForm() {
   let postbillifourl = `${process.env.REACT_APP_BACKEND_URL}/users/addbillinformation`;
 
   // bill Information updated  // all Bill details updated  // updated customer product data
-  let updatebillinfourl = `${process.env.REACT_APP_BACKEND_URL}/users/updatebillinfo`;
+  let updatebillinfourl = `${process.env.REACT_APP_BACKEND_URL}/users/updatebillinfo/`;
 
   if (id !== "new") {
     // update all bill info
@@ -62,30 +62,25 @@ function BillForm() {
       }
     };
     var editqty = async (values) => {
-      let res = await axios.put(updatebillinfourl + id, values);
-      if (res) {
-        if (res.status === 200) {
-          for (let i = 0; i < values.products.length; i++) {
-            // products findIndex qty
-            let pfindIndex = context.products.findIndex(
-              (e) => e._id === values.products[i]._id
-            );
-            // subtraction of availableproductqty and quantity
-            context.products[pfindIndex].availableproductqty -=
-              values.products[i].quantity;
-            // products edit qty
-            await axios.put(
-              `${process.env.REACT_APP_BACKEND_URL}/users/putproducts/` +
-                context.products[pfindIndex]._id,
-              {
-                availableproductqty:
-                  context.products[pfindIndex].availableproductqty,
-              }
-            );
+      for (let i = 0; i < values.products.length; i++) {
+        // products findIndex qty
+        let pfindIndex = context.products.findIndex(
+          (e) => e._id === values.products[i]._id
+        );
+        // subtraction of availableproductqty and quantity
+        context.products[pfindIndex].availableproductqty -=
+          values.products[i].quantity;
+        // products edit qty
+        await axios.put(
+          `${process.env.REACT_APP_BACKEND_URL}/users/putproducts/` +
+            context.products[pfindIndex]._id,
+          {
+            availableproductqty:
+              context.products[pfindIndex].availableproductqty,
           }
-          navigate("/billinformation");
-        }
+        );
       }
+      navigate("/billinformation");
     };
   }
 
@@ -146,7 +141,7 @@ function BillForm() {
           </div>
 
           <form onSubmit={formik.handleSubmit} style={{ width: "100%" }}>
-            <div className="d-flex">
+            <div className="d-flex justify-content-between">
               <div className="ml-3">
                 <Dropdown>
                   <Dropdown.Toggle
@@ -180,7 +175,7 @@ function BillForm() {
                 </Dropdown>
               </div>
               {/* update and  submit buttons  */}
-              <div className="ml-auto">
+              <div>
                 {/* save and updated */}
                 {id !== "new" ? (
                   <Button
@@ -219,7 +214,7 @@ function BillForm() {
                   <div style={{ color: "red" }}>{formik.errors.name}</div>
                 ) : null}
               </div>
-              <div className="form-group">
+              <div className="form-group  mt-3">
                 <label htmlFor="email">Email Id</label>
                 <input
                   id="email"
@@ -236,7 +231,7 @@ function BillForm() {
                   <div className="text-danger">{formik.errors.email}</div>
                 ) : null}
               </div>
-              <div className="row">
+              <div className="row  mt-3">
                 <div className="form-group col">
                   <label htmlFor="phone">Phone</label>
                   <input
@@ -271,7 +266,7 @@ function BillForm() {
                   ) : null}
                 </div>
               </div>
-              <div className="form-group">
+              <div className="form-group  mt-3">
                 <label htmlFor="gstno">Gst No.</label>
                 <input
                   id="gstno"
@@ -288,7 +283,7 @@ function BillForm() {
                   <div className="text-danger">{formik.errors.gstno}</div>
                 ) : null}
               </div>
-              <div className="form-group">
+              <div className="form-group  mt-3">
                 <label htmlFor="address">Address</label>
                 <input
                   id="address"
@@ -307,7 +302,7 @@ function BillForm() {
             </div>
           </form>
           {/* add product modal */}
-          <div className="d-flex justify-content-end ">
+          <div className="d-flex justify-content-end  mt-1">
             <Button
               className="mt-4 mb-3 mr-4  shadow none"
               onClick={() => {

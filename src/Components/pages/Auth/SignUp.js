@@ -8,12 +8,16 @@ function Registration() {
   let navigate = useNavigate();
 
   let handleSubmit = async (values) => {
-    let res = await axios.post(
-      `${process.env.REACT_APP_BACKEND_URL}/users/signup`,
-      values
-    );
-    if (res.data.statusCode === 200) {
-      navigate("/login");
+    try {
+      let res = await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/users/signup`,
+        values
+      );
+      if (res.data.statusCode === 200) {
+        navigate("/login");
+      }
+    } catch (error) {
+      console.log("Error", error);
     }
   };
 
