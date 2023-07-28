@@ -29,7 +29,7 @@ function BillForm() {
       let res = await axios.put(updatebillinfourl + id, values);
       if (res) {
         if (res.status === 200) {
-          for (let i = 0; i < values.products.length; i++) {
+          for (let i = 0; i < values.products?.length; i++) {
             // products findIndex qty
             let pfindIndex = context.products.findIndex(
               (e) => e._id === values.products[i]._id
@@ -62,7 +62,7 @@ function BillForm() {
       }
     };
     var editqty = async (values) => {
-      for (let i = 0; i < values.products.length; i++) {
+      for (let i = 0; i < values?.products?.length; i++) {
         // products findIndex qty
         let pfindIndex = context.products.findIndex(
           (e) => e._id === values.products[i]._id

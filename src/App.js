@@ -42,8 +42,8 @@ function App() {
   let customerData = async () => {
     let cust = await axios.get(customerurl);
     if (cust) {
-      setCustomers(cust.data.customer);
-      setCustCount(cust.data.customer.length);
+      setCustomers(cust?.data?.customer);
+      setCustCount(cust?.data?.customer?.length);
     }
   };
 
@@ -55,8 +55,8 @@ function App() {
   let productsData = async () => {
     let details = await axios.get(getproductsurl);
     if (details) {
-      setproducts(details.data.product);
-      setProductCount(details.data.product.length);
+      setproducts(details?.data?.product);
+      setProductCount(details?.data?.product?.length);
     }
   };
 
@@ -68,8 +68,8 @@ function App() {
   let billData = async () => {
     let bill = await axios.get(getbillinfourl);
     if (bill) {
-      setAllBillDetails(bill.data.billinfo);
-      setBillinfoCount(bill.data.billinfo.length);
+      setAllBillDetails(bill?.data?.billinfo);
+      setBillinfoCount(bill?.data.billinfo?.length);
     }
   };
 

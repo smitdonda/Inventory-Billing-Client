@@ -85,8 +85,8 @@ function ProductsModal(props) {
                         values.unitprice * parseInt(values.quantity);
                       values["gsttex"] = values.pandqtotal;
                       // s and c gst add in p and q total
-                      if (values.gst && values.gst.length) {
-                        for (let g = 0; g < values.gst.length; g++) {
+                      if (values.gst && values?.gst?.length) {
+                        for (let g = 0; g < values?.gst?.length; g++) {
                           values.gst[g]["taxAmount"] =
                             (values.pandqtotal / 100) * values.gst[g].value;
                           values.gsttex += values.gst[g].taxAmount;
@@ -100,7 +100,7 @@ function ProductsModal(props) {
                       }
                       // total amount of products
                       let sum = 0;
-                      for (var t = 0; t < context.prod.length; t++) {
+                      for (var t = 0; t < context?.prod?.length; t++) {
                         sum += context.prod[t].gsttex;
                         context.custdata["totalproductsprice"] = sum;
                         context.setCustData(context.custdata);

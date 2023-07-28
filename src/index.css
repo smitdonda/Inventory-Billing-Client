@@ -79,11 +79,11 @@ input::-webkit-inner-spin-button {
 
 @media (max-width: 600px) {
   #main {
-    margin-left: 0px;
+    margin-left: 0px !important;
   }
 }
 
-@media (min-width: 500px) {
+@media (min-width: 600px) {
   #mySidenav {
     width: 220px;
   }

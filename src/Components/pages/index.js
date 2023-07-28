@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Route, Routes, Navigate, Outlet, useNavigate } from "react-router-dom";
 import Home from "./Dashboard/Home";
 import Sidebar from "./navBar/Sidebar";
@@ -21,8 +21,11 @@ import ProfileForm from "./Profile/ProfileForm";
 function Index() {
   let navigate = useNavigate();
 
-  // auth post method  and chacked token or not
-  let chackAuth = async () => {
+  const [authChecked, setAuthChecked] = useState(false); // Add state variabl
+
+  // auth post method and check token or not
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  let checkAuth = async () => {
     let token = localStorage.getItem("token");
     if (token) {
       let config = {
@@ -44,10 +47,15 @@ function Index() {
     } else {
       navigate("/login");
     }
+
+    setAuthChecked(true); // Set authChecked to true after the check
   };
+
   useEffect(() => {
-    chackAuth();
-  }, []);
+    if (!authChecked) {
+      checkAuth(); // Call the checkAuth function only if authChecked is false
+    }
+  }, [authChecked, checkAuth]); // Add authChecked to the dependency array
 
   return (
     <>
