@@ -35,34 +35,31 @@ function App() {
   const [collapsed, setCollapsed] = useState(false);
 
   // customer get method
-  let customerurl =
-    "https://inventory-billing-server-1.vercel.app/users/getcustomers";
+  let customerurl = `${process.env.REACT_APP_BACKEND_URL}/users/getcustomers`;
   let [customers, setCustomers] = useState();
 
   let customerData = async () => {
     let cust = await axios.get(customerurl);
     if (cust) {
-      setCustomers(cust?.data?.customer);
-      setCustCount(cust?.data?.customer?.length);
+      setCustomers(cust?.data?.customers);
+      setCustCount(cust?.data?.customers?.length);
     }
   };
 
   // products product get method
-  let getproductsurl =
-    "https://inventory-billing-server-1.vercel.app/users/getproducts";
+  let getproductsurl = `${process.env.REACT_APP_BACKEND_URL}/users/getproducts`;
   let [products, setproducts] = useState();
 
   let productsData = async () => {
     let details = await axios.get(getproductsurl);
     if (details) {
-      setproducts(details?.data?.product);
-      setProductCount(details?.data?.product?.length);
+      setproducts(details?.data?.products);
+      setProductCount(details?.data?.products?.length);
     }
   };
 
   // Bill Info get method
-  let getbillinfourl =
-    "https://inventory-billing-server-1.vercel.app/users/getbillinformation";
+  let getbillinfourl = `${process.env.REACT_APP_BACKEND_URL}/users/getbillinformation`;
   let [allbilldetails, setAllBillDetails] = useState();
 
   let billData = async () => {
@@ -74,8 +71,7 @@ function App() {
   };
 
   // my profile get method
-  let profileurl =
-    "https://inventory-billing-server-1.vercel.app/users/getmyprofile";
+  let profileurl = `${process.env.REACT_APP_BACKEND_URL}/users/getmyprofile`;
   let [myprofile, setMyProfile] = useState();
 
   let profileData = async () => {
