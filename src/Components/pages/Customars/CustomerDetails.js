@@ -4,51 +4,51 @@ import { Link } from "react-router-dom";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import axios from "axios";
-import { useSelector } from "react-redux";
 
 function AllBilldetails() {
-  // get customers URL
-  let [customers, setCustomers] = useState([]);
-  let customerData = async () => {
-    let url = `${process.env.REACT_APP_BACKEND_URL}/users/getcustomers`;
-    let cust = await axios.get(url);
-    if (cust) {
-      setCustomers(cust.data.customers);
-    }
-  };
-  const { customersInfo } = useSelector((state) => state.customers);
-  // console.log("customersInfo", customersInfo);
-
   useEffect(() => {
     customerData();
   }, []);
 
+  // get customers URL
+  let [customers, setCustomers] = useState([]);
+  let customerData = async () => {
+    try {
+      const url = `${process.env.REACT_APP_BACKEND_URL}/users/getcustomers`;
+      const response = await axios.get(url);
+      setCustomers(response.data.customers);
+    } catch (error) {
+      console.error("Error fetching customer data:", error);
+    }
+  };
+
   // Delete Customers Information
   let handleDelete = async (id) => {
-    let url = `${process.env.REACT_APP_BACKEND_URL}/users/deletecustomer/`;
-    let del = await axios.delete(url + id);
-    if (del.status === 200) {
-      customerData();
+    try {
+      const url = `${process.env.REACT_APP_BACKEND_URL}/users/deletecustomer/${id}`;
+      const response = await axios.delete(url);
+      if (response.data) {
+        customerData();
+      }
+    } catch (error) {
+      console.error("Error deleting customer:", error);
     }
   };
 
   return (
     <>
       <div className="content">
-        <div>
-          <div className="d-flex  justify-content-end">
-            <Link
-              to="/customars/new"
-              className="btn text-white shadow-none "
-              style={{ backgroundColor: "#0d47a1" }}
-            >
-              Add New Customar
-            </Link>
-          </div>
+        <div className="d-flex justify-content-end">
+          <Link
+            to="/customars/new"
+            className="btn text-white shadow-none"
+            style={{ backgroundColor: "#0d47a1" }}
+          >
+            Add New Customar
+          </Link>
         </div>
         <div>
-          <h2>Customers Information</h2>
-          <br />
+          <h4>Customers Information</h4>
           <Table
             bordered
             responsive="lg"
@@ -76,7 +76,7 @@ function AllBilldetails() {
                     <td>{e.phone}</td>
                     <td>{e.gstno}</td>
                     <td>
-                      <div className="d-flex flex-row justify-content-center align-items-center">
+                      <div className="d-flex flex-row justify-content-center align-items-center gap-2">
                         <div className="mr-1">
                           <Link to={`/customars/${e._id}`}>
                             <Button

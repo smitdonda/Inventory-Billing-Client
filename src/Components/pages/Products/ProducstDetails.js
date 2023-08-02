@@ -6,12 +6,16 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 
 function ProducstDetails() {
-  let [products, setproducts] = useState([]);
-  let productsData = async () => {
-    const url = `${process.env.REACT_APP_BACKEND_URL}/users/getproducts`;
-    let data = await axios.get(url);
-    if (data) {
-      setproducts(data.data.products);
+  const [products, setProducts] = useState([]);
+  const productsData = async () => {
+    try {
+      const url = `${process.env.REACT_APP_BACKEND_URL}/users/getproducts`;
+      const response = await axios.get(url);
+      if (response?.data?.products) {
+        setProducts(response.data.products);
+      }
+    } catch (error) {
+      console.error("Error fetching products:", error);
     }
   };
 
@@ -19,11 +23,15 @@ function ProducstDetails() {
     productsData();
   }, []);
 
-  let handleDelete = async (id, e) => {
-    const url = `${process.env.REACT_APP_BACKEND_URL}/users/deleteproduct/`;
-    let del = await axios.delete(url + id);
-    if (del.status === 200) {
-      productsData();
+  const handleDelete = async (id) => {
+    try {
+      const url = `${process.env.REACT_APP_BACKEND_URL}/users/deleteproduct/`;
+      const response = await axios.delete(url + id);
+      if (response?.status === 200) {
+        productsData();
+      }
+    } catch (error) {
+      console.error("Error deleting product:", error);
     }
   };
 
@@ -40,7 +48,7 @@ function ProducstDetails() {
               Add New Product
             </Link>
           </div>
-          <div className="container">
+          <div>
             <h3>Products</h3>
             <Table
               bordered
@@ -65,7 +73,7 @@ function ProducstDetails() {
                       <td>{e.availableproductqty}</td>
                       <td>{e.unitprice}</td>
                       <td>
-                        <div className="d-flex flex-row justify-content-center align-items-center">
+                        <div className="d-flex flex-row justify-content-center align-items-center gap-2">
                           <div className="mr-2">
                             <Link to={`/products/${e._id}`}>
                               <Button

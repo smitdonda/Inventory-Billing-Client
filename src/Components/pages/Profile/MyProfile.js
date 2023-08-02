@@ -3,17 +3,23 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 
 function MyProfile() {
-  let [myprofile, setMyProfile] = useState();
-  let ProfileData = async () => {
-    let mypro = await axios.get(
-      `${process.env.REACT_APP_BACKEND_URL}/users/getmyprofile`
-    );
-    if (mypro) {
-      setMyProfile(mypro.data.profile[0]);
-    }
-  };
+  const [myprofile, setMyProfile] = useState(null);
+
   useEffect(() => {
-    ProfileData();
+    const profileData = async () => {
+      try {
+        const response = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/users/getmyprofile`
+        );
+        if (response && response.data && response.data.profile.length > 0) {
+          setMyProfile(response.data.profile[0]);
+        }
+      } catch (error) {
+        console.error("Error profile data:", error);
+      }
+    };
+
+    profileData();
   }, []);
   return (
     <>

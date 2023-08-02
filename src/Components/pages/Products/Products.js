@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Button } from "react-bootstrap";
 import axios from "axios";
 import { BillBook } from "../../../App";
@@ -8,44 +8,34 @@ import * as yup from "yup";
 
 function Products() {
   let context = useContext(BillBook);
-
+  let [editData, setEditData] = useState({});
   let navigate = useNavigate();
   let { id } = useParams();
 
-  if (id !== "new") {
-    if (context.products) {
-      let findindex = context?.products?.findIndex((e) => e._id === id);
-      var Edata = context?.products[findindex];
+  const handleSubmit = async (values) => {
+    const apiUrl =
+      id !== "new"
+        ? `${process.env.REACT_APP_BACKEND_URL}/users/putproducts/${id}`
+        : `${process.env.REACT_APP_BACKEND_URL}/users/postproducts`;
+    try {
+      const response = await axios[id !== "new" ? "put" : "post"](
+        apiUrl,
+        values
+      );
+      if (response && response.status === 200) {
+        navigate("/productsdetails");
+      }
+    } catch (error) {
+      console.error("Error occurred while submitting data: ", error);
     }
-    var handleSubmit = async (values) => {
-      // product put url
-      let putproducturl = `${process.env.REACT_APP_BACKEND_URL}/users/putproducts/`;
-      let res = await axios.put(putproducturl + id, values);
-      if (res) {
-        if (res.status === 200) {
-          navigate("/productsdetails");
-        }
-      }
-    };
-  } else {
-    handleSubmit = async (values) => {
-      // products post url
-      let productsurl = `${process.env.REACT_APP_BACKEND_URL}/users/postproducts`;
-      let data = await axios.post(productsurl, values);
-      if (data) {
-        if (data.status === 200) {
-          navigate("/productsdetails");
-        }
-      }
-    };
-  }
+  };
 
   var formik = useFormik({
+    enableReinitialize: true,
     initialValues: {
-      productname: Edata && Edata.productname ? Edata.productname : "",
-      availableproductqty:
-        Edata && Edata.availableproductqty ? Edata.availableproductqty : "",
-      unitprice: Edata && Edata.unitprice ? Edata.unitprice : "",
+      productname: editData.productname || "",
+      availableproductqty: editData.availableproductqty || "",
+      unitprice: editData.unitprice || "",
     },
     validationSchema: yup.object({
       productname: yup.string().required("Required"),
@@ -56,6 +46,27 @@ function Products() {
       handleSubmit(values);
     },
   });
+
+  useEffect(() => {
+    // Check if id is not "new", then pre-fill form with data
+    if (id !== "new" && context && context.products) {
+      const findindex = context.products.findIndex((e) => e._id === id);
+
+      // Check if the product with the given id is found
+      if (findindex !== -1) {
+        const edata = context.products[findindex];
+
+        // Check if edata is defined before updating the state
+        if (edata) {
+          setEditData({
+            productname: edata.productname,
+            availableproductqty: edata.availableproductqty,
+            unitprice: edata.unitprice,
+          });
+        }
+      }
+    }
+  }, [id, context]);
 
   return (
     <>

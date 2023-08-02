@@ -11,7 +11,6 @@ import BillForm from "./Bill/BillForm";
 import BillInformation from "./Bill/BillInformation";
 import BillTable from "./Bill/BillTable";
 import axios from "axios";
-import { ToastContainer } from "react-toastify";
 import Login from "./Auth/Login";
 import SignUp from "./Auth/SignUp";
 import Error404 from "./Errors/Error404";
@@ -36,7 +35,7 @@ function Index() {
 
       // auth post method
       let res = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/users/auth`,
+        `${process.env.REACT_APP_BACKEND_URL}/auth`,
         { purpose: "validate access" },
         config
       );
@@ -66,7 +65,6 @@ function Index() {
         </Route>
         <Route element={<MainLayout />}>
           <Route path="/" element={<Home />} />
-          <Route path="/home" element={<Home />} />
           <Route path="/customersdetails" element={<CustomerDetails />} />
           <Route path="/customars/:id" element={<Customers />} />
           <Route path="/products/:id" element={<Products />} />
@@ -90,19 +88,7 @@ function Public({ children }) {
   if (isSignedIn) {
     return <Navigate to="/" replace />;
   }
-  return (
-    <>
-      {children || <Outlet />}
-      <ToastContainer
-        position="bottom-center"
-        autoClose={5000}
-        hideProgressBar={false}
-        closeOnClick={false}
-        pauseOnHover={true}
-        draggable={true}
-      />
-    </>
-  );
+  return <>{children || <Outlet />}</>;
 }
 
 function MainLayout() {
@@ -111,15 +97,9 @@ function MainLayout() {
       <Sidebar />
       <div id="main">
         <Header />
-        <Outlet />
-        <ToastContainer
-          position="bottom-center"
-          autoClose={5000}
-          hideProgressBar={false}
-          closeOnClick={false}
-          pauseOnHover={true}
-          draggable={true}
-        />
+        <div>
+          <Outlet />
+        </div>
       </div>
     </>
   );

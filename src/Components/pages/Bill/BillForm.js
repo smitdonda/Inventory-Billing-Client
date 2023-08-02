@@ -11,80 +11,72 @@ import DeleteIcon from "@mui/icons-material/Delete";
 
 function BillForm() {
   let context = useContext(BillBook);
-
   let { id } = useParams();
+
+  //  Products modal Visible or Invisible
+  const [modalShow, setModalShow] = React.useState(false);
 
   let navigate = useNavigate();
 
   //bill info post method
-  let postbillifourl = `${process.env.REACT_APP_BACKEND_URL}/users/addbillinformation`;
+  let postBillInfoUrl = `${process.env.REACT_APP_BACKEND_URL}/users/addbillinformation`;
 
   // bill Information updated  // all Bill details updated  // updated customer product data
-  let updatebillinfourl = `${process.env.REACT_APP_BACKEND_URL}/users/updatebillinfo/`;
+  let updateBillInfoUrl = `${process.env.REACT_APP_BACKEND_URL}/users/updatebillinfo/`;
 
-  if (id !== "new") {
-    // update all bill info
-    var handleSubmit = async (values) => {
-      values["totalproductsprice"] = context.custdata["totalproductsprice"];
-      let res = await axios.put(updatebillinfourl + id, values);
-      if (res) {
+  const handleSubmit = async (values) => {
+    values.totalproductsprice = context.custdata.totalproductsprice;
+    if (id !== "new") {
+      // Update existing bill
+      try {
+        const res = await axios.put(updateBillInfoUrl + id, values);
         if (res.status === 200) {
-          for (let i = 0; i < values.products?.length; i++) {
-            // products findIndex qty
-            let pfindIndex = context.products.findIndex(
-              (e) => e._id === values.products[i]._id
-            );
-            // subtraction of availableproductqty and quantity
-            context.products[pfindIndex].availableproductqty -=
-              values.products[i].quantity;
-
-            // products edit qty
-            await axios.put(
-              `${process.env.REACT_APP_BACKEND_URL}/users/putproducts/` +
-                context?.products[pfindIndex]._id,
-              {
-                availableproductqty:
-                  context?.products[pfindIndex]?.availableproductqty,
-              }
-            );
-          }
+          updateProductQuantities(values.products);
           navigate("/billinformation");
         }
+      } catch (error) {
+        console.error("Error updating bill:", error);
       }
-    };
-  } else {
-    // Save All Bill Data and Post method
-    handleSubmit = async (values) => {
-      values["totalproductsprice"] = context.custdata["totalproductsprice"];
-      let billinfo = await axios.post(postbillifourl, values);
-      if (billinfo.status === 200) {
-        editqty(values);
+    } else {
+      // Create a new bill
+      try {
+        const billInfo = await axios.post(postBillInfoUrl, values);
+        if (billInfo.status === 200) {
+          updateProductQuantities(values.products);
+          navigate("/billinformation");
+        }
+      } catch (error) {
+        console.error("Error creating bill:", error);
       }
-    };
-    var editqty = async (values) => {
-      for (let i = 0; i < values?.products?.length; i++) {
-        // products findIndex qty
-        let pfindIndex = context.products.findIndex(
-          (e) => e._id === values.products[i]._id
-        );
-        // subtraction of availableproductqty and quantity
-        context.products[pfindIndex].availableproductqty -=
-          values.products[i].quantity;
-        // products edit qty
-        await axios.put(
-          `${process.env.REACT_APP_BACKEND_URL}/users/putproducts/` +
-            context.products[pfindIndex]._id,
-          {
-            availableproductqty:
-              context.products[pfindIndex].availableproductqty,
-          }
-        );
+    }
+  };
+
+  const updateProductQuantities = async (products) => {
+    for (let i = 0; i < products.length; i++) {
+      const product = products[i];
+      const pfindIndex = context.products.findIndex(
+        (e) => e._id === product._id
+      );
+      if (pfindIndex !== -1) {
+        context.products[pfindIndex].availableproductqty -= product.quantity;
+        try {
+          await axios.put(
+            `${process.env.REACT_APP_BACKEND_URL}/users/putproducts/` +
+              context.products[pfindIndex]._id,
+            {
+              availableproductqty:
+                context.products[pfindIndex].availableproductqty,
+            }
+          );
+        } catch (error) {
+          console.error("Error updating product quantity:", error);
+        }
       }
-      navigate("/billinformation");
-    };
-  }
+    }
+  };
 
   const formik = useFormik({
+    enableReinitialize: true,
     initialValues: {
       name: context && context?.custdata?.name ? context?.custdata?.name : "",
       email:
@@ -120,15 +112,13 @@ function BillForm() {
 
   // produts delete
   // one product object delete
-
-  let handleDelete = (e) => {
-    // subtractions of  context.custdata.totalproductsprice and gsttex
-    let sub = context?.custdata?.totalproductsprice - e.gsttex;
-    context.custdata.totalproductsprice = sub;
-    context.setCustData(context.custdata);
-    // splice the product object
-    context.prod.splice(context.prod.indexOf(e), 1);
-    context.setProd(context.prod);
+  const handleDelete = (product) => {
+    const sub = context.custdata.totalproductsprice - product.gsttex;
+    context.setCustData((prevData) => ({
+      ...prevData,
+      totalproductsprice: sub,
+    }));
+    context.setProd((prevProd) => prevProd.filter((p) => p !== product));
   };
 
   return (
@@ -306,7 +296,7 @@ function BillForm() {
             <Button
               className="mt-4 mb-3 mr-4  shadow none"
               onClick={() => {
-                context.setModalShow(true);
+                setModalShow(true);
                 context.setEditProduct({});
                 context.setNewOne(true);
               }}
@@ -314,8 +304,9 @@ function BillForm() {
               Add Products
             </Button>
             <ProductsModal
-              show={context.modalShow}
-              onHide={() => context.setModalShow(false)}
+              show={modalShow}
+              onHide={() => setModalShow(false)}
+              setModalShow={setModalShow}
             />
           </div>
 
@@ -354,13 +345,13 @@ function BillForm() {
                         })}
                       </td>
                       <td>{e?.gsttex ? <>{e?.gsttex}</> : <></>}</td>
-                      <td className="d-flex flex-row justify-content-center align-items-center">
+                      <td className="d-flex flex-row justify-content-center align-items-center gap-2">
                         <Button
                           variant="warning"
                           size="sm"
                           className="mr-2 shadow-none rounded-circle"
                           onClick={() => {
-                            context.setModalShow(true);
+                            setModalShow(true);
                             context.editProduct = e;
                             context.setEditProduct(context.editProduct);
                             context.setNewOne(false);
@@ -385,9 +376,10 @@ function BillForm() {
                 <tr className="bg-dark text-white">
                   <td colSpan="4"></td>
                   <td className="font-weight-bold">Total Products Price</td>
-                  <td colSpan="2" className="h6">
+                  <td className="h6">
                     {context?.custdata?.totalproductsprice}
                   </td>
+                  <td></td>
                 </tr>
               </tbody>
             </Table>

@@ -8,9 +8,6 @@ import Main from "./Components/pages";
 export const BillBook = React.createContext();
 
 function App() {
-  //  Products modal Visible or Invisible
-  const [modalShow, setModalShow] = React.useState(false);
-
   // products modal edit or add products
   let [newOne, setNewOne] = useState(true);
 
@@ -18,7 +15,7 @@ function App() {
   let [editProduct, setEditProduct] = useState();
 
   // customers selected object data and after saveData all details in this variable
-  let [custdata, setCustData] = useState([]);
+  let [custdata, setCustData] = useState({});
 
   // selected all products data in new Array
   let [prod, setProd] = useState([]);
@@ -31,62 +28,83 @@ function App() {
 
   // bill Count Number
   let [billinfoCount, setBillinfoCount] = useState();
-  // siderbar
-  const [collapsed, setCollapsed] = useState(false);
+
+  // loadding
+  let [loadding, setLoadding] = useState(false);
 
   // customer get method
-  let customerurl = `${process.env.REACT_APP_BACKEND_URL}/users/getcustomers`;
   let [customers, setCustomers] = useState();
 
-  let customerData = async () => {
-    let cust = await axios.get(customerurl);
-    if (cust) {
-      setCustomers(cust?.data?.customers);
-      setCustCount(cust?.data?.customers?.length);
+  const fetchCustomerData = async () => {
+    try {
+      setLoadding(true);
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/users/getcustomers`
+      );
+      setCustomers(response?.data?.customers);
+      setCustCount(response?.data?.customers?.length);
+      setLoadding(false);
+    } catch (error) {
+      // Handle error if needed
+      console.log("Error", error);
+      setLoadding(false);
     }
   };
 
-  // products product get method
-  let getproductsurl = `${process.env.REACT_APP_BACKEND_URL}/users/getproducts`;
+  // Fetch products data
   let [products, setproducts] = useState();
-
-  let productsData = async () => {
-    let details = await axios.get(getproductsurl);
-    if (details) {
-      setproducts(details?.data?.products);
-      setProductCount(details?.data?.products?.length);
+  const fetchProductsData = async () => {
+    try {
+      setLoadding(true);
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/users/getproducts`
+      );
+      setproducts(response?.data?.products);
+      setProductCount(response?.data?.products?.length);
+      setLoadding(false);
+    } catch (error) {
+      // Handle error if needed
+      console.log("Error", error);
     }
   };
 
-  // Bill Info get method
-  let getbillinfourl = `${process.env.REACT_APP_BACKEND_URL}/users/getbillinformation`;
+  // Fetch bill data
   let [allbilldetails, setAllBillDetails] = useState();
 
-  let billData = async () => {
-    let bill = await axios.get(getbillinfourl);
-    if (bill) {
-      setAllBillDetails(bill?.data?.billinfo);
-      setBillinfoCount(bill?.data.billinfo?.length);
+  const fetchBillData = async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/users/getbillinformation`
+      );
+      setAllBillDetails(response?.data?.billinfo);
+      setBillinfoCount(response?.data.billinfo?.length);
+    } catch (error) {
+      // Handle error if needed
+      console.log("Error", error);
     }
   };
 
-  // my profile get method
-  let profileurl = `${process.env.REACT_APP_BACKEND_URL}/users/getmyprofile`;
+  // Fetch my profile data
   let [myprofile, setMyProfile] = useState();
 
-  let profileData = async () => {
-    let mypro = await axios.get(profileurl);
-    if (mypro) {
-      setMyProfile(mypro.data.profile[0]);
+  const fetchProfileData = async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/users/getmyprofile`
+      );
+      setMyProfile(response.data.profile[0]);
+    } catch (error) {
+      // Handle error if needed
+      console.log("Error", error);
     }
   };
 
   useEffect(() => {
-    customerData(); // customer data
-    productsData(); // products data
-    billData(); //bill data
-    profileData(); // my profile data
-  }, []);
+    fetchCustomerData();
+    fetchProductsData();
+    fetchBillData();
+    fetchProfileData();
+  }, [loadding]);
 
   return (
     <BrowserRouter>
@@ -96,8 +114,6 @@ function App() {
           products,
           prod,
           setProd,
-          modalShow,
-          setModalShow,
           allbilldetails,
           setAllBillDetails,
           custdata,
@@ -114,8 +130,6 @@ function App() {
           setEditProduct,
           newOne,
           setNewOne,
-          collapsed,
-          setCollapsed,
         }}
       >
         <Main />

@@ -16,7 +16,7 @@ function Sidebar() {
       icon: <AccountCircleIcon />,
     },
     {
-      to: "/home",
+      to: "/",
       name: "Home",
       icon: <HomeIcon />,
     },

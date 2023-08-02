@@ -1,64 +1,45 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Button } from "react-bootstrap";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import { useFormik } from "formik";
 import * as yup from "yup";
 import { BillBook } from "../../../App";
-import { seCustomersInfoAction } from "../../redux/customersInfo";
-import { useDispatch } from "react-redux";
 
 function Customars() {
   let context = useContext(BillBook);
-  const dispatch = useDispatch();
   let navigate = useNavigate();
-
+  let [editData, setEditData] = useState({});
   let { id } = useParams();
+  // Helper function to handle form submission
+  const handleSubmit = async (values) => {
+    try {
+      let url;
+      if (id !== "new") {
+        url = `${process.env.REACT_APP_BACKEND_URL}/users/putcustomers/${id}`;
+      } else {
+        url = `${process.env.REACT_APP_BACKEND_URL}/users/postcustomers`;
+      }
 
-  if (id !== "new") {
-    if (context && context.customers) {
-      let findIndex = context?.customers?.findIndex((e) => e._id === id);
-      var edata = context?.customers[findIndex];
+      const response = await axios[id !== "new" ? "put" : "post"](url, values);
+      if (response.status === 200) {
+        navigate("/customersdetails");
+      }
+    } catch (error) {
+      console.log("Error", error);
     }
+  };
 
-    var handleSubmit = async (values) => {
-      try {
-        let url = `${process.env.REACT_APP_BACKEND_URL}/users/putcustomers/`;
-        let res = await axios.put(url + id, values);
-        if (res) {
-          if (res.status === 200) {
-            navigate("/customersdetails");
-          }
-        }
-      } catch (error) {
-        console.log("Error", error.message);
-      }
-    };
-  } else {
-    handleSubmit = async (values) => {
-      try {
-        let url = `${process.env.REACT_APP_BACKEND_URL}/users/postcustomers`;
-        let cust = await axios.post(url, values);
-        if (cust) {
-          if (cust.status === 200) {
-            dispatch(seCustomersInfoAction(values));
-            navigate("/customersdetails");
-          }
-        }
-      } catch (error) {
-        console.log("Error", error.message);
-      }
-    };
-  }
-
+  // Schema for form validation
   var formik = useFormik({
+    enableReinitialize: true,
     initialValues: {
-      name: edata && edata.name ? edata.name : "",
-      email: edata && edata.email ? edata.email : "",
-      phone: edata && edata.phone ? edata.phone : "",
-      date: edata && edata.date ? edata.date : "",
-      gstno: edata && edata.gstno ? edata.gstno : "",
-      address: edata && edata.address ? edata.address : "",
+      name: editData.name || "",
+      email: editData.email || "",
+      phone: editData.phone || "",
+      date: editData.date || "",
+      gstno: editData.gstno || "",
+      address: editData.address || "",
     },
     validationSchema: yup.object({
       name: yup.string().required("Required"),
@@ -75,6 +56,27 @@ function Customars() {
       handleSubmit(values);
     },
   });
+
+  useEffect(() => {
+    // Check if id is not "new", then pre-fill form with data
+    if (id !== "new" && context && context.customers) {
+      if (context && context.customers) {
+        const findIndex = context.customers.findIndex((e) => e._id === id);
+        const edata = context.customers[findIndex];
+        console.log(edata);
+        if (edata) {
+          setEditData({
+            name: edata.name,
+            email: edata.email,
+            phone: edata.phone,
+            date: edata.date,
+            gstno: edata.gstno,
+            address: edata.address,
+          });
+        }
+      }
+    }
+  }, [id, context]);
 
   return (
     <>

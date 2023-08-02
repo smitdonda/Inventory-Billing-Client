@@ -10,7 +10,7 @@ function Login() {
   let handleSubmit = async (values) => {
     try {
       let res = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/users/login`,
+        `${process.env.REACT_APP_BACKEND_URL}/login`,
         values
       );
       if (res.data.statusCode === 200) {

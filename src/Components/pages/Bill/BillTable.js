@@ -13,25 +13,25 @@ const options = {
 };
 
 function BillTable() {
-  let context = useContext(BillBook);
-  let { id } = useParams();
+  const context = useContext(BillBook);
+  const { id } = useParams();
 
-  let [invoiceObj, setInvoiceObj] = useState([]);
-  let [InvoceId, setInvoceId] = useState();
+  const [invoiceObj, setInvoiceObj] = useState([]);
+  const [InvoceId, setInvoceId] = useState();
 
-  let InvoiceData = () => {
-    if (context.allbilldetails) {
-      let InvoiceFindIndex = context.allbilldetails.findIndex(
+  const invoiceData = () => {
+    if (context?.allbilldetails) {
+      const findIndex = context.allbilldetails.findIndex(
         (invoice) => invoice?._id === id
       );
-      setInvoiceObj(context?.allbilldetails[InvoiceFindIndex]);
-      setInvoceId(InvoiceFindIndex + 1);
+      setInvoiceObj(context?.allbilldetails[findIndex]);
+      setInvoceId(findIndex + 1);
     }
   };
 
   useEffect(() => {
-    InvoiceData();
-  });
+    invoiceData();
+  }, []);
 
   return (
     <>
@@ -77,8 +77,8 @@ function BillTable() {
                     {context?.myprofile?.state}&nbsp;,&nbsp;
                     {context?.myprofile?.city}
                   </div>
-                  <div>Phone&nbsp;:&nbsp;{context?.myprofile?.phone}</div>
-                  <div>Email&nbsp;:&nbsp;{context?.myprofile?.cemail}</div>
+                  <div>Phone&nbsp;:{context?.myprofile?.phone}</div>
+                  <div>Email&nbsp;:{context?.myprofile?.cemail}</div>
                 </div>
               </div>
               <Table size="sm" className="m-auto table table-borderless ">
@@ -87,7 +87,7 @@ function BillTable() {
                 </tr>
                 <tr>
                   <th scope="col">
-                    Name&nbsp;:&nbsp;&nbsp;
+                    Name&nbsp;:&nbsp;
                     <span className="font-weight-normal ">
                       {invoiceObj?.name}
                     </span>
@@ -95,25 +95,25 @@ function BillTable() {
                 </tr>
                 <tr>
                   <th scope="col">
-                    Address&nbsp;:&nbsp;&nbsp;
+                    Address&nbsp;:&nbsp;
                     <span className="font-weight-normal">
                       {invoiceObj?.address}
                     </span>
                   </th>
                   <th scope="col">
-                    Invoice Id No&nbsp;:&nbsp;&nbsp;
+                    Invoice Id No&nbsp;:&nbsp;
                     <span className="font-weight-normal">&#35;{InvoceId}</span>
                   </th>
                 </tr>
                 <tr>
                   <th scope="col">
-                    Phone No&nbsp;:&nbsp;&nbsp;
+                    Phone No&nbsp;:&nbsp;
                     <span className="font-weight-normal">
                       {invoiceObj?.phone}
                     </span>
                   </th>
                   <th scope="col">
-                    Invoice Date&nbsp;:&nbsp;&nbsp;
+                    Invoice Date&nbsp;:&nbsp;
                     <span className="font-weight-normal">
                       {invoiceObj?.date}
                     </span>
@@ -121,7 +121,7 @@ function BillTable() {
                 </tr>
                 <tr>
                   <th scope="col" colSpan="2">
-                    GST No&nbsp;:&nbsp;&nbsp;
+                    GST No&nbsp;:&nbsp;
                     <span className="font-weight-normal">
                       {invoiceObj?.gstno}
                     </span>

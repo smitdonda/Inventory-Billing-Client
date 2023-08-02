@@ -19,7 +19,7 @@ function Header() {
     document.getElementById("main").style.marginLeft = "240px";
     document.getElementById("menuToggle").style.display = "none";
   };
-  
+
   return (
     <div>
       <div class="header bg-dark">

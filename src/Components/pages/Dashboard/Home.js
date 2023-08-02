@@ -112,7 +112,10 @@ function Home() {
           {/* chart and product and aqty */}
           <div className="d-flex flex-wrap justify-content-around p-2">
             {/* graph */}
-            <div className="border border-2 d-flex flex-wrap justify-content-center  align-items-center">
+            <div
+              className="border border-2 d-flex flex-wrap justify-content-center  align-items-center"
+              style={{ zIndex: "-1" }}
+            >
               <Chart
                 className="product-chart "
                 chartType="PieChart"

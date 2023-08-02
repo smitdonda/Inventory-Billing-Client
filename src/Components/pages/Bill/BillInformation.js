@@ -8,29 +8,37 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 
 function BillInformation() {
-  let context = useContext(BillBook);
+  const context = useContext(BillBook);
+  const [allBillDetails, setAllBillDetails] = useState([]);
 
-  // get all Bill Information
-  let getbillinfourl = `${process.env.REACT_APP_BACKEND_URL}/users/getbillinformation`;
-  let [allbilldetails, setAllBillDetails] = useState();
-  let billData = async () => {
-    let bill = await axios.get(getbillinfourl);
-    if (bill) {
-      setAllBillDetails(bill.data.billinfo);
-    }
-  };
-
-  // Delete all Bill Information
-  let handleDelete = async (id) => {
-    let daletebillinfourl = `${process.env.REACT_APP_BACKEND_URL}/users/deletebillinfo/`;
-    let del = await axios.delete(daletebillinfourl + id);
-    if (del.status === 200) {
-      billData();
-    }
-  };
   useEffect(() => {
-    billData();
+    getBillData();
   }, []);
+
+  const getBillData = async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/users/getbillinformation`
+      );
+      if (response?.data?.billinfo) {
+        setAllBillDetails(response.data.billinfo);
+      }
+    } catch (error) {
+      console.error("Error fetching bill data:", error);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      const deleteBillInfoUrl = `${process.env.REACT_APP_BACKEND_URL}/users/deletebillinfo/${id}`;
+      const response = await axios.delete(deleteBillInfoUrl);
+      if (response.status === 200) {
+        getBillData();
+      }
+    } catch (error) {
+      console.error("Error deleting bill:", error);
+    }
+  };
 
   return (
     <>
@@ -39,19 +47,18 @@ function BillInformation() {
           <div className="d-flex justify-content-end align-items-center">
             <Link
               to="/billform/new"
-              className="btn btn-ghost-*  text-white shadow-none"
+              className="btn text-white shadow-none"
               style={{ backgroundColor: "#0d47a1" }}
             >
               Generate New Bill
             </Link>
           </div>
-          <h2 className="text-center">Bill Information</h2>
-          <hr />
+          <h3>Bill Information</h3>
           <Table bordered responsive="lg" className="text-center text-dark">
-            <thead className="bg-dark text-white mt-5 ">
+            <thead className="bg-dark text-white mt-5">
               <tr>
                 <th>No.</th>
-                <th>Customars Name</th>
+                <th>Customers Name</th>
                 <th>Products</th>
                 <th>Products Totals</th>
                 <th>Action</th>
@@ -59,67 +66,63 @@ function BillInformation() {
               </tr>
             </thead>
             <tbody>
-              {allbilldetails?.map((e, i) => {
-                return (
-                  <tr key={i}>
-                    <th scope="col">{i + 1}</th>
-                    <td className="text-left">{e?.name}</td>
-                    <td className="text-left">
-                      {e?.products?.map((p, i) => {
-                        return (
-                          <div key={i}>
-                            <span>{i + 1}</span>.&nbsp;{p.productname}
-                          </div>
-                        );
-                      })}
-                    </td>
-                    <td>{e?.totalproductsprice}</td>
-                    <td>
-                      <div className="d-flex flex-row justify-content-center align-items-center">
-                        <div>
-                          <Link to={`/billform/${e._id}`}>
-                            <Button
-                              variant="warning"
-                              size="sm"
-                              className="shadow-none mr-2 rounded-circle"
-                              onClick={() => {
-                                // all details printed in a bill form
-                                context?.setCustData(e);
-                                context?.setProd(e?.products);
-                              }}
-                            >
-                              <EditIcon />
-                            </Button>
-                          </Link>
-                        </div>
-                        <div>
+              {allBillDetails.map((bill, index) => (
+                <tr key={bill._id}>
+                  <th scope="col">{index + 1}</th>
+                  <td className="text-left">{bill?.name}</td>
+                  <td className="text-left">
+                    {bill?.products?.map((product, i) => (
+                      <div key={i}>
+                        <span>{i + 1}</span>.&nbsp;{product.productname}
+                      </div>
+                    ))}
+                  </td>
+                  <td>{bill?.totalproductsprice}</td>
+                  <td>
+                    <div className="d-flex flex-row justify-content-center align-items-center gap-2">
+                      <div>
+                        <Link to={`/billform/${bill._id}`}>
                           <Button
-                            variant="danger"
+                            variant="warning"
                             size="sm"
-                            className="shadow-none rounded-circle  "
+                            className="shadow-none mr-2 rounded-circle"
                             onClick={() => {
-                              handleDelete(e._id);
+                              // all details printed in a bill form
+                              context?.setCustData(bill);
+                              context?.setProd(bill?.products);
                             }}
                           >
-                            <DeleteIcon />
+                            <EditIcon />
                           </Button>
-                        </div>
+                        </Link>
                       </div>
-                    </td>
-                    <td>
-                      <Link to={`/billtable/${e._id}`}>
+                      <div>
                         <Button
+                          variant="danger"
                           size="sm"
-                          className="border shadow-none"
-                          style={{ backgroundColor: "#CC0000" }}
+                          className="shadow-none rounded-circle  "
+                          onClick={() => {
+                            handleDelete(bill._id);
+                          }}
                         >
-                          <PictureAsPdfIcon></PictureAsPdfIcon>
+                          <DeleteIcon />
                         </Button>
-                      </Link>
-                    </td>
-                  </tr>
-                );
-              })}
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <Link to={`/billtable/${bill._id}`}>
+                      <Button
+                        size="sm"
+                        className="border shadow-none"
+                        style={{ backgroundColor: "#CC0000" }}
+                      >
+                        <PictureAsPdfIcon />
+                      </Button>
+                    </Link>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </Table>
         </div>

@@ -10,7 +10,7 @@ function Registration() {
   let handleSubmit = async (values) => {
     try {
       let res = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/users/signup`,
+        `${process.env.REACT_APP_BACKEND_URL}/signup`,
         values
       );
       if (res.data.statusCode === 200) {

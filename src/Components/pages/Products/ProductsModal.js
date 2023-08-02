@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import Multiselect from "multiselect-react-dropdown";
 import { ErrorMessage, Field, Form, Formik } from "formik";
 import { Dropdown, Modal, Button } from "react-bootstrap";
@@ -6,7 +6,7 @@ import { BillBook } from "../../../App";
 
 function ProductsModal(props) {
   let context = useContext(BillBook);
-  let selectedGSTs;
+  const [selectedGSTs, setSelectedGSTs] = useState([]);
 
   return (
     <>
@@ -61,7 +61,7 @@ function ProductsModal(props) {
                     if (!values.quantity) {
                       errors.quantity = "Required";
                     }
-                    if (!values.gst) {
+                    if (!values.gst || values.gst.length === 0) {
                       errors.gst = "Required";
                     }
                   }
@@ -69,22 +69,29 @@ function ProductsModal(props) {
                 }}
                 onSubmit={(values, { setSubmitting }) => {
                   setTimeout(() => {
-                    values["gst"] = context.editProduct.gst || selectedGSTs;
-                    let productIndex = context.prod.findIndex(
+                    values["gst"] = selectedGSTs?.length
+                      ? selectedGSTs
+                      : context?.editProduct?.gst;
+                    const productIndex = context.prod.findIndex(
                       (e) => e.productname === values.productname
                     );
+
                     if (productIndex > -1 && context.newOne) {
                       alert("Selected product is already added into the bill.");
                       return false;
                     }
+
                     if (values.availableproductqty === 0) {
-                      alert("Selected product is on of stock.");
+                      alert("Selected product is out of stock.");
+                      return false;
                     }
+
                     if (values.availableproductqty >= values.quantity) {
                       values["pandqtotal"] =
                         values.unitprice * parseInt(values.quantity);
                       values["gsttex"] = values.pandqtotal;
-                      // s and c gst add in p and q total
+
+                      // Add S GST and C GST in p and q total
                       if (values.gst && values?.gst?.length) {
                         for (let g = 0; g < values?.gst?.length; g++) {
                           values.gst[g]["taxAmount"] =
@@ -92,27 +99,32 @@ function ProductsModal(props) {
                           values.gsttex += values.gst[g].taxAmount;
                         }
                       }
-                      // push all products in this variable context.prod in array
+
+                      // Add product to context.prod array
                       if (context.newOne === true) {
                         context.prod.push(values);
                       } else if (productIndex > -1) {
                         context.prod[productIndex] = values;
                       }
-                      // total amount of products
+
+                      // Calculate total amount of products
                       let sum = 0;
                       for (var t = 0; t < context?.prod?.length; t++) {
-                        sum += context.prod[t].gsttex;
-                        context.custdata["totalproductsprice"] = sum;
-                        context.setCustData(context.custdata);
+                        sum += context.prod[t]?.gsttex;
                       }
+                      if (context && context.custdata)
+                        console.log("context.custdata", context.custdata);
+                      context.custdata["totalproductsprice"] = sum;
+                      context.setCustData(context.custdata);
                     } else {
                       alert(
-                        "Please enter the correct quantity available quantity is : " +
+                        "Please enter the correct quantity. Available quantity is: " +
                           values.availableproductqty
                       );
                     }
+
                     setSubmitting(true);
-                    context.setModalShow(false);
+                    props.setModalShow(false);
                   }, 200);
                 }}
               >
@@ -169,7 +181,7 @@ function ProductsModal(props) {
                           name="gst"
                           placeholder="Please select GSTs"
                           onSelect={function noRefCheck(selectedList) {
-                            selectedGSTs = selectedList;
+                            setSelectedGSTs(selectedList);
                           }}
                           options={[
                             { title: "S GST 2.5%", value: 2.5 },
@@ -192,7 +204,7 @@ function ProductsModal(props) {
                         />
                       </div>
                     </div>
-                    <div className="text-right mt-3">
+                    <div className="d-flex justify-content-end mt-3">
                       {context.newOne === true ? (
                         <Button
                           type="submit"
