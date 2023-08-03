@@ -1,41 +1,40 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { Button } from "react-bootstrap";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import { BillBook } from "../../../App";
 import { useFormik } from "formik";
 import * as yup from "yup";
+import { SpinLoader } from "../Loaders/loaders";
 
 function ProfileForm() {
   let context = useContext(BillBook);
 
-  let navigate = useNavigate();
-  let { id } = useParams();
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const [loadding, setLoadding] = useState(false);
 
   // find the Id data
+  const handleSubmit = async (values, id) => {
+    const url =
+      `${process.env.REACT_APP_BACKEND_URL}/users/` +
+      (id !== "new" ? `putmyprofile/${id}` : "myprofilepost/");
 
-  if (id !== "new") {
-    var handleSubmit = async (values) => {
-      let url = `${process.env.REACT_APP_BACKEND_URL}/users/putmyprofile/`;
-      let res = await axios.put(url + id, values);
-      if (res) {
-        if (res.status === 200) {
-          navigate("/myprofile");
-        }
+    try {
+      setLoadding(true);
+      const res = await (id !== "new"
+        ? axios.put(url, values)
+        : axios.post(url, values));
+      if (res && res.status === 200) {
+        setLoadding(false);
+        navigate("/myprofile");
       }
-    };
-  } else {
-    // Post method my profille
-    handleSubmit = async (values) => {
-      let companyurl =  `${process.env.REACT_APP_BACKEND_URL}/users/myprofilepost/` ;
-      let res = await axios.post(companyurl, values);
-      if (res) {
-        if (res.status === 200) {
-          navigate("/myprofile");
-        }
-      }
-    };
-  }
+    } catch (error) {
+      // Handle error here, if needed
+      setLoadding(false);
+      console.error("Error occurred:", error);
+    }
+  };
 
   const companyprofile = useFormik({
     initialValues: {
@@ -254,12 +253,12 @@ function ProfileForm() {
             </div>
             <div className="ml-3">
               {id !== "new" ? (
-                <Button variant="warning" type="submit">
-                  Update
+                <Button type="submit" variant="warning">
+                  {loadding ? <SpinLoader /> : "Update"}
                 </Button>
               ) : (
-                <Button variant="primary" type="submit">
-                  Submit
+                <Button type="submit" variant="primary">
+                  {loadding ? <SpinLoader /> : "Submit"}
                 </Button>
               )}
             </div>

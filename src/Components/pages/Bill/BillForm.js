@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import ProductsModal from "../Products/ProductsModal";
 import { useNavigate, useParams } from "react-router-dom";
 import { Dropdown, Table, Button } from "react-bootstrap";
@@ -8,14 +8,16 @@ import { useFormik } from "formik";
 import * as yup from "yup";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { SpinLoader } from "../Loaders/loaders";
 
 function BillForm() {
   let context = useContext(BillBook);
   let { id } = useParams();
 
   //  Products modal Visible or Invisible
-  const [modalShow, setModalShow] = React.useState(false);
+  const [modalShow, setModalShow] = useState(false);
 
+  const [loadding, setLoadding] = useState(false);
   let navigate = useNavigate();
 
   //bill info post method
@@ -25,6 +27,7 @@ function BillForm() {
   let updateBillInfoUrl = `${process.env.REACT_APP_BACKEND_URL}/users/updatebillinfo/`;
 
   const handleSubmit = async (values) => {
+    setLoadding(true);
     values.totalproductsprice = context.custdata.totalproductsprice;
     if (id !== "new") {
       // Update existing bill
@@ -33,19 +36,24 @@ function BillForm() {
         if (res.status === 200) {
           updateProductQuantities(values.products);
           navigate("/billinformation");
+          setLoadding(false);
         }
       } catch (error) {
         console.error("Error updating bill:", error);
+        setLoadding(false);
       }
     } else {
       // Create a new bill
       try {
+        setLoadding(true);
         const billInfo = await axios.post(postBillInfoUrl, values);
         if (billInfo.status === 200) {
           updateProductQuantities(values.products);
           navigate("/billinformation");
+          setLoadding(false);
         }
       } catch (error) {
+        setLoadding(false);
         console.error("Error creating bill:", error);
       }
     }
@@ -173,7 +181,7 @@ function BillForm() {
                     variant="warning"
                     className="mr-3  shadow-none"
                   >
-                    Update
+                    {loadding ? <SpinLoader /> : "Update"}
                   </Button>
                 ) : (
                   <Button
@@ -181,7 +189,7 @@ function BillForm() {
                     variant="success"
                     className="mr-3  shadow-none"
                   >
-                    Save
+                    {loadding ? <SpinLoader /> : "Save"}
                   </Button>
                 )}
               </div>

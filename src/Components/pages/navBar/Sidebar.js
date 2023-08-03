@@ -11,11 +11,6 @@ function Sidebar() {
 
   const SiderBarData = [
     {
-      to: "/myprofile",
-      name: "MyProfile",
-      icon: <AccountCircleIcon />,
-    },
-    {
       to: "/",
       name: "Home",
       icon: <HomeIcon />,
@@ -34,6 +29,11 @@ function Sidebar() {
       to: "/billinformation",
       name: "Bill Info",
       icon: <InfoIcon />,
+    },
+    {
+      to: "/myprofile",
+      name: "MyProfile",
+      icon: <AccountCircleIcon />,
     },
   ];
 

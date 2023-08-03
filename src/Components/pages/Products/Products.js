@@ -5,12 +5,14 @@ import { BillBook } from "../../../App";
 import { useNavigate, useParams } from "react-router-dom";
 import { useFormik } from "formik";
 import * as yup from "yup";
+import { SpinLoader } from "../Loaders/loaders";
 
 function Products() {
   let context = useContext(BillBook);
-  let [editData, setEditData] = useState({});
-  let navigate = useNavigate();
-  let { id } = useParams();
+  const [editData, setEditData] = useState({});
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const [loadding, setLoadding] = useState(false);
 
   const handleSubmit = async (values) => {
     const apiUrl =
@@ -18,14 +20,17 @@ function Products() {
         ? `${process.env.REACT_APP_BACKEND_URL}/users/putproducts/${id}`
         : `${process.env.REACT_APP_BACKEND_URL}/users/postproducts`;
     try {
+      setLoadding(true);
       const response = await axios[id !== "new" ? "put" : "post"](
         apiUrl,
         values
       );
       if (response && response.status === 200) {
         navigate("/productsdetails");
+        setLoadding(false);
       }
     } catch (error) {
+      setLoadding(false);
       console.error("Error occurred while submitting data: ", error);
     }
   };
@@ -141,16 +146,12 @@ function Products() {
               </div>
               <div className="form-group mt-3">
                 {id !== "new" ? (
-                  <Button
-                    variant="warning"
-                    type="submit"
-                    className="shadow none"
-                  >
-                    Update
+                  <Button type="submit" variant="warning">
+                    {loadding ? <SpinLoader /> : "Update"}
                   </Button>
                 ) : (
-                  <Button className="shadow none" type="submit">
-                    Submit
+                  <Button type="submit" variant="primary">
+                    {loadding ? <SpinLoader /> : "Submit"}
                   </Button>
                 )}
               </div>
