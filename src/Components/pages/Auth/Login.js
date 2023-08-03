@@ -1,24 +1,29 @@
-import React from "react";
+import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import { useFormik } from "formik";
 import * as yup from "yup";
+import { Button } from "react-bootstrap";
+import { SpinLoader } from "../Loaders/loaders";
 
 function Login() {
   let navigate = useNavigate();
-
+  const [loadding, setLoadding] = useState(false);
   let handleSubmit = async (values) => {
     try {
+      setLoadding(true);
       let res = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/login`,
         values
       );
       if (res.data.statusCode === 200) {
+        setLoadding(false);
         localStorage.setItem("token", res.data.token);
         localStorage.setItem("userInfo", res.data);
         navigate("/");
       }
     } catch (error) {
+      setLoadding(false);
       console.log("Error", error);
     }
   };
@@ -53,10 +58,10 @@ function Login() {
           <div>
             <form
               onSubmit={formik.handleSubmit}
-              className="p-4 border border-3 "
+              className="p-4 border border-3"
               style={{ borderRadius: "2%" }}
             >
-              <h2 className="card-title mb-4 text-center text-primary ">
+              <h2 className="card-title mb-4 text-center text-primary">
                 Login
               </h2>
               <div className="mb-3 ">
@@ -96,13 +101,15 @@ function Login() {
                   <div style={{ color: "red" }}>{formik.errors.password}</div>
                 ) : null}
               </div>
-              <div className="mb-2 d-flex justify-content-end">
-                <button
-                  className="btn btn-login btn-primary shadow-none text-uppercase"
+              <div className="d-grid mb-3">
+                <Button
                   type="submit"
+                  variant="primary"
+                  className="text-uppercase"
+                  size="lg"
                 >
-                  Login
-                </button>
+                  {loadding ? <SpinLoader /> : "Login"}
+                </Button>
               </div>
               <Link
                 className="d-block text-center mt-2 text-white text-decoration-none h6"

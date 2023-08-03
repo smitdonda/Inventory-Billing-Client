@@ -1,22 +1,27 @@
-import React from "react";
+import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import { useFormik } from "formik";
 import * as yup from "yup";
-
+import { Button } from "react-bootstrap";
+import { SpinLoader } from "../Loaders/loaders";
 function Registration() {
   let navigate = useNavigate();
+  const [loadding, setLoadding] = useState(false);
 
   let handleSubmit = async (values) => {
     try {
+      setLoadding(true);
       let res = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/signup`,
         values
       );
       if (res.data.statusCode === 200) {
+        setLoadding(false);
         navigate("/login");
       }
     } catch (error) {
+      setLoadding(false);
       console.log("Error", error);
     }
   };
@@ -65,7 +70,7 @@ function Registration() {
             className="p-4 border border-3 "
             style={{ borderRadius: "2%" }}
           >
-            <h2 className="text-center text-primary mb-5">Sign Up</h2>
+            <h2 className="text-center text-primary mb-4">Sign Up</h2>
             {/* Login Form */}
             <div className=" mb-3">
               <div className="form-floating">
@@ -147,15 +152,16 @@ function Registration() {
                 <div style={{ color: "red" }}>{formik.errors.cpassword}</div>
               ) : null}
             </div>
-            <div className="mb-2 d-flex justify-content-end">
-              <button
-                className="btn btn-md btn-signup btn-primary shadow-none text-uppercase "
+            <div className="d-grid mb-3">
+              <Button
                 type="submit"
+                variant="primary"
+                className="text-uppercase"
+                size="lg"
               >
-                Register
-              </button>
+                {loadding ? <SpinLoader /> : "Register"}
+              </Button>
             </div>
-
             <Link
               className="d-block text-center mt-2 text-white text-decoration-none h6"
               to="/login"

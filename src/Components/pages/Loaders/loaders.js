@@ -20,7 +20,7 @@ function SpinLoader() {
         class="spinner-grow spinner-grow-sm"
         role="status"
         aria-hidden="true"
-      ></span>
+      ></span>{" "}
       Loading...
     </div>
   );
