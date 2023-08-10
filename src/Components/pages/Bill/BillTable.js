@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
 import { Table } from "react-bootstrap";
 import { BillBook } from "../../../App";
 import { useParams } from "react-router-dom";
 import Pdf from "react-to-pdf";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 
-const ref = React.createRef();
 const options = {
   orientation: "landscape",
   unit: "in",
@@ -15,6 +14,7 @@ const options = {
 function BillTable() {
   const context = useContext(BillBook);
   const { id } = useParams();
+  const ref = useRef();
 
   const [invoiceObj, setInvoiceObj] = useState([]);
   const [InvoceId, setInvoceId] = useState();
@@ -45,7 +45,7 @@ function BillTable() {
               <Pdf targetRef={ref} filename="Invoice.pdf" options={options}>
                 {({ toPdf }) => (
                   <button
-                    className="btn btn-primary  shadow-none "
+                    className="btn btn-primary shadow-none "
                     onClick={toPdf}
                   >
                     <FileDownloadIcon />

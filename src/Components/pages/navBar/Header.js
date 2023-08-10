@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button, Nav } from "react-bootstrap";
 import LoginIcon from "@mui/icons-material/Login";
 import LogoutIcon from "@mui/icons-material/Logout";
@@ -15,23 +15,42 @@ function Header() {
   };
 
   const openSidenav = () => {
-    document.getElementById("mySidenav").style.width = "240px";
-    document.getElementById("main").style.marginLeft = "240px";
+    document.getElementById("mySidenav").style.width = "230px";
+    document.getElementById("main").style.marginLeft = "230px";
     document.getElementById("menuToggle").style.display = "none";
+    document.getElementsByClassName("closebtn")[0].style.display =
+      "inline-block";
+    document.getElementsByClassName("nav-menu-section")[0].style.marginLeft =
+      "240px";
   };
 
   return (
     <div>
-      <div class="header bg-dark">
-        <span
-          className="text-white"
-          style={{ fontSize: "25px", cursor: "pointer" }}
-          onClick={() => openSidenav()}
+      <div class="header fw-bold position-fixed d-flex justify-content-between align-items-center">
+        <div
+          className="text-dark d-flex justify-content-between align-items-center gap-2 nav-menu-section"
+          style={{
+            fontSize: "25px",
+            // marginLeft: "220px",
+          }}
         >
-          <sapn id="menuToggle">&#9776;</sapn> Bill Book
-        </span>
-        <div class="header-right">
-          <Nav className="ml-auto">
+          <sapn id="menuToggle" onClick={() => openSidenav()}>
+            &#9776;
+          </sapn>
+
+          <Link
+            to="/"
+            className="text-decoration-none text-dark"
+            style={{
+              fontSize: "25px",
+              // marginLeft: "18%",
+            }}
+          >
+            Bill Book
+          </Link>
+        </div>
+        <div>
+          <Nav className="auth-btns">
             <Nav.Item>
               {token ? (
                 <>

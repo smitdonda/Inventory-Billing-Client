@@ -5,6 +5,7 @@ input::-webkit-inner-spin-button {
   margin: 0;
 }
 
+
 .users-form {
   border-radius: 10px;
   background-color: rgba(255, 255, 255, 0.2);
@@ -31,9 +32,9 @@ input::-webkit-inner-spin-button {
   height: 100%;
   width: 0;
   position: fixed;
-  z-index: 1;
   top: 0;
   left: 0;
+  z-index: 1;
   overflow-x: hidden;
   transition: 0.5s;
   padding-top: 60px;
@@ -79,7 +80,7 @@ input::-webkit-inner-spin-button {
   transition: 0.5s;
 }
 .content {
-  padding: 30px 20px;
+  padding: 100px 20px;
 }
 
 @media screen and (max-height: 450px) {
@@ -93,16 +94,22 @@ input::-webkit-inner-spin-button {
 
 @media (max-width: 600px) {
   #main {
-    margin-left: 0px !important;
+    margin-left: 80px !important;
+  }
+  #mySidenav {
+    width: 80px;
+  }
+  .nav-menu-section {
+    margin-left: 100px !important;
   }
 }
 
 @media (min-width: 600px) {
   #mySidenav {
-    width: 220px;
+    width: 230px;
   }
   #main {
-    margin-left: 220px;
+    margin-left: 230px;
   }
   #menuToggle {
     display: none;
@@ -110,9 +117,15 @@ input::-webkit-inner-spin-button {
 }
 .header {
   overflow: hidden;
-  background-color: #f1f1f1;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  background-color: #36246514;
   padding: 15px;
   width: 100%;
+  top: 0;
+  right: 0;
+  left: 0;
+  /* z-index: -1; */
 }
 
 .header a {
@@ -124,9 +137,10 @@ input::-webkit-inner-spin-button {
   line-height: 25px;
 }
 
-.header-right {
-  float: right;
-  text-decoration: none;
-  font-size: 16px;
-  line-height: 25px;
+#menuToggle {
+  cursor: pointer;
+}
+
+.nav-menu-section {
+  margin-left: 240px;
 }
