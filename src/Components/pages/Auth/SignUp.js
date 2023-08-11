@@ -64,11 +64,11 @@ function Registration() {
       style={{ height: "100vh" }}
     >
       <div className="container">
-        <div className="col-lg-4 col-xl-5 m-auto ">
+        <div className="d-flex justify-content-center align-items-center">
           <form
             onSubmit={formik.handleSubmit}
-            className="p-4 border border-3 "
-            style={{ borderRadius: "2%" }}
+            className="p-4 border border-3"
+            style={{ borderRadius: "2%", width: "30rem" }}
           >
             <h2 className="text-center text-primary mb-4">Sign Up</h2>
             {/* Login Form */}

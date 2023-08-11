@@ -5,10 +5,40 @@ input::-webkit-inner-spin-button {
   margin: 0;
 }
 
+.MuiDataGrid-root .MuiDataGrid-cell:focus-within {
+  outline: none !important;
+}
+.MuiDataGrid-root .MuiDataGrid-cellContent {
+  overflow: initial !important;
+}
+.css-t89xny-MuiDataGrid-columnHeaderTitle {
+  overflow: initial !important;
+}
 
 .users-form {
   border-radius: 10px;
   background-color: rgba(255, 255, 255, 0.2);
+}
+.MTableHeader-header-27 {
+  top: 0;
+  z-index: 0 !important;
+  position: sticky;
+  background-color: #fff;
+}
+
+.MTableHeader-header-1273 {
+  top: 0;
+  z-index: 0;
+  position: sticky;
+  background-color: #fff;
+}
+
+.MuiTypography-h6 {
+  font-size: 1.5rem !important;
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+  font-weight: 600 !important;
+  line-height: 1.7 !important;
+  letter-spacing: 0.008em !important;
 }
 
 .btn-login .btn-signup {
@@ -34,19 +64,21 @@ input::-webkit-inner-spin-button {
   position: fixed;
   top: 0;
   left: 0;
-  z-index: 1;
   overflow-x: hidden;
   transition: 0.5s;
   padding-top: 60px;
+  z-index: 10;
 }
 
-.sidenav a {
-  padding: 8px 8px 8px 32px;
+.nav-text-link {
+  padding: 8px 8px 8px 25px;
   text-decoration: none;
-  font-size: 20px;
   color: #818181;
   display: block;
-  /* transition: 0.3s; */
+  transition: 0.5s;
+}
+.sidenav-text {
+  font-size: 1.3rem;
 }
 
 .sidenav a:hover {
@@ -83,24 +115,22 @@ input::-webkit-inner-spin-button {
   padding: 100px 20px;
 }
 
-@media screen and (max-height: 450px) {
-  .sidenav {
-    padding-top: 15px;
-  }
-  .sidenav a {
-    font-size: 15px;
-  }
-}
-
 @media (max-width: 600px) {
   #main {
-    margin-left: 80px !important;
+    margin-left: 74px !important;
   }
   #mySidenav {
-    width: 80px;
+    width: 74px;
   }
-  .nav-menu-section {
-    margin-left: 100px !important;
+  .sidenav-text {
+    display: none;
+  }
+  .closebtn {
+    display: none;
+  }
+  .nav-bar-heading-title {
+    margin-left: 90px !important;
+    transition: 0.5s;
   }
 }
 
@@ -114,6 +144,9 @@ input::-webkit-inner-spin-button {
   #menuToggle {
     display: none;
   }
+  .sidenav-text {
+    display: inline-block;
+  }
 }
 .header {
   overflow: hidden;
@@ -125,7 +158,7 @@ input::-webkit-inner-spin-button {
   top: 0;
   right: 0;
   left: 0;
-  /* z-index: -1; */
+  height: 70px;
 }
 
 .header a {
@@ -139,8 +172,4 @@ input::-webkit-inner-spin-button {
 
 #menuToggle {
   cursor: pointer;
-}
-
-.nav-menu-section {
-  margin-left: 240px;
 }

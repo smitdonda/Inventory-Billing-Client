@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Route, Routes, Navigate, Outlet, useNavigate } from "react-router-dom";
+import axios from "axios";
 import Home from "./Dashboard/Home";
 import Sidebar from "./navBar/Sidebar";
 import Header from "./navBar/Header";
@@ -10,7 +11,6 @@ import ProductsDetails from "./Products/ProducstDetails";
 import BillForm from "./Bill/BillForm";
 import BillInformation from "./Bill/BillInformation";
 import BillTable from "./Bill/BillTable";
-import axios from "axios";
 import Login from "./Auth/Login";
 import SignUp from "./Auth/SignUp";
 import Error404 from "./Errors/Error404";
@@ -18,28 +18,31 @@ import MyProfile from "./Profile/MyProfile";
 import ProfileForm from "./Profile/ProfileForm";
 
 function Index() {
-  let navigate = useNavigate();
+  const navigate = useNavigate();
+  const [authChecked, setAuthChecked] = useState(false);
 
-  const [authChecked, setAuthChecked] = useState(false); // Add state variabl
+  const checkAuth = async () => {
+    const token = localStorage.getItem("token");
 
-  // auth post method and check token or not
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  let checkAuth = async () => {
-    let token = localStorage.getItem("token");
     if (token) {
-      let config = {
+      const config = {
         headers: {
           token: token,
         },
       };
 
-      // auth post method
-      let res = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/auth`,
-        { purpose: "validate access" },
-        config
-      );
-      if (res.data.statusCode !== 200) {
+      try {
+        const res = await axios.post(
+          `${process.env.REACT_APP_BACKEND_URL}/auth`,
+          { purpose: "validate access" },
+          config
+        );
+
+        if (res.data.statusCode !== 200) {
+          localStorage.clear();
+          navigate("/login");
+        }
+      } catch (error) {
         localStorage.clear();
         navigate("/login");
       }
@@ -47,14 +50,14 @@ function Index() {
       navigate("/login");
     }
 
-    setAuthChecked(true); // Set authChecked to true after the check
+    setAuthChecked(true);
   };
 
   useEffect(() => {
     if (!authChecked) {
-      checkAuth(); // Call the checkAuth function only if authChecked is false
+      checkAuth();
     }
-  }, [authChecked, checkAuth]); // Add authChecked to the dependency array
+  }, [authChecked]);
 
   return (
     <>

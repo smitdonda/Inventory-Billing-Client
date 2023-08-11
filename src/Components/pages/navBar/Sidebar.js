@@ -9,7 +9,7 @@ import WestIcon from "@mui/icons-material/West";
 
 function Sidebar() {
   const location = useLocation();
-  const iconFontSize = { fontSize: "26px" };
+  const iconFontSize = { fontSize: "29px" };
 
   const SiderBarData = [
     {
@@ -40,12 +40,20 @@ function Sidebar() {
   ];
 
   const closeSideNav = () => {
-    document.getElementById("mySidenav").style.width = "80px";
-    document.getElementById("main").style.marginLeft = "80px";
+    document.getElementById("mySidenav").style.width = "72px";
+    document.getElementById("main").style.marginLeft = "72px";
     document.getElementById("menuToggle").style.display = "inline-block";
     document.getElementsByClassName("closebtn")[0].style.display = "none";
-    document.getElementsByClassName("nav-menu-section")[0].style.marginLeft =
-      "110px";
+    document.getElementsByClassName(
+      "nav-bar-heading-title"
+    )[0].style.marginLeft = "90px";
+    document.getElementsByClassName(
+      "nav-bar-heading-title"
+    )[0].style.transition = "0.5s";
+    var elements = document.getElementsByClassName("sidenav-text");
+    for (var i = 0; i < elements.length; i++) {
+      elements[i].style.display = "none";
+    }
   };
 
   return (
@@ -61,11 +69,11 @@ function Sidebar() {
               to={e.to}
               className={`${
                 location.pathname === e.to
-                  ? "text-white d-flex align-items-center gap-4"
-                  : "d-flex align-items-center gap-4"
+                  ? "text-white d-flex gap-4 nav-text-link"
+                  : "d-flex gap-4 nav-text-link"
               }`}
             >
-              {e.icon} <span id="sidenav-text">{e.name}</span>
+              {e.icon} <span className="sidenav-text">{e.name}</span>
             </Link>
           );
         })}

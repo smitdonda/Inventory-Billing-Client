@@ -77,10 +77,11 @@ function Products() {
     <>
       <div className="content">
         <div>
-          <h2 className="text-center">Products Form</h2>
-          <div className="container col-sm-6 d-flex justify-content-center align-items-center">
-            <form className="col-md-6 m-auto" onSubmit={formik.handleSubmit}>
-              <div className="form-group mt-5 mb-3">
+          <h2 className="text-dark text-center">Products Form</h2>
+          <hr className="mt-3 mb-4 m-auto" style={{ width: "30%" }} />
+          <div className="d-flex justify-content-center align-items-center">
+            <form onSubmit={formik.handleSubmit}>
+              <div className="form-group mt-1 mb-3">
                 <div className="form-floating">
                   <input
                     id="productname"

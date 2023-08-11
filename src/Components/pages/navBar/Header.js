@@ -20,18 +20,26 @@ function Header() {
     document.getElementById("menuToggle").style.display = "none";
     document.getElementsByClassName("closebtn")[0].style.display =
       "inline-block";
-    document.getElementsByClassName("nav-menu-section")[0].style.marginLeft =
-      "240px";
+    document.getElementsByClassName(
+      "nav-bar-heading-title"
+    )[0].style.marginLeft = "230px";
+    var elements = document.getElementsByClassName("sidenav-text");
+    for (var i = 0; i < elements.length; i++) {
+      elements[i].style.display = "inline-block";
+    }
   };
 
   return (
     <div>
-      <div class="header fw-bold position-fixed d-flex justify-content-between align-items-center">
+      <div
+        class="header fw-bold position-fixed d-flex justify-content-between align-items-center"
+        style={{ zIndex: "1" }}
+      >
         <div
-          className="text-dark d-flex justify-content-between align-items-center gap-2 nav-menu-section"
+          className="text-dark d-flex justify-content-between align-items-center gap-2 nav-bar-heading-title"
           style={{
             fontSize: "25px",
-            // marginLeft: "220px",
+            marginLeft: "220px",
           }}
         >
           <sapn id="menuToggle" onClick={() => openSidenav()}>
@@ -56,11 +64,9 @@ function Header() {
                 <>
                   <Button
                     className="text-white btn-dark shadow-none"
-                    onClick={() => {
-                      logOut();
-                    }}
+                    onClick={logOut}
                   >
-                    Logout&nbsp;
+                    {window.innerWidth >= 600 ? <span>Logout&nbsp;</span> : ""}
                     <LogoutIcon />
                   </Button>
                 </>

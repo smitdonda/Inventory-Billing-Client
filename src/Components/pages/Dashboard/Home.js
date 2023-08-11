@@ -117,7 +117,7 @@ function Home() {
               style={{ zIndex: "-1" }}
             >
               <Chart
-                className="product-chart "
+                className="product-chart"
                 chartType="PieChart"
                 loader={<div>Loading Chart...</div>}
                 data={productChartData}

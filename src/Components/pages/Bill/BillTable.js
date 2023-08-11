@@ -31,7 +31,7 @@ function BillTable() {
 
   useEffect(() => {
     invoiceData();
-  }, []);
+  }, [context]);
 
   return (
     <>

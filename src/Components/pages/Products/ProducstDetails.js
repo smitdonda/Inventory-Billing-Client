@@ -1,20 +1,26 @@
 import React, { useState, useEffect } from "react";
-import { Table, Button } from "react-bootstrap";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import IconButton from "@mui/material/IconButton";
+import MaterialDataTable from "../../containers/MaterialDataTable";
 
 function ProducstDetails() {
   const [products, setProducts] = useState([]);
+  const [loading, setLoading] = React.useState(false);
+
   const productsData = async () => {
     try {
+      setLoading(true);
       const url = `${process.env.REACT_APP_BACKEND_URL}/users/getproducts`;
       const response = await axios.get(url);
       if (response?.data?.products) {
         setProducts(response.data.products);
+        setLoading(false);
       }
     } catch (error) {
+      setLoading(false);
       console.error("Error fetching products:", error);
     }
   };
@@ -25,21 +31,56 @@ function ProducstDetails() {
 
   const handleDelete = async (id) => {
     try {
+      setLoading(true);
       const url = `${process.env.REACT_APP_BACKEND_URL}/users/deleteproduct/`;
       const response = await axios.delete(url + id);
-      if (response?.status === 200) {
+      if (response?.data.statusCode === 200) {
         productsData();
+        setLoading(false);
       }
     } catch (error) {
+      setLoading(true);
       console.error("Error deleting product:", error);
     }
   };
+
+  const columns = [
+    { title: "Product Name", field: "productname" },
+    { title: "Available Qty", field: "availableproductqty" },
+    { title: "Unit Price", field: "unitprice" },
+    {
+      field: "actions",
+      title: "Actions",
+      sorting: false,
+      render: (row) => (
+        <div className="d-flex flex-row align-items-center gap-1">
+          <div>
+            <Link to={`/products/${row._id}`}>
+              <IconButton className="rounded-circle">
+                <EditIcon />
+              </IconButton>
+            </Link>
+          </div>
+          <div>
+            <IconButton
+              className="rounded-circle"
+              onClick={() => {
+                handleDelete(row._id);
+              }}
+            >
+              <DeleteIcon />
+            </IconButton>
+          </div>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <>
       <div className="content">
         <div>
-          <div className="d-flex justify-content-end">
+          <div className="d-flex justify-content-end mb-4">
             <Link
               to="/products/new"
               className="btn text-white"
@@ -49,7 +90,7 @@ function ProducstDetails() {
             </Link>
           </div>
           <div>
-            <h3>Products</h3>
+            {/* <h3>Products</h3>
             <Table
               bordered
               responsive="sm"
@@ -103,7 +144,16 @@ function ProducstDetails() {
                   );
                 })}
               </tbody>
-            </Table>
+            </Table> */}
+
+            <MaterialDataTable
+              title="Products Information"
+              columns={columns}
+              data={products}
+              loading={loading}
+              setSate={setProducts}
+              handleGetData={productsData}
+            />
           </div>
         </div>
       </div>
