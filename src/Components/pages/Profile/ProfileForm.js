@@ -15,17 +15,19 @@ function ProfileForm() {
   const [loadding, setLoadding] = useState(false);
 
   // find the Id data
-  const handleSubmit = async (values, id) => {
-    const url =
-      `${process.env.REACT_APP_BACKEND_URL}/users/` +
-      (id !== "new" ? `putmyprofile/${id}` : "myprofilepost/");
-
+  const handleSubmit = async (values) => {
     try {
       setLoadding(true);
       const res = await (id !== "new"
-        ? axios.put(url, values)
-        : axios.post(url, values));
-      if (res && res.status === 200) {
+        ? axios.put(
+            `${process.env.REACT_APP_BACKEND_URL}/my-profile/${id}`,
+            values
+          )
+        : axios.post(
+            `${process.env.REACT_APP_BACKEND_URL}/my-profile`,
+            values
+          ));
+      if (res?.data?.success) {
         setLoadding(false);
         navigate("/myprofile");
       }

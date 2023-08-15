@@ -5,6 +5,7 @@ import { BillBook } from "../../../App";
 import { useNavigate, useParams } from "react-router-dom";
 import { useFormik } from "formik";
 import * as yup from "yup";
+import { toast } from "react-toastify";
 import { SpinLoader } from "../Loaders/loaders";
 
 function Products() {
@@ -17,21 +18,27 @@ function Products() {
   const handleSubmit = async (values) => {
     const apiUrl =
       id !== "new"
-        ? `${process.env.REACT_APP_BACKEND_URL}/users/putproducts/${id}`
-        : `${process.env.REACT_APP_BACKEND_URL}/users/postproducts`;
+        ? `${process.env.REACT_APP_BACKEND_URL}/products/${id}`
+        : `${process.env.REACT_APP_BACKEND_URL}/products`;
     try {
       setLoadding(true);
       const response = await axios[id !== "new" ? "put" : "post"](
         apiUrl,
         values
       );
-      if (response && response.status === 200) {
+      if (response.data.success) {
         navigate("/productsdetails");
+        toast.success(response.data?.message);
         setLoadding(false);
       }
     } catch (error) {
       setLoadding(false);
       console.error("Error occurred while submitting data: ", error);
+      if (error.response.data.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error(error.message);
+      }
     }
   };
 

@@ -5,6 +5,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useFormik } from "formik";
 import * as yup from "yup";
 import { BillBook } from "../../../App";
+import { toast } from "react-toastify";
 import { SpinLoader } from "../Loaders/loaders";
 
 function Customars() {
@@ -13,24 +14,30 @@ function Customars() {
   const [editData, setEditData] = useState({});
   const { id } = useParams();
   const [loadding, setLoadding] = useState(false);
-  
+
   // Helper function to handle form submission
   const handleSubmit = async (values) => {
     try {
       setLoadding(true);
       let url;
       if (id !== "new") {
-        url = `${process.env.REACT_APP_BACKEND_URL}/users/putcustomers/${id}`;
+        url = `${process.env.REACT_APP_BACKEND_URL}/customers/${id}`;
       } else {
-        url = `${process.env.REACT_APP_BACKEND_URL}/users/postcustomers`;
+        url = `${process.env.REACT_APP_BACKEND_URL}/customers`;
       }
 
       const response = await axios[id !== "new" ? "put" : "post"](url, values);
-      if (response.status === 200) {
+      if (response?.data?.success) {
+        toast.success(response?.data?.message);
         navigate("/customersdetails");
       }
     } catch (error) {
       console.log("Error", error);
+      if (error.response.data.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error(error.message);
+      }
     }
     setLoadding(false);
   };
@@ -41,21 +48,17 @@ function Customars() {
     initialValues: {
       name: editData.name || "",
       email: editData.email || "",
-      phone: editData.phone || "",
-      date: editData.date || "",
-      gstno: editData.gstno || "",
-      address: editData.address || "",
+      phoneNo: editData.phoneNo || "",
+      gstNo: editData.gstNo || "",
     },
     validationSchema: yup.object({
       name: yup.string().required("Required"),
       email: yup.string().email("Invaild Email").required("Required"),
-      phone: yup
+      phoneNo: yup
         .string()
         .matches(/^\d{10}$/, "Mobile Number is not valid")
         .required("Required"),
-      date: yup.string().required("Required"),
-      gstno: yup.string().required("Required"),
-      address: yup.string().required("Required"),
+      gstNo: yup.string().required("Required"),
     }),
     onSubmit: (values) => {
       handleSubmit(values);
@@ -73,10 +76,9 @@ function Customars() {
           setEditData({
             name: edata.name,
             email: edata.email,
-            phone: edata.phone,
+            phoneNo: edata.phoneNo,
             date: edata.date,
-            gstno: edata.gstno,
-            address: edata.address,
+            gstNo: edata.gstNo,
           });
         }
       }
@@ -88,9 +90,9 @@ function Customars() {
       <div className="content">
         <div>
           <h2 className="text-dark text-center">Customer Form</h2>
-          <hr className="mt-3 mb-4 m-auto" style={{ width: "30%" }} />
+          <hr className="mt-3 mb-4 m-auto" style={{ width: "30rem" }} />
           <div className="d-flex justify-content-center align-items-center">
-            <form onSubmit={formik.handleSubmit}>
+            <form onSubmit={formik.handleSubmit} style={{ width: "25rem" }}>
               <div className="form-group mb-3">
                 <div className="form-floating">
                   <input
@@ -131,73 +133,38 @@ function Customars() {
                 <div className="form-group col mt-3">
                   <div className="form-floating">
                     <input
-                      id="phone"
-                      name="phone"
+                      id="phoneNo"
+                      name="phoneNo"
                       type="number"
                       className="form-control"
                       placeholder="Enter Phone No."
                       onBlur={formik.handleBlur}
                       onChange={formik.handleChange}
-                      value={formik.values.phone}
+                      value={formik.values.phoneNo}
                     />
-                    <label htmlFor="phone">Phone No.</label>
+                    <label htmlFor="phoneNo">Phone No.</label>
                   </div>
-                  {formik.touched.phone && formik.errors.phone ? (
-                    <div className="text-danger">{formik.errors.phone}</div>
-                  ) : null}
-                </div>
-                <div className="form-group col mt-3">
-                  <div className="form-floating">
-                    <input
-                      id="date"
-                      name="date"
-                      type="date"
-                      className="form-control text-uppercase"
-                      onBlur={formik.handleBlur}
-                      onChange={formik.handleChange}
-                      value={formik.values.date}
-                    />
-                    <label htmlFor="date">Date</label>
-                  </div>
-                  {formik.touched.date && formik.errors.date ? (
-                    <div className="text-danger">{formik.errors.date}</div>
+                  {formik.touched.phoneNo && formik.errors.phoneNo ? (
+                    <div className="text-danger">{formik.errors.phoneNo}</div>
                   ) : null}
                 </div>
               </div>
               <div className="form-group mt-3">
                 <div className="form-floating">
                   <input
-                    id="gstno"
-                    name="gstno"
+                    id="gstNo"
+                    name="gstNo"
                     type="text"
                     className="form-control"
                     placeholder="Gst No."
                     onBlur={formik.handleBlur}
                     onChange={formik.handleChange}
-                    value={formik.values.gstno}
+                    value={formik.values.gstNo}
                   />
-                  <label htmlFor="gstno">Gst No.</label>
+                  <label htmlFor="gstNo">Gst No.</label>
                 </div>
-                {formik.touched.gstno && formik.errors.gstno ? (
-                  <div className="text-danger">{formik.errors.gstno}</div>
-                ) : null}
-              </div>
-              <div className="form-group mt-3">
-                <div className="form-floating">
-                  <input
-                    id="address"
-                    name="address"
-                    type="address"
-                    className="form-control"
-                    placeholder="Address"
-                    onBlur={formik.handleBlur}
-                    onChange={formik.handleChange}
-                    value={formik.values.address}
-                  />
-                  <label htmlFor="address">Address</label>
-                </div>
-                {formik.touched.address && formik.errors.address ? (
-                  <div className="text-danger">{formik.errors.address}</div>
+                {formik.touched.gstNo && formik.errors.gstNo ? (
+                  <div className="text-danger">{formik.errors.gstNo}</div>
                 ) : null}
               </div>
               <div className="form-group mt-3">

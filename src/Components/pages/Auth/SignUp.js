@@ -5,6 +5,8 @@ import { useFormik } from "formik";
 import * as yup from "yup";
 import { Button } from "react-bootstrap";
 import { SpinLoader } from "../Loaders/loaders";
+import { toast } from "react-toastify";
+
 function Registration() {
   let navigate = useNavigate();
   const [loadding, setLoadding] = useState(false);
@@ -16,12 +18,13 @@ function Registration() {
         `${process.env.REACT_APP_BACKEND_URL}/signup`,
         values
       );
-      if (res.data.statusCode === 200) {
+      if (res.data.success) {
         setLoadding(false);
         navigate("/login");
       }
     } catch (error) {
       setLoadding(false);
+      toast.error(error.response.data.message);
       console.log("Error", error);
     }
   };

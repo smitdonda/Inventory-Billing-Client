@@ -4,6 +4,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import IconButton from "@mui/material/IconButton";
+import { toast } from "react-toastify";
 import MaterialDataTable from "../../containers/MaterialDataTable";
 
 function ProducstDetails() {
@@ -13,12 +14,14 @@ function ProducstDetails() {
   const productsData = async () => {
     try {
       setLoading(true);
-      const url = `${process.env.REACT_APP_BACKEND_URL}/users/getproducts`;
+      const url = `${process.env.REACT_APP_BACKEND_URL}/products`;
       const response = await axios.get(url);
-      if (response?.data?.products) {
+      if (response?.data?.success) {
         setProducts(response.data.products);
-        setLoading(false);
+      } else {
+        setProducts([]);
       }
+      setLoading(false);
     } catch (error) {
       setLoading(false);
       console.error("Error fetching products:", error);
@@ -32,15 +35,21 @@ function ProducstDetails() {
   const handleDelete = async (id) => {
     try {
       setLoading(true);
-      const url = `${process.env.REACT_APP_BACKEND_URL}/users/deleteproduct/`;
-      const response = await axios.delete(url + id);
-      if (response?.data.statusCode === 200) {
+      const url = `${process.env.REACT_APP_BACKEND_URL}/products/${id}`;
+      const response = await axios.delete(url);
+      if (response?.data.success) {
         productsData();
         setLoading(false);
+        toast.success("DELETEED");
       }
     } catch (error) {
-      setLoading(true);
+      setLoading(false);
       console.error("Error deleting product:", error);
+      if (error.response.data.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error(error.message);
+      }
     }
   };
 

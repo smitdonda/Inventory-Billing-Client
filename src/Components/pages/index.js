@@ -19,7 +19,6 @@ import ProfileForm from "./Profile/ProfileForm";
 
 function Index() {
   const navigate = useNavigate();
-  const [authChecked, setAuthChecked] = useState(false);
 
   const checkAuth = async () => {
     const token = localStorage.getItem("token");
@@ -38,7 +37,7 @@ function Index() {
           config
         );
 
-        if (res.data.statusCode !== 200) {
+        if (!res.data.success) {
           localStorage.clear();
           navigate("/login");
         }
@@ -49,15 +48,11 @@ function Index() {
     } else {
       navigate("/login");
     }
-
-    setAuthChecked(true);
   };
 
   useEffect(() => {
-    if (!authChecked) {
-      checkAuth();
-    }
-  }, [authChecked]);
+    checkAuth();
+  }, []);
 
   return (
     <>

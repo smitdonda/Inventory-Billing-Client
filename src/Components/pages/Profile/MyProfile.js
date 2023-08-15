@@ -2,18 +2,19 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 
-
 function MyProfile() {
-  const [myprofile, setMyProfile] = useState(null);
+  const [myprofile, setMyProfile] = useState({});
 
   useEffect(() => {
     const profileData = async () => {
       try {
         const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/users/getmyprofile`
+          `${process.env.REACT_APP_BACKEND_URL}/my-profile`
         );
         if (response && response.data && response.data.profile.length > 0) {
           setMyProfile(response.data.profile[0]);
+        } else {
+          setMyProfile({});
         }
       } catch (error) {
         console.error("Error profile data:", error);

@@ -6,6 +6,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import IconButton from "@mui/material/IconButton";
+import { toast } from "react-toastify";
 import MaterialDataTable from "../../containers/MaterialDataTable";
 
 function BillInformation() {
@@ -17,12 +18,14 @@ function BillInformation() {
     try {
       setLoading(true);
       const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/users/getbillinformation`
+        `${process.env.REACT_APP_BACKEND_URL}/billInformation`
       );
-      if (response?.data?.billinfo) {
+      if (response?.data?.success) {
         setAllBillDetails(response.data.billinfo);
-        setLoading(false);
+      } else {
+        setAllBillDetails([]);
       }
+      setLoading(false);
     } catch (error) {
       setLoading(false);
       console.error("Error fetching bill data:", error);
@@ -36,15 +39,21 @@ function BillInformation() {
   const handleDelete = async (id) => {
     try {
       setLoading(true);
-      const url = `${process.env.REACT_APP_BACKEND_URL}/users/deletebillinfo/${id}`;
+      const url = `${process.env.REACT_APP_BACKEND_URL}/billInformation/${id}`;
       const response = await axios.delete(url);
-      if (response.status === 200) {
+      if (response.data.success) {
         setLoading(false);
         getBillData();
+        toast.success("DELETEED");
       }
     } catch (error) {
       setLoading(false);
       console.error("Error deleting bill:", error);
+      if (error.response.data.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error(error.message);
+      }
     }
   };
 

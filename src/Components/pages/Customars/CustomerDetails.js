@@ -6,6 +6,8 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import axios from "axios";
 import MaterialDataTable from "../../containers/MaterialDataTable";
+import { toast } from "react-toastify";
+import moment from "moment";
 
 function AllBilldetails() {
   const [loading, setLoading] = React.useState(false);
@@ -15,7 +17,7 @@ function AllBilldetails() {
   let customerData = async () => {
     try {
       setLoading(true);
-      const url = `${process.env.REACT_APP_BACKEND_URL}/users/getcustomers`;
+      const url = `${process.env.REACT_APP_BACKEND_URL}/customers`;
       const response = await axios.get(url);
       if (response.data.customers) {
         setCustomers(response.data.customers);
@@ -34,24 +36,36 @@ function AllBilldetails() {
   let handleDelete = async (id) => {
     try {
       setLoading(true);
-      const url = `${process.env.REACT_APP_BACKEND_URL}/users/deletecustomer/${id}`;
+      const url = `${process.env.REACT_APP_BACKEND_URL}/customers/${id}`;
       const response = await axios.delete(url);
-      if (response.data.statusCode === 200) {
+      if (response.data.success) {
         customerData();
         setLoading(false);
+        toast.success("DELETEED");
       }
     } catch (error) {
       setLoading(false);
       console.error("Error deleting customer:", error);
+      if (error.response.data.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error(error.message);
+      }
     }
   };
 
   const columns = [
     { title: "Name", field: "name" },
     { title: "Email", field: "email" },
-    { title: "Date", field: "date" },
-    { title: "Phone", field: "phone" },
-    { title: "Gstno", field: "gstno" },
+    {
+      title: "Date",
+      field: "createdAt",
+      render: ({ createdAt }) => (
+        <>{moment({ createdAt }).format("DD/MM/YYYY")}</>
+      ),
+    },
+    { title: "Phone", field: "phoneNo" },
+    { title: "Gstno", field: "gstNo" },
     {
       field: "actions",
       title: "Actions",

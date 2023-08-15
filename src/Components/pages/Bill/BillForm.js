@@ -8,6 +8,7 @@ import { useFormik } from "formik";
 import * as yup from "yup";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { toast } from "react-toastify";
 import { SpinLoader } from "../Loaders/loaders";
 
 function BillForm() {
@@ -21,10 +22,10 @@ function BillForm() {
   let navigate = useNavigate();
 
   //bill info post method
-  let postBillInfoUrl = `${process.env.REACT_APP_BACKEND_URL}/users/addbillinformation`;
+  let postBillInfoUrl = `${process.env.REACT_APP_BACKEND_URL}/billInformation`;
 
   // bill Information updated  // all Bill details updated  // updated customer product data
-  let updateBillInfoUrl = `${process.env.REACT_APP_BACKEND_URL}/users/updatebillinfo/`;
+  let updateBillInfoUrl = `${process.env.REACT_APP_BACKEND_URL}/billInformation/`;
 
   const handleSubmit = async (values) => {
     setLoadding(true);
@@ -36,10 +37,16 @@ function BillForm() {
         if (res.status === 200) {
           updateProductQuantities(values.products);
           navigate("/billinformation");
+          toast.success(res.data?.message);
           setLoadding(false);
         }
       } catch (error) {
         console.error("Error updating bill:", error);
+        if (error.response.data.message) {
+          toast.error(error.response.data.message);
+        } else {
+          toast.error(error.message);
+        }
         setLoadding(false);
       }
     } else {
@@ -51,10 +58,16 @@ function BillForm() {
           updateProductQuantities(values.products);
           navigate("/billinformation");
           setLoadding(false);
+          toast.success(billInfo.data?.message);
         }
       } catch (error) {
         setLoadding(false);
         console.error("Error creating bill:", error);
+        if (error.response.data.message) {
+          toast.error(error.response.data.message);
+        } else {
+          toast.error(error.message);
+        }
       }
     }
   };
@@ -69,7 +82,7 @@ function BillForm() {
         context.products[pfindIndex].availableproductqty -= product.quantity;
         try {
           await axios.put(
-            `${process.env.REACT_APP_BACKEND_URL}/users/putproducts/` +
+            `${process.env.REACT_APP_BACKEND_URL}/products/` +
               context.products[pfindIndex]._id,
             {
               availableproductqty:
@@ -89,13 +102,10 @@ function BillForm() {
       name: context && context?.custdata?.name ? context?.custdata?.name : "",
       email:
         context && context?.custdata?.email ? context?.custdata?.email : "",
-      phone:
-        context && context?.custdata?.phone ? context?.custdata?.phone : "",
-      date: context && context?.custdata?.date ? context?.custdata?.date : "",
-      gstno:
-        context && context?.custdata?.gstno ? context?.custdata?.gstno : "",
-      address:
-        context && context?.custdata?.address ? context?.custdata?.address : "",
+      phoneNo:
+        context && context?.custdata?.phoneNo ? context?.custdata?.phoneNo : "",
+      gstNo:
+        context && context?.custdata?.gstNo ? context?.custdata?.gstNo : "",
       totalproductsprice:
         context && context?.custdata && context?.custdata.totalproductsprice
           ? context?.custdata.totalproductsprice
@@ -105,13 +115,11 @@ function BillForm() {
     validationSchema: yup.object({
       name: yup.string().required("Required"),
       email: yup.string().email("Invaild Email").required("Required"),
-      phone: yup
+      phoneNo: yup
         .string()
         .matches(/^\d{10}$/, "Mobile Number is not valid")
         .required("Required"),
-      date: yup.string().required("Required"),
-      gstno: yup.string().required("Required"),
-      address: yup.string().required("Required"),
+      gstNo: yup.string().required("Required"),
     }),
     onSubmit: (values) => {
       handleSubmit(values);
@@ -158,9 +166,9 @@ function BillForm() {
                             onClick={() => {
                               formik.setFieldValue("name", e.name);
                               formik.setFieldValue("email", e.email);
-                              formik.setFieldValue("phone", e.phone);
+                              formik.setFieldValue("phoneNo", e.phoneNo);
                               formik.setFieldValue("date", e.date);
-                              formik.setFieldValue("gstno", e.gstno);
+                              formik.setFieldValue("gstNo", e.gstNo);
                               formik.setFieldValue("address", e.address);
                             }}
                           >
@@ -231,71 +239,39 @@ function BillForm() {
               </div>
               <div className="row  mt-3">
                 <div className="form-group col">
-                  <label htmlFor="phone">Phone</label>
+                  <label htmlFor="phoneNo">Phone</label>
                   <input
-                    id="phone"
-                    name="phone"
+                    id="phoneNo"
+                    name="phoneNo"
                     type="number"
                     className="form-control"
                     placeholder="Enter Phone No."
                     onBlur={formik.handleBlur}
                     onChange={formik.handleChange}
-                    value={formik.values.phone}
+                    value={formik.values.phoneNo}
                     required
                   />
-                  {formik.touched.phone && formik.errors.phone ? (
-                    <div className="text-danger">{formik.errors.phone}</div>
+                  {formik.touched.phoneNo && formik.errors.phoneNo ? (
+                    <div className="text-danger">{formik.errors.phoneNo}</div>
                   ) : null}
                 </div>
-                <div className="form-group col">
-                  <label htmlFor="date">Date</label>
+                <div className="form-group  mt-3">
+                  <label htmlFor="gstNo">Gst No.</label>
                   <input
-                    id="date"
-                    name="date"
-                    type="date"
-                    className="form-control text-uppercase"
+                    id="gstNo"
+                    name="gstNo"
+                    type="text"
+                    className="form-control"
+                    placeholder="Gst No."
                     onBlur={formik.handleBlur}
                     onChange={formik.handleChange}
-                    value={formik.values.date}
+                    value={formik.values.gstNo}
                     required
                   />
-                  {formik.touched.date && formik.errors.date ? (
-                    <div className="text-danger">{formik.errors.date}</div>
+                  {formik.touched.gstNo && formik.errors.gstNo ? (
+                    <div className="text-danger">{formik.errors.gstNo}</div>
                   ) : null}
                 </div>
-              </div>
-              <div className="form-group  mt-3">
-                <label htmlFor="gstno">Gst No.</label>
-                <input
-                  id="gstno"
-                  name="gstno"
-                  type="text"
-                  className="form-control"
-                  placeholder="Gst No."
-                  onBlur={formik.handleBlur}
-                  onChange={formik.handleChange}
-                  value={formik.values.gstno}
-                  required
-                />
-                {formik.touched.gstno && formik.errors.gstno ? (
-                  <div className="text-danger">{formik.errors.gstno}</div>
-                ) : null}
-              </div>
-              <div className="form-group  mt-3">
-                <label htmlFor="address">Address</label>
-                <input
-                  id="address"
-                  name="address"
-                  type="text"
-                  className="form-control"
-                  placeholder="Address"
-                  onBlur={formik.handleBlur}
-                  onChange={formik.handleChange}
-                  value={formik.values.address}
-                />
-                {formik.touched.address && formik.errors.address ? (
-                  <div className="text-danger">{formik.errors.address}</div>
-                ) : null}
               </div>
             </div>
           </form>

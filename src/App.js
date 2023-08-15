@@ -1,6 +1,8 @@
 import "./App.css";
-import "bootstrap/dist/css/bootstrap.min.css";
 import React, { useEffect, useState } from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { BrowserRouter } from "react-router-dom";
 import axios from "axios";
 import Main from "./Components/pages";
@@ -39,11 +41,13 @@ function App() {
     try {
       setLoadding(true);
       const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/users/getcustomers`
+        `${process.env.REACT_APP_BACKEND_URL}/customers`
       );
-      setCustomers(response?.data?.customers);
-      setCustCount(response?.data?.customers?.length);
-      setLoadding(false);
+      if (response?.data?.success) {
+        setCustomers(response?.data?.customers);
+        setCustCount(response?.data?.customers?.length);
+        setLoadding(false);
+      }
     } catch (error) {
       // Handle error if needed
       console.log("Error", error);
@@ -57,7 +61,7 @@ function App() {
     try {
       setLoadding(true);
       const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/users/getproducts`
+        `${process.env.REACT_APP_BACKEND_URL}/products`
       );
       setproducts(response?.data?.products);
       setProductCount(response?.data?.products?.length);
@@ -74,7 +78,7 @@ function App() {
   const fetchBillData = async () => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/users/getbillinformation`
+        `${process.env.REACT_APP_BACKEND_URL}/billInformation`
       );
       setAllBillDetails(response?.data?.billinfo);
       setBillinfoCount(response?.data.billinfo?.length);
@@ -90,7 +94,7 @@ function App() {
   const fetchProfileData = async () => {
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/users/getmyprofile`
+        `${process.env.REACT_APP_BACKEND_URL}/my-profile`
       );
       setMyProfile(response.data.profile[0]);
     } catch (error) {
@@ -133,6 +137,18 @@ function App() {
         }}
       >
         <Main />
+        <ToastContainer
+          position="top-right"
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="dark"
+        />
       </BillBook.Provider>
     </BrowserRouter>
   );

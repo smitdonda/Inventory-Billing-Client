@@ -5,6 +5,7 @@ import { useFormik } from "formik";
 import * as yup from "yup";
 import { Button } from "react-bootstrap";
 import { SpinLoader } from "../Loaders/loaders";
+import { toast } from "react-toastify";
 
 function Login() {
   let navigate = useNavigate();
@@ -16,7 +17,8 @@ function Login() {
         `${process.env.REACT_APP_BACKEND_URL}/login`,
         values
       );
-      if (res.data.statusCode === 200) {
+      console.log(res.data);
+      if (res.data.success) {
         setLoadding(false);
         localStorage.setItem("token", res.data.token);
         localStorage.setItem("userInfo", res.data);
@@ -24,6 +26,7 @@ function Login() {
       }
     } catch (error) {
       setLoadding(false);
+      toast.error(error.response.data.message);
       console.log("Error", error);
     }
   };
