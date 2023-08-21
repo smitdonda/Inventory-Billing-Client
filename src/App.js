@@ -23,9 +23,8 @@ function App() {
   // selected all products data in new Array
   let [prod, setProd] = useState([]);
 
-  // customer get method
-  let [customers, setCustomers] = useState();
-
+  // Fetch customer data
+  const [customers, setCustomers] = useState([]);
   const fetchCustomerData = async () => {
     try {
       const response = await axiosInstance.get(`/customers`);
@@ -39,7 +38,7 @@ function App() {
   };
 
   // Fetch products data
-  let [products, setproducts] = useState();
+  const [products, setproducts] = useState([]);
   const fetchProductsData = async () => {
     try {
       const response = await axiosInstance.get(`/products`);
@@ -51,8 +50,7 @@ function App() {
   };
 
   // Fetch bill data
-  let [allbilldetails, setAllBillDetails] = useState();
-
+  const [allbilldetails, setAllBillDetails] = useState([]);
   const fetchBillData = async () => {
     try {
       const response = await axiosInstance.get(`/billInformation`);
@@ -64,8 +62,7 @@ function App() {
   };
 
   // Fetch my profile data
-  let [myprofile, setMyProfile] = useState();
-
+  const [myprofile, setMyProfile] = useState([]);
   const fetchProfileData = async () => {
     try {
       const response = await axiosInstance.get(`/my-profile`);
@@ -95,7 +92,6 @@ function App() {
           custdata,
           setCustData,
           myprofile,
-          setMyProfile,
           editProduct,
           setEditProduct,
           newOne,
