@@ -29,38 +29,34 @@ function Sidebar() {
     },
     {
       to: "/billinformation",
-      name: "Bill Info",
+      name: "Bills",
       icon: <InfoIcon sx={iconFontSize} />,
     },
     {
       to: "/myprofile",
-      name: "MyProfile",
+      name: "Profile",
       icon: <AccountCircleIcon sx={iconFontSize} />,
     },
   ];
-
   const closeSideNav = () => {
     document.getElementById("mySidenav").style.width = "72px";
     document.getElementById("main").style.marginLeft = "72px";
     document.getElementById("menuToggle").style.display = "inline-block";
-    document.getElementsByClassName("closebtn")[0].style.display = "none";
-    document.getElementsByClassName(
-      "nav-bar-heading-title"
-    )[0].style.marginLeft = "90px";
-    document.getElementsByClassName(
-      "nav-bar-heading-title"
-    )[0].style.transition = "0.5s";
-    var elements = document.getElementsByClassName("sidenav-text");
-    for (var i = 0; i < elements.length; i++) {
-      elements[i].style.display = "none";
-    }
+    document.querySelector(".closebtn").style.display = "none";
+    const navBarTitle = document.querySelector(".nav-bar-heading-title");
+    navBarTitle.style.marginLeft = "90px";
+    navBarTitle.style.transition = "0.5s";
+    const sidenavTextElements = document.querySelectorAll(".sidenav-text");
+    sidenavTextElements.forEach((element) => {
+      element.style.display = "none";
+    });
   };
 
   return (
     <div id="mySidenav" className="sidenav bg-dark">
-      <sapn className="closebtn text-white" onClick={() => closeSideNav()}>
+      <span className="closebtn text-white" onClick={() => closeSideNav()}>
         <WestIcon sx={iconFontSize} />
-      </sapn>
+      </span>
       <div className="mt-2">
         {SiderBarData.map((e, i) => {
           return (

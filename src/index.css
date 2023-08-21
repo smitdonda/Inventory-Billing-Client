@@ -19,19 +19,6 @@ input::-webkit-inner-spin-button {
   border-radius: 10px;
   background-color: rgba(255, 255, 255, 0.2);
 }
-.MTableHeader-header-27 {
-  top: 0;
-  z-index: 0 !important;
-  position: sticky;
-  background-color: #fff;
-}
-
-.MTableHeader-header-1273 {
-  top: 0;
-  z-index: 0;
-  position: sticky;
-  background-color: #fff;
-}
 
 .MuiTypography-h6 {
   font-size: 1.5rem !important;

@@ -1,23 +1,20 @@
 import React, { useState } from "react";
-import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import { useFormik } from "formik";
 import * as yup from "yup";
 import { Button } from "react-bootstrap";
+import axiosInstance from "../../../config/AxiosInstance";
 import { SpinLoader } from "../Loaders/loaders";
 import { toast } from "react-toastify";
 
 function Registration() {
-  let navigate = useNavigate();
+  const navigate = useNavigate();
   const [loadding, setLoadding] = useState(false);
 
-  let handleSubmit = async (values) => {
+  const handleSubmit = async (values) => {
     try {
       setLoadding(true);
-      let res = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/signup`,
-        values
-      );
+      const res = await axiosInstance.post(`/signup`, values);
       if (res.data.success) {
         setLoadding(false);
         navigate("/login");

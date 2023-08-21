@@ -1,21 +1,25 @@
 import React, { useState, useEffect } from "react";
+import { Button } from "react-bootstrap";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { Link } from "react-router-dom";
-import axios from "axios";
 import IconButton from "@mui/material/IconButton";
 import { toast } from "react-toastify";
+import axiosInstance from "../../../config/AxiosInstance";
+import ProductForm from "./ProductFrom";
 import MaterialDataTable from "../../containers/MaterialDataTable";
 
 function ProducstDetails() {
+  // get product information
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = React.useState(false);
+  // edit product information
+  const [id, setId] = useState(null);
+  const [editData, setEditData] = useState({});
 
-  const productsData = async () => {
+  const getProductsData = async () => {
     try {
       setLoading(true);
-      const url = `${process.env.REACT_APP_BACKEND_URL}/products`;
-      const response = await axios.get(url);
+      const response = await axiosInstance.get("/products");
       if (response?.data?.success) {
         setProducts(response.data.products);
       } else {
@@ -29,31 +33,42 @@ function ProducstDetails() {
   };
 
   useEffect(() => {
-    productsData();
+    getProductsData();
   }, []);
 
   const handleDelete = async (id) => {
     try {
       setLoading(true);
-      const url = `${process.env.REACT_APP_BACKEND_URL}/products/${id}`;
-      const response = await axios.delete(url);
+      const response = await axiosInstance.delete(`/products/${id}`);
       if (response?.data.success) {
-        productsData();
+        getProductsData();
         setLoading(false);
         toast.success("DELETEED");
       }
     } catch (error) {
       setLoading(false);
       console.error("Error deleting product:", error);
-      if (error.response.data.message) {
-        toast.error(error.response.data.message);
-      } else {
-        toast.error(error.message);
-      }
+      const errorMessage = error.response?.data?.message || error.message;
+      toast.error(errorMessage);
     }
   };
 
+  const [open, setOpen] = useState(false);
+
+  const handleClickOpen = (value = {}) => {
+    setEditData(value);
+    setId(value._id);
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setEditData({});
+    setId(null);
+    setOpen(false);
+  };
+
   const columns = [
+    { title: "#", field: "id" },
     { title: "Product Name", field: "productname" },
     { title: "Available Qty", field: "availableproductqty" },
     { title: "Unit Price", field: "unitprice" },
@@ -64,18 +79,17 @@ function ProducstDetails() {
       render: (row) => (
         <div className="d-flex flex-row align-items-center gap-1">
           <div>
-            <Link to={`/products/${row._id}`}>
-              <IconButton className="rounded-circle">
-                <EditIcon />
-              </IconButton>
-            </Link>
+            <IconButton
+              className="rounded-circle"
+              onClick={() => handleClickOpen(row)}
+            >
+              <EditIcon />
+            </IconButton>
           </div>
           <div>
             <IconButton
               className="rounded-circle"
-              onClick={() => {
-                handleDelete(row._id);
-              }}
+              onClick={() => handleDelete(row._id)}
             >
               <DeleteIcon />
             </IconButton>
@@ -87,85 +101,31 @@ function ProducstDetails() {
 
   return (
     <>
-      <div className="content">
-        <div>
-          <div className="d-flex justify-content-end mb-4">
-            <Link
-              to="/products/new"
-              className="btn text-white"
-              style={{ backgroundColor: "#0d47a1" }}
-            >
-              Add New Product
-            </Link>
-          </div>
-          <div>
-            {/* <h3>Products</h3>
-            <Table
-              bordered
-              responsive="sm"
-              className="text-center text-dark m-auto"
-            >
-              <thead className="thead-dark">
-                <tr>
-                  <th scope="col">No.</th>
-                  <th scope="col">Product Name</th>
-                  <th scope="col">Available Product Qty</th>
-                  <th scope="col">Unit Price</th>
-                  <th scope="col">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {products?.map((e, i) => {
-                  return (
-                    <tr key={i}>
-                      <th>{i + 1}</th>
-                      <td className="text-left">{e.productname}</td>
-                      <td>{e.availableproductqty}</td>
-                      <td>{e.unitprice}</td>
-                      <td>
-                        <div className="d-flex flex-row justify-content-center align-items-center gap-2">
-                          <div className="mr-2">
-                            <Link to={`/products/${e._id}`}>
-                              <Button
-                                variant="warning"
-                                size="sm"
-                                className="shadow none rounded-circle"
-                              >
-                                <EditIcon />
-                              </Button>
-                            </Link>
-                          </div>
-                          <div className="ml-2">
-                            <Button
-                              variant="danger"
-                              size="sm"
-                              className="shadow-none rounded-circle"
-                              onClick={() => {
-                                handleDelete(e._id);
-                              }}
-                            >
-                              <DeleteIcon />
-                            </Button>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </Table> */}
-
-            <MaterialDataTable
-              title="Products Information"
-              columns={columns}
-              data={products}
-              loading={loading}
-              setSate={setProducts}
-              handleGetData={productsData}
-            />
-          </div>
-        </div>
+      <div className="d-flex justify-content-end mb-4">
+        <Button
+          className="shadow-none"
+          onClick={() => setOpen(true)}
+        >
+          Add New Product
+        </Button>
       </div>
+      <div>
+        <MaterialDataTable
+          title="Products Information"
+          columns={columns}
+          data={products}
+          loading={loading}
+          setSate={setProducts}
+          handleGetData={getProductsData}
+        />
+      </div>
+      <ProductForm
+        id={id}
+        handleClose={handleClose}
+        open={open}
+        editData={editData}
+        getProductsData={getProductsData}
+      />
     </>
   );
 }

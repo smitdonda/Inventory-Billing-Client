@@ -3,8 +3,9 @@ import React, { useEffect, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import axiosInstance from "./config/AxiosInstance";
 import { BrowserRouter } from "react-router-dom";
-import axios from "axios";
+
 import Main from "./Components/pages";
 
 export const BillBook = React.createContext();
@@ -22,36 +23,18 @@ function App() {
   // selected all products data in new Array
   let [prod, setProd] = useState([]);
 
-  // Customers count Number
-  let [custCount, setCustCount] = useState();
-
-  // Product Count Number
-  let [productCount, setProductCount] = useState();
-
-  // bill Count Number
-  let [billinfoCount, setBillinfoCount] = useState();
-
-  // loadding
-  let [loadding, setLoadding] = useState(false);
-
   // customer get method
   let [customers, setCustomers] = useState();
 
   const fetchCustomerData = async () => {
     try {
-      setLoadding(true);
-      const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/customers`
-      );
+      const response = await axiosInstance.get(`/customers`);
       if (response?.data?.success) {
         setCustomers(response?.data?.customers);
-        setCustCount(response?.data?.customers?.length);
-        setLoadding(false);
       }
     } catch (error) {
       // Handle error if needed
       console.log("Error", error);
-      setLoadding(false);
     }
   };
 
@@ -59,13 +42,8 @@ function App() {
   let [products, setproducts] = useState();
   const fetchProductsData = async () => {
     try {
-      setLoadding(true);
-      const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/products`
-      );
+      const response = await axiosInstance.get(`/products`);
       setproducts(response?.data?.products);
-      setProductCount(response?.data?.products?.length);
-      setLoadding(false);
     } catch (error) {
       // Handle error if needed
       console.log("Error", error);
@@ -77,11 +55,8 @@ function App() {
 
   const fetchBillData = async () => {
     try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/billInformation`
-      );
+      const response = await axiosInstance.get(`/billInformation`);
       setAllBillDetails(response?.data?.billinfo);
-      setBillinfoCount(response?.data.billinfo?.length);
     } catch (error) {
       // Handle error if needed
       console.log("Error", error);
@@ -93,9 +68,7 @@ function App() {
 
   const fetchProfileData = async () => {
     try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/my-profile`
-      );
+      const response = await axiosInstance.get(`/my-profile`);
       setMyProfile(response.data.profile[0]);
     } catch (error) {
       // Handle error if needed
@@ -108,7 +81,7 @@ function App() {
     fetchProductsData();
     fetchBillData();
     fetchProfileData();
-  }, [loadding]);
+  }, []);
 
   return (
     <BrowserRouter>
@@ -119,15 +92,8 @@ function App() {
           prod,
           setProd,
           allbilldetails,
-          setAllBillDetails,
           custdata,
           setCustData,
-          custCount,
-          setCustCount,
-          productCount,
-          setProductCount,
-          billinfoCount,
-          setBillinfoCount,
           myprofile,
           setMyProfile,
           editProduct,

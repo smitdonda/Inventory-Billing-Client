@@ -3,10 +3,12 @@ import Multiselect from "multiselect-react-dropdown";
 import { ErrorMessage, Field, Form, Formik } from "formik";
 import { Dropdown, Modal, Button } from "react-bootstrap";
 import { BillBook } from "../../../App";
+import { toast } from "react-toastify";
 
 function ProductsModal(props) {
   let context = useContext(BillBook);
   const [selectedGSTs, setSelectedGSTs] = useState([]);
+  console.log("context.custdata", context.custdata);
 
   return (
     <>
@@ -23,11 +25,7 @@ function ProductsModal(props) {
           <div className="d-flex justify-content-center align-self-center">
             <div>
               <Dropdown>
-                <Dropdown.Toggle
-                  variant="light"
-                  className="shadow-none"
-                  id="dropdown-basic"
-                >
+                <Dropdown.Toggle variant="light" className="shadow-none">
                   Select Product
                 </Dropdown.Toggle>
                 <Dropdown.Menu>
@@ -40,7 +38,7 @@ function ProductsModal(props) {
                             context.setEditProduct(e);
                           }}
                         >
-                          <span>({i + 1})</span>&nbsp;{e?.productname}
+                          <span>({e.id})</span>&nbsp;{e?.productname}
                         </Dropdown.Item>
                       </div>
                     );
@@ -50,7 +48,14 @@ function ProductsModal(props) {
 
               <Formik
                 enableReinitialize={true}
-                initialValues={context?.editProduct || {}}
+                initialValues={
+                  context?.editProduct || {
+                    productname: "",
+                    unitprice: "",
+                    quantity: "",
+                    gst: [],
+                  }
+                }
                 validate={(values) => {
                   const errors = {};
                   if (!values.productname) {
@@ -77,12 +82,14 @@ function ProductsModal(props) {
                     );
 
                     if (productIndex > -1 && context.newOne) {
-                      alert("Selected product is already added into the bill.");
+                      toast.error(
+                        "Selected product is already added into the bill."
+                      );
                       return false;
                     }
 
                     if (values.availableproductqty === 0) {
-                      alert("Selected product is out of stock.");
+                      toast.error("Selected product is out of stock.");
                       return false;
                     }
 
@@ -112,19 +119,21 @@ function ProductsModal(props) {
                       for (var t = 0; t < context?.prod?.length; t++) {
                         sum += context.prod[t]?.gsttex;
                       }
-                      if (context && context.custdata)
-                        console.log("context.custdata", context.custdata);
-                      context.custdata["totalproductsprice"] = sum;
-                      context.setCustData(context.custdata);
+                      if (context && context.custdata) {
+                        context.setCustData((prevData) => ({
+                          ...prevData,
+                          totalproductsprice: sum,
+                        }));
+                      }
                     } else {
-                      alert(
+                      toast.error(
                         "Please enter the correct quantity. Available quantity is: " +
                           values.availableproductqty
                       );
                     }
 
                     setSubmitting(true);
-                    props.setModalShow(false);
+                    props.onHide();
                   }, 200);
                 }}
               >

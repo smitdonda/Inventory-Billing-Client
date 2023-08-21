@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useContext } from "react";
 import { Link } from "react-router-dom";
 import { BillBook } from "../../../App";
-import axios from "axios";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import IconButton from "@mui/material/IconButton";
 import { toast } from "react-toastify";
+import axiosInstance from "../../../config/AxiosInstance";
 import MaterialDataTable from "../../containers/MaterialDataTable";
 
 function BillInformation() {
@@ -17,9 +17,7 @@ function BillInformation() {
   const getBillData = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/billInformation`
-      );
+      const response = await axiosInstance.get(`/billInformation`);
       if (response?.data?.success) {
         setAllBillDetails(response.data.billinfo);
       } else {
@@ -39,8 +37,7 @@ function BillInformation() {
   const handleDelete = async (id) => {
     try {
       setLoading(true);
-      const url = `${process.env.REACT_APP_BACKEND_URL}/billInformation/${id}`;
-      const response = await axios.delete(url);
+      const response = await axiosInstance.delete(`billInformation/${id}`);
       if (response.data.success) {
         setLoading(false);
         getBillData();
@@ -58,6 +55,7 @@ function BillInformation() {
   };
 
   const columns = [
+    { title: "#", field: "id" },
     { title: "Customers Name", field: "name" },
     {
       title: "Products",
@@ -112,9 +110,7 @@ function BillInformation() {
           <div>
             <IconButton
               className="rounded-circle"
-              onClick={() => {
-                handleDelete(row._id);
-              }}
+              onClick={() => handleDelete(row._id)}
             >
               <DeleteIcon />
             </IconButton>
@@ -127,31 +123,26 @@ function BillInformation() {
   //   {
   //     tooltip: "Depth",
   //     render: (rowData) => {
-  //       return <div className="pl-5">"FIJQEOF"</div>;
+  //       return <div style={{ paddingLeft: "50px" }}>"FIJQEOF"</div>;
   //     },
   //   },
   // ];
   return (
     <>
-      <div className="content">
-        <div className="d-flex justify-content-end align-items-center mb-3">
-          <Link
-            to="/billform/new"
-            className="btn text-white shadow-none"
-            style={{ backgroundColor: "#0d47a1" }}
-          >
-            Generate New Bill
-          </Link>
-        </div>
-        <MaterialDataTable
-          title="Bill Information"
-          loading={loading}
-          data={allBillDetails}
-          columns={columns}
-          setSate={setAllBillDetails}
-          handleGetData={getBillData}
-        />
+      <div className="d-flex justify-content-end align-items-center mb-3">
+        <Link to="/billform/new" className="btn  btn-primary shadow-none">
+          Generate New Bill
+        </Link>
       </div>
+      <MaterialDataTable
+        title="Bill Information"
+        loading={loading}
+        data={allBillDetails}
+        columns={columns}
+        setSate={setAllBillDetails}
+        handleGetData={getBillData}
+        // detailPanel={detailPanel}
+      />
     </>
   );
 }

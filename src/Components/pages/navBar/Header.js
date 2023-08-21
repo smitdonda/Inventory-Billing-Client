@@ -3,14 +3,16 @@ import { useNavigate, Link } from "react-router-dom";
 import { Button, Nav } from "react-bootstrap";
 import LoginIcon from "@mui/icons-material/Login";
 import LogoutIcon from "@mui/icons-material/Logout";
+import { getItem, removeItem } from "../../../config/cookieStorage";
 
 function Header() {
-  let navigate = useNavigate();
+  const navigate = useNavigate();
 
   // logOut
-  var token = localStorage.getItem("token");
-  let logOut = () => {
-    localStorage.clear();
+  const token = getItem("token");
+  const logOut = () => {
+    removeItem("token");
+    removeItem("userId");
     navigate("/login");
   };
 
@@ -18,21 +20,18 @@ function Header() {
     document.getElementById("mySidenav").style.width = "230px";
     document.getElementById("main").style.marginLeft = "230px";
     document.getElementById("menuToggle").style.display = "none";
-    document.getElementsByClassName("closebtn")[0].style.display =
-      "inline-block";
-    document.getElementsByClassName(
-      "nav-bar-heading-title"
-    )[0].style.marginLeft = "230px";
-    var elements = document.getElementsByClassName("sidenav-text");
-    for (var i = 0; i < elements.length; i++) {
-      elements[i].style.display = "inline-block";
-    }
+    document.querySelector(".closebtn").style.display = "inline-block";
+    document.querySelector(".nav-bar-heading-title").style.marginLeft = "230px";
+    const sidenavTextElements = document.querySelectorAll(".sidenav-text");
+    sidenavTextElements.forEach((element) => {
+      element.style.display = "inline-block";
+    });
   };
 
   return (
     <div>
       <div
-        class="header fw-bold position-fixed d-flex justify-content-between align-items-center"
+        className="header fw-bold position-fixed d-flex justify-content-between align-items-center"
         style={{ zIndex: "1" }}
       >
         <div
@@ -42,16 +41,15 @@ function Header() {
             marginLeft: "220px",
           }}
         >
-          <sapn id="menuToggle" onClick={() => openSidenav()}>
+          <span id="menuToggle" onClick={() => openSidenav()}>
             &#9776;
-          </sapn>
+          </span>
 
           <Link
             to="/"
             className="text-decoration-none text-dark"
             style={{
               fontSize: "25px",
-              // marginLeft: "18%",
             }}
           >
             Bill Book
@@ -62,23 +60,17 @@ function Header() {
             <Nav.Item>
               {token ? (
                 <>
-                  <Button
-                    className="text-white btn-dark shadow-none"
-                    onClick={logOut}
-                  >
-                    {window.innerWidth >= 600 ? <span>Logout&nbsp;</span> : ""}
+                  <Button className="btn-dark shadow-none" onClick={logOut}>
+                    Logout&nbsp;
                     <LogoutIcon />
                   </Button>
                 </>
               ) : (
                 <>
-                  <Nav.Link
-                    href="/login"
-                    className="text-white mr-2 mt-2 shadow-none"
-                  >
+                  <Link to="/login" className="text-dark mr-2 mt-2 shadow-none">
                     <LoginIcon />
                     &nbsp;Login
-                  </Nav.Link>
+                  </Link>
                 </>
               )}
             </Nav.Item>

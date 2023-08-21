@@ -1,24 +1,26 @@
 import React, { useState, useEffect } from "react";
-// import { Table, Button } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import { Button } from "react-bootstrap";
 import IconButton from "@mui/material/IconButton";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import axios from "axios";
-import MaterialDataTable from "../../containers/MaterialDataTable";
 import { toast } from "react-toastify";
+import MaterialDataTable from "../../containers/MaterialDataTable";
+import CustomersFrom from "./CustomersFrom";
+import axiosInstance from "../../../config/AxiosInstance";
 import moment from "moment";
 
-function AllBilldetails() {
-  const [loading, setLoading] = React.useState(false);
-
+function CustomerDetails() {
   // get customers Information
-  let [customers, setCustomers] = useState([]);
-  let customerData = async () => {
+  const [customers, setCustomers] = useState([]);
+  const [loading, setLoading] = useState(false);
+  // edit customer data
+  const [id, setId] = useState(null);
+  const [editData, setEditData] = useState({});
+
+  const customerData = async () => {
     try {
       setLoading(true);
-      const url = `${process.env.REACT_APP_BACKEND_URL}/customers`;
-      const response = await axios.get(url);
+      const response = await axiosInstance.get("/customers");
       if (response.data.customers) {
         setCustomers(response.data.customers);
         setLoading(false);
@@ -33,11 +35,10 @@ function AllBilldetails() {
     customerData();
   }, []);
 
-  let handleDelete = async (id) => {
+  const handleDelete = async (id) => {
     try {
       setLoading(true);
-      const url = `${process.env.REACT_APP_BACKEND_URL}/customers/${id}`;
-      const response = await axios.delete(url);
+      const response = await axiosInstance.delete(`/customers/${id}`);
       if (response.data.success) {
         customerData();
         setLoading(false);
@@ -46,23 +47,35 @@ function AllBilldetails() {
     } catch (error) {
       setLoading(false);
       console.error("Error deleting customer:", error);
-      if (error.response.data.message) {
-        toast.error(error.response.data.message);
-      } else {
-        toast.error(error.message);
-      }
+      const errorMessage = error.response?.data?.message || error.message;
+      toast.error(errorMessage);
     }
   };
 
+  // const [productModelOpen, setProductsModelOpen] = useState(false);
+
+  const [productModelOpen, setProductsModelOpen] = useState(false);
+
+  const handleClickOpen = (value) => {
+    setEditData(value);
+    setId(value._id);
+    setProductsModelOpen(true);
+  };
+
+  const handleClose = () => {
+    setProductsModelOpen(false);
+    setEditData({});
+    setId(null);
+  };
+
   const columns = [
+    { title: "#", field: "id" },
     { title: "Name", field: "name" },
     { title: "Email", field: "email" },
     {
       title: "Date",
       field: "createdAt",
-      render: ({ createdAt }) => (
-        <>{moment({ createdAt }).format("DD/MM/YYYY")}</>
-      ),
+      render: ({ createdAt }) => <>{moment(createdAt).format("DD/MM/YYYY")}</>,
     },
     { title: "Phone", field: "phoneNo" },
     { title: "Gstno", field: "gstNo" },
@@ -73,18 +86,17 @@ function AllBilldetails() {
       render: (row) => (
         <div className="d-flex flex-row justify-content-center align-items-center gap-1">
           <div>
-            <Link to={`/customars/${row._id}`}>
-              <IconButton className="rounded-circle">
-                <EditIcon />
-              </IconButton>
-            </Link>
+            <IconButton
+              className="rounded-circle"
+              onClick={() => handleClickOpen(row)}
+            >
+              <EditIcon />
+            </IconButton>
           </div>
           <div>
             <IconButton
               className="rounded-circle"
-              onClick={() => {
-                handleDelete(row._id);
-              }}
+              onClick={() => handleDelete(row._id)}
             >
               <DeleteIcon />
             </IconButton>
@@ -96,29 +108,33 @@ function AllBilldetails() {
 
   return (
     <>
-      <div className="content">
-        <div className="d-flex justify-content-end mb-4">
-          <Link
-            to="/customars/new"
-            className="btn text-white shadow-none"
-            style={{ backgroundColor: "#0d47a1" }}
-          >
-            Add New Customar
-          </Link>
-        </div>
-        <div>
-          <MaterialDataTable
-            title="Customers Information"
-            columns={columns}
-            data={customers}
-            loading={loading}
-            setSate={setCustomers}
-            handleGetData={customerData}
-          />
-        </div>
+      <div className="d-flex justify-content-end mb-4 gap-3">
+        <Button
+          className="shadow-none"
+          onClick={() => setProductsModelOpen(true)}
+        >
+          Add New Customar
+        </Button>
       </div>
+      <div>
+        <MaterialDataTable
+          title="Customers Information"
+          columns={columns}
+          data={customers}
+          loading={loading}
+          setSate={setCustomers}
+          handleGetData={customerData}
+        />
+      </div>
+      <CustomersFrom
+        id={id}
+        handleClose={handleClose}
+        open={productModelOpen}
+        editData={editData}
+        customerData={customerData}
+      />
     </>
   );
 }
 
-export default AllBilldetails;
+export default CustomerDetails;
