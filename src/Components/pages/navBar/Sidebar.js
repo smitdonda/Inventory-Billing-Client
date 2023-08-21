@@ -9,35 +9,35 @@ import WestIcon from "@mui/icons-material/West";
 
 function Sidebar() {
   const location = useLocation();
-  const iconFontSize = { fontSize: "29px" };
 
   const SiderBarData = [
     {
       to: "/",
       name: "Home",
-      icon: <HomeIcon sx={iconFontSize} />,
+      icon: <HomeIcon className="sidenav-icon" />,
     },
     {
       to: "/customersdetails",
       name: "Customers",
-      icon: <PersonIcon sx={iconFontSize} />,
+      icon: <PersonIcon className="sidenav-icon" />,
     },
     {
       to: "/productsdetails",
       name: "Products",
-      icon: <CategoryIcon sx={iconFontSize} />,
+      icon: <CategoryIcon className="sidenav-icon" />,
     },
     {
       to: "/billinformation",
       name: "Bills",
-      icon: <InfoIcon sx={iconFontSize} />,
+      icon: <InfoIcon className="sidenav-icon" />,
     },
     {
       to: "/myprofile",
       name: "Profile",
-      icon: <AccountCircleIcon sx={iconFontSize} />,
+      icon: <AccountCircleIcon className="sidenav-icon" />,
     },
   ];
+
   const closeSideNav = () => {
     document.getElementById("mySidenav").style.width = "72px";
     document.getElementById("main").style.marginLeft = "72px";
@@ -53,9 +53,13 @@ function Sidebar() {
   };
 
   return (
-    <div id="mySidenav" className="sidenav bg-dark">
+    <div
+      id="mySidenav"
+      className="sidenav bg-dark"
+      style={{ fontSize: "large" }}
+    >
       <span className="closebtn text-white" onClick={() => closeSideNav()}>
-        <WestIcon sx={iconFontSize} />
+        <WestIcon className="sidenav-icon" />
       </span>
       <div className="mt-2">
         {SiderBarData.map((e, i) => {
@@ -63,10 +67,8 @@ function Sidebar() {
             <Link
               key={i}
               to={e.to}
-              className={`${
-                location.pathname === e.to
-                  ? "text-white d-flex gap-4 nav-text-link"
-                  : "d-flex gap-4 nav-text-link"
+              className={`d-flex gap-4 nav-text-link ${
+                location.pathname === e.to ? "text-white" : ""
               }`}
             >
               {e.icon} <span className="sidenav-text">{e.name}</span>

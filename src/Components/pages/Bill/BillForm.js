@@ -5,6 +5,7 @@ import { Dropdown, Table, Button } from "react-bootstrap";
 import { BillBook } from "../../../App";
 import { useFormik } from "formik";
 import * as yup from "yup";
+import IconButton from "@mui/material/IconButton";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { toast } from "react-toastify";
@@ -305,11 +306,9 @@ function BillForm() {
                       })}
                     </td>
                     <td>{e?.gsttex ? <>{e?.gsttex?.toFixed(2)}</> : <></>}</td>
-                    <td className="d-flex flex-row justify-content-center align-items-center gap-2">
-                      <Button
-                        variant="warning"
-                        size="sm"
-                        className="mr-2 shadow-none rounded-circle"
+                    <td className="d-flex flex-row justify-content-center align-items-center gap-1">
+                      <IconButton
+                        className="rounded-circle"
                         onClick={() => {
                           setModalShow(true);
                           context.editProduct = e;
@@ -318,17 +317,13 @@ function BillForm() {
                         }}
                       >
                         <EditIcon />
-                      </Button>
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        className="shadow-none rounded-circle"
-                        onClick={() => {
-                          handleDelete(e);
-                        }}
+                      </IconButton>
+                      <IconButton
+                        className="rounded-circle"
+                        onClick={() => handleDelete(e)}
                       >
                         <DeleteIcon />
-                      </Button>
+                      </IconButton>
                     </td>
                   </tr>
                 );

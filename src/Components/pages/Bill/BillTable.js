@@ -18,7 +18,6 @@ function BillTable() {
   const ref = useRef();
 
   const [invoiceObj, setInvoiceObj] = useState([]);
-  const [InvoceId, setInvoceId] = useState(0);
 
   const invoiceData = () => {
     if (context?.allbilldetails) {
@@ -26,7 +25,6 @@ function BillTable() {
         (invoice) => invoice?._id === id
       );
       setInvoiceObj(context?.allbilldetails[findIndex]);
-      setInvoceId(findIndex + 1);
     }
   };
 

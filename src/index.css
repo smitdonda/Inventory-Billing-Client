@@ -63,9 +63,10 @@ input::-webkit-inner-spin-button {
   color: #818181;
   display: block;
   transition: 0.5s;
+  font-size: large !important;
 }
 .sidenav-text {
-  font-size: 1.3rem;
+  font-size: large !important;
 }
 
 .sidenav a:hover {
@@ -74,13 +75,15 @@ input::-webkit-inner-spin-button {
 
 .sidenav .closebtn {
   position: absolute;
-  top: 0;
+  top: 18px;
   right: 25px;
-  font-size: 36px;
-  margin-left: 50px;
+  font-size: large !important;
   cursor: pointer;
 }
 
+.sidenav-icon {
+  font-size: 29px !important;
+}
 /* chart */
 @media screen and (max-width: 650px) {
   .product-chart {

@@ -21,6 +21,7 @@ function Header() {
     document.getElementById("main").style.marginLeft = "230px";
     document.getElementById("menuToggle").style.display = "none";
     document.querySelector(".closebtn").style.display = "inline-block";
+    document.querySelector(".closebtn").styletransition = "0.5s";
     document.querySelector(".nav-bar-heading-title").style.marginLeft = "230px";
     const sidenavTextElements = document.querySelectorAll(".sidenav-text");
     sidenavTextElements.forEach((element) => {

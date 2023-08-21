@@ -84,7 +84,7 @@ function CustomerDetails() {
       title: "Actions",
       sorting: false,
       render: (row) => (
-        <div className="d-flex flex-row justify-content-center align-items-center gap-1">
+        <div className="d-flex flex-row align-items-center gap-1">
           <div>
             <IconButton
               className="rounded-circle"
