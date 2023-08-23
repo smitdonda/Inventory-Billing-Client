@@ -154,7 +154,7 @@ function ProductsModal(props) {
                       </Dropdown.Menu>
                     </Dropdown>
                     <div className="row ml-1">
-                      <div className="form-group col-md-8 mt-3">
+                      <div className="form-group col-md-6 mt-3">
                         <label htmlFor="productname">Product Name</label>
                         <Field
                           className="form-control"
@@ -168,7 +168,7 @@ function ProductsModal(props) {
                           component="div"
                         />
                       </div>
-                      <div className="form-group col-md-4 mt-3">
+                      <div className="form-group col mt-3">
                         <label htmlFor="unitprice">Unit Price</label>
                         <Field
                           className="form-control"
@@ -182,7 +182,7 @@ function ProductsModal(props) {
                           component="div"
                         />
                       </div>
-                      <div className="form-group col-md-4 mt-3">
+                      <div className="form-group col mt-3">
                         <label htmlFor="quantity">Quantity</label>
                         <Field
                           className="form-control"
@@ -196,36 +196,36 @@ function ProductsModal(props) {
                           component="div"
                         />
                       </div>
-                      <div className="form-group col-md-8 mt-3">
-                        <label htmlFor="gst">Taxes</label>
-                        <Multiselect
-                          id="gst"
-                          displayValue="title"
-                          name="gst"
-                          placeholder="Please select GSTs"
-                          onSelect={function noRefCheck(selectedList) {
-                            setSelectedGSTs(selectedList);
-                          }}
-                          options={[
-                            { title: "S GST 2.5%", value: 2.5 },
-                            { title: "C GST 2.5%", value: 2.5 },
-                            { title: "S GST 9%", value: 9 },
-                            { title: "C GST 9%", value: 9 },
-                            { title: "S GST 14%", value: 14 },
-                            { title: "C GST 14%", value: 14 },
-                          ]}
-                          selectionLimit={2}
-                          selectedValues={props?.editProduct?.gst}
-                          hidePlaceholder="true"
-                          showArrow="true"
-                          showCheckbox="true"
-                        />
-                        <ErrorMessage
-                          className="text-danger"
-                          name="gst"
-                          component="div"
-                        />
-                      </div>
+                    </div>
+                    <div className="form-group mt-3">
+                      <label htmlFor="gst">Taxes</label>
+                      <Multiselect
+                        id="gst"
+                        displayValue="title"
+                        name="gst"
+                        placeholder="Please select GSTs"
+                        onSelect={function noRefCheck(selectedList) {
+                          setSelectedGSTs(selectedList);
+                        }}
+                        options={[
+                          { title: "S GST 2.5%", value: 2.5 },
+                          { title: "C GST 2.5%", value: 2.5 },
+                          { title: "S GST 9%", value: 9 },
+                          { title: "C GST 9%", value: 9 },
+                          { title: "S GST 14%", value: 14 },
+                          { title: "C GST 14%", value: 14 },
+                        ]}
+                        selectionLimit={2}
+                        selectedValues={props?.editProduct?.gst}
+                        hidePlaceholder="true"
+                        showArrow="true"
+                        showCheckbox="true"
+                      />
+                      <ErrorMessage
+                        className="text-danger"
+                        name="gst"
+                        component="div"
+                      />
                     </div>
                     <div className="d-flex justify-content-end mt-3">
                       {props.isAddOrEditeProduct ? (
