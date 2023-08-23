@@ -122,7 +122,7 @@ function CustomerDetails() {
           columns={columns}
           data={customers}
           loading={loading}
-          setSate={setCustomers}
+          setState={setCustomers}
           handleGetData={customerData}
         />
       </div>

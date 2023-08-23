@@ -1,8 +1,7 @@
-import React, { useContext, useState } from "react";
+import React, { useEffect, useState } from "react";
 import ProductsModal from "./ProductsModal";
 import { useNavigate, useParams } from "react-router-dom";
 import { Dropdown, Table, Button } from "react-bootstrap";
-import { BillBook } from "../../../App";
 import { useFormik } from "formik";
 import * as yup from "yup";
 import IconButton from "@mui/material/IconButton";
@@ -13,18 +12,75 @@ import axiosInstance from "../../../config/AxiosInstance";
 import { SpinLoader } from "../Loaders/loaders";
 
 function BillForm() {
-  let context = useContext(BillBook);
   const { id } = useParams();
   const navigate = useNavigate();
+  const [totalproductsprice, setTotalProductsPrice] = useState(0);
+  const [selectedProd, setSelectedProd] = useState([]);
+  const [billInfoData, setBillInfoData] = useState({});
+  const [editProduct, setEditProduct] = useState({});
+
+  const [isAddOrEditeProduct, setIsAddOrEditeProduct] = useState(true);
 
   //  Products modal Visible or Invisible
   const [modalShow, setModalShow] = useState(false);
 
   const [loadding, setLoadding] = useState(false);
 
+  // Fetch customer data
+  const [customers, setCustomers] = useState([]);
+  const fetchCustomerData = async () => {
+    try {
+      const response = await axiosInstance.get(`/customers`);
+      if (response?.data?.success) {
+        setCustomers(response?.data?.customers);
+      }
+    } catch (error) {
+      // Handle error if needed
+      console.log("Error", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchCustomerData();
+  }, []);
+
+  useEffect(() => {
+    // Calculate total amount of products
+    let sum = 0;
+    for (var t = 0; t < selectedProd?.length; t++) {
+      sum += selectedProd[t]?.gsttex;
+    }
+    setTotalProductsPrice(sum);
+  }, [selectedProd]);
+
+  const findEditeBillInformationData = async () => {
+    if (id !== "new") {
+      // Update existing bill Information
+      try {
+        const res = await axiosInstance.get(`/billInformation/${id}`);
+        if (res.data?.success) {
+          setSelectedProd(res.data?.bill.products);
+          setBillInfoData(res.data?.bill);
+        }
+      } catch (error) {
+        console.error("Error updating bill:", error);
+        if (error.response.data.message) {
+          toast.error(error.response.data.message);
+        } else {
+          toast.error(error.message);
+        }
+      }
+    }
+  };
+
+  useEffect(() => {
+    findEditeBillInformationData();
+  }, [id]);
+
   const handleSubmit = async (values) => {
     setLoadding(true);
-    values.totalproductsprice = context.custdata.totalproductsprice;
+    values.totalproductsprice = totalproductsprice?.toFixed(2);
+    values.products = selectedProd || [];
     if (id !== "new") {
       // Update existing bill Information
       try {
@@ -70,19 +126,13 @@ function BillForm() {
   const updateProductQuantities = async (products) => {
     for (let i = 0; i < products.length; i++) {
       const product = products[i];
-      const pfindIndex = context.products?.findIndex(
-        (e) => e._id === product._id
-      );
+      const pfindIndex = products?.findIndex((e) => e._id === product._id);
       if (pfindIndex !== -1) {
-        context.products[pfindIndex].availableproductqty -= product?.quantity;
+        products[pfindIndex].availableproductqty -= product?.quantity;
         try {
-          await axiosInstance.put(
-            `/products/${context?.products[pfindIndex]._id}`,
-            {
-              availableproductqty:
-                context?.products[pfindIndex].availableproductqty,
-            }
-          );
+          await axiosInstance.put(`/products/${products[pfindIndex]._id}`, {
+            availableproductqty: products[pfindIndex].availableproductqty,
+          });
         } catch (error) {
           console.error("Error updating product quantity:", error);
         }
@@ -93,12 +143,10 @@ function BillForm() {
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
-      name: context?.custdata?.name || "",
-      email: context?.custdata?.email || "",
-      phoneNo: context?.custdata?.phoneNo || "",
-      gstNo: context?.custdata?.gstNo || "",
-      totalproductsprice: context?.custdata?.totalproductsprice || "",
-      products: context?.prod || [],
+      name: billInfoData?.name || "",
+      email: billInfoData?.email || "",
+      phoneNo: billInfoData?.phoneNo || "",
+      gstNo: billInfoData?.gstNo || "",
     },
     validationSchema: yup.object({
       name: yup.string().required("Required"),
@@ -117,12 +165,8 @@ function BillForm() {
   // produts delete
   // one product object delete
   const handleDelete = (product) => {
-    const sub = context.custdata.totalproductsprice - product.gsttex;
-    context.setCustData((prevData) => ({
-      ...prevData,
-      totalproductsprice: sub,
-    }));
-    context.setProd((prevProd) => prevProd.filter((p) => p !== product));
+    setTotalProductsPrice(totalproductsprice - product.gsttex);
+    setSelectedProd((prevProd) => prevProd.filter((p) => p !== product));
   };
 
   return (
@@ -145,7 +189,7 @@ function BillForm() {
                   Select Customers
                 </Dropdown.Toggle>
                 <Dropdown.Menu>
-                  {context?.customers?.map((e, i) => {
+                  {customers?.map((e, i) => {
                     return (
                       <div key={i}>
                         <Dropdown.Item
@@ -258,13 +302,22 @@ function BillForm() {
             className="mt-4 mb-3 mr-4  shadow none"
             onClick={() => {
               setModalShow(true);
-              context.setEditProduct({});
-              context.setNewOne(true);
+              setEditProduct({});
+              setIsAddOrEditeProduct(true);
             }}
           >
             Add Products
           </Button>
-          <ProductsModal show={modalShow} onHide={() => setModalShow(false)} />
+          <ProductsModal
+            show={modalShow}
+            onHide={() => setModalShow(false)}
+            setSelectedProd={setSelectedProd}
+            selectedProd={selectedProd}
+            editProduct={editProduct}
+            setEditProduct={setEditProduct}
+            isAddOrEditeProduct={isAddOrEditeProduct}
+            setIsAddOrEditeProduct={setIsAddOrEditeProduct}
+          />
         </div>
 
         {/* table product */}
@@ -282,15 +335,15 @@ function BillForm() {
               </tr>
             </thead>
             <tbody>
-              {context?.prod?.map((e, i) => {
+              {selectedProd?.map((row, i) => {
                 return (
                   <tr key={i}>
                     <th scope="col">{i + 1}</th>
-                    <td>{e?.productname}</td>
-                    <td>{e?.quantity}</td>
-                    <td>{e?.unitprice}</td>
+                    <td>{row?.productname}</td>
+                    <td>{row?.quantity}</td>
+                    <td>{row?.unitprice}</td>
                     <td>
-                      {e?.gst?.map((g, i) => {
+                      {row?.gst?.map((g, i) => {
                         return (
                           <div key={i}>
                             <li type="none">
@@ -305,22 +358,23 @@ function BillForm() {
                         );
                       })}
                     </td>
-                    <td>{e?.gsttex ? <>{e?.gsttex?.toFixed(2)}</> : <></>}</td>
+                    <td>
+                      {row?.gsttex ? <>{row?.gsttex?.toFixed(2)}</> : <></>}
+                    </td>
                     <td className="d-flex flex-row justify-content-center align-items-center gap-1">
                       <IconButton
                         className="rounded-circle"
                         onClick={() => {
                           setModalShow(true);
-                          context.editProduct = e;
-                          context.setEditProduct(context.editProduct);
-                          context.setNewOne(false);
+                          setEditProduct(row);
+                          setIsAddOrEditeProduct(false);
                         }}
                       >
                         <EditIcon />
                       </IconButton>
                       <IconButton
                         className="rounded-circle"
-                        onClick={() => handleDelete(e)}
+                        onClick={() => handleDelete(row)}
                       >
                         <DeleteIcon />
                       </IconButton>
@@ -331,9 +385,7 @@ function BillForm() {
               <tr className="bg-dark text-white">
                 <td colSpan="4"></td>
                 <td className="font-weight-bold">Total Products Price</td>
-                <td className="h6">
-                  {context?.custdata?.totalproductsprice?.toFixed(2)}
-                </td>
+                <td className="h6">{totalproductsprice.toFixed(2)}</td>
                 <td></td>
               </tr>
             </tbody>

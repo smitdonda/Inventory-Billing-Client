@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { BillBook } from "../../../App";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
@@ -8,9 +7,9 @@ import IconButton from "@mui/material/IconButton";
 import { toast } from "react-toastify";
 import axiosInstance from "../../../config/AxiosInstance";
 import MaterialDataTable from "../../containers/MaterialDataTable";
+import moment from "moment";
 
 function BillInformation() {
-  const context = useContext(BillBook);
   const [allBillDetails, setAllBillDetails] = useState([]);
   const [loading, setLoading] = React.useState(false);
 
@@ -58,6 +57,11 @@ function BillInformation() {
     { title: "#", field: "id" },
     { title: "Customers Name", field: "name" },
     {
+      title: "Date",
+      field: "createdAt",
+      render: ({ createdAt }) => <>{moment(createdAt).format("DD/MM/YYYY")}</>,
+    },
+    {
       title: "Products",
       field: "products",
       sorting: false,
@@ -95,14 +99,7 @@ function BillInformation() {
         <div className="d-flex flex-row align-items-center gap-1">
           <div>
             <Link to={`/billform/${row._id}`}>
-              <IconButton
-                className="rounded-circle"
-                onClick={() => {
-                  // all details printed in a bill form
-                  context?.setCustData(row);
-                  context?.setProd(row?.products);
-                }}
-              >
+              <IconButton className="rounded-circle">
                 <EditIcon />
               </IconButton>
             </Link>
@@ -139,7 +136,7 @@ function BillInformation() {
         loading={loading}
         data={allBillDetails}
         columns={columns}
-        setSate={setAllBillDetails}
+        setState={setAllBillDetails}
         handleGetData={getBillData}
         // detailPanel={detailPanel}
       />

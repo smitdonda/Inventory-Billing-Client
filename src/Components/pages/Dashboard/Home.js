@@ -33,10 +33,26 @@ function Home() {
     getCountData();
   }, []);
 
+  // Fetch products data
+  const [products, setproducts] = useState([]);
+  const fetchProductsData = async () => {
+    try {
+      const response = await axiosInstance.get(`/products`);
+      setproducts(response?.data?.products);
+    } catch (error) {
+      // Handle error if needed
+      console.log("Error", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchProductsData();
+  }, []);
+
   // Create products chart data
   const productChartData = [["Task", "Hours per Day"]];
-  if (context && context?.products) {
-    context.products.forEach((product) => {
+  if (products) {
+    products.forEach((product) => {
       productChartData.push([
         product.productname,
         +product.availableproductqty,

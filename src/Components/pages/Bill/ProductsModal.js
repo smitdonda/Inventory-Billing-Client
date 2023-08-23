@@ -1,14 +1,29 @@
-import React, { useContext, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Multiselect from "multiselect-react-dropdown";
 import { ErrorMessage, Field, Form, Formik } from "formik";
 import { Dropdown, Modal, Button } from "react-bootstrap";
-import { BillBook } from "../../../App";
+import axiosInstance from "../../../config/AxiosInstance";
 import { toast } from "react-toastify";
 
 function ProductsModal(props) {
-  let context = useContext(BillBook);
   const [selectedGSTs, setSelectedGSTs] = useState([]);
-  console.log("context.custdata", context.custdata);
+
+  // Fetch products data
+  const [products, setproducts] = useState([]);
+  const fetchProductsData = async () => {
+    try {
+      const response = await axiosInstance.get(`/products`);
+      setproducts(response?.data?.products);
+    } catch (error) {
+      // Handle error if needed
+      console.log("Error", error);
+    }
+  };
+  useEffect(() => {
+    fetchProductsData();
+  }, []);
+
+  const [availableproductqty, setAvailableProductQty] = useState(0);
 
   return (
     <>
@@ -24,32 +39,10 @@ function ProductsModal(props) {
         <Modal.Body>
           <div className="d-flex justify-content-center align-self-center">
             <div>
-              <Dropdown>
-                <Dropdown.Toggle variant="light" className="shadow-none">
-                  Select Product
-                </Dropdown.Toggle>
-                <Dropdown.Menu>
-                  {context.products?.map((e, i) => {
-                    return (
-                      <div key={i}>
-                        <Dropdown.Item
-                          onClick={() => {
-                            e["quantity"] = 1;
-                            context.setEditProduct(e);
-                          }}
-                        >
-                          <span>({e.id})</span>&nbsp;{e?.productname}
-                        </Dropdown.Item>
-                      </div>
-                    );
-                  })}
-                </Dropdown.Menu>
-              </Dropdown>
-
               <Formik
                 enableReinitialize={true}
                 initialValues={
-                  context?.editProduct || {
+                  props?.editProduct || {
                     productname: "",
                     unitprice: "",
                     quantity: "",
@@ -76,24 +69,27 @@ function ProductsModal(props) {
                   setTimeout(() => {
                     values["gst"] = selectedGSTs?.length
                       ? selectedGSTs
-                      : context?.editProduct?.gst;
-                    const productIndex = context.prod.findIndex(
+                      : props?.editProduct?.gst;
+                    const productIndex = props.selectedProd.findIndex(
                       (e) => e.productname === values.productname
                     );
 
-                    if (productIndex > -1 && context.newOne) {
+                    if (productIndex > -1 && !props?.editProduct?._id) {
                       toast.error(
                         "Selected product is already added into the bill."
                       );
                       return false;
                     }
 
-                    if (values.availableproductqty === 0) {
+                    if (availableproductqty === 0) {
                       toast.error("Selected product is out of stock.");
                       return false;
                     }
-
-                    if (values.availableproductqty >= values.quantity) {
+                    console.log(
+                      "Selected product quantity",
+                      props.selectedProd
+                    );
+                    if (availableproductqty >= values.quantity) {
                       values["pandqtotal"] =
                         values.unitprice * parseInt(values.quantity);
                       values["gsttex"] = values.pandqtotal;
@@ -107,29 +103,24 @@ function ProductsModal(props) {
                         }
                       }
 
-                      // Add product to context.prod array
-                      if (context.newOne === true) {
-                        context.prod.push(values);
+                      // Add product to props.selectedProd array
+                      if (!props?.editProduct._id) {
+                        props.setSelectedProd((prevProd) => {
+                          return [...prevProd, values];
+                        });
+                        // props?.selectedProd.push(values);
                       } else if (productIndex > -1) {
-                        context.prod[productIndex] = values;
-                      }
-
-                      // Calculate total amount of products
-                      let sum = 0;
-                      for (var t = 0; t < context?.prod?.length; t++) {
-                        sum += context.prod[t]?.gsttex;
-                      }
-                      if (context && context.custdata) {
-                        context.setCustData((prevData) => ({
-                          ...prevData,
-                          totalproductsprice: sum,
-                        }));
+                        props.setSelectedProd((prevProd) => {
+                          return [(prevProd[productIndex] = values)];
+                        });
+                        // props.selectedProd[productIndex] = values;
                       }
                     } else {
                       toast.error(
                         "Please enter the correct quantity. Available quantity is: " +
-                          values.availableproductqty
+                          availableproductqty
                       );
+                      return false;
                     }
 
                     setSubmitting(true);
@@ -137,8 +128,31 @@ function ProductsModal(props) {
                   }, 200);
                 }}
               >
-                {({ isSubmitting }) => (
+                {({ isSubmitting, setFieldValue }) => (
                   <Form>
+                    <Dropdown>
+                      <Dropdown.Toggle variant="light">
+                        Select Product
+                      </Dropdown.Toggle>
+                      <Dropdown.Menu>
+                        {products?.map((e, i) => {
+                          return (
+                            <div key={i}>
+                              <Dropdown.Item
+                                onClick={() => {
+                                  setFieldValue("productname", e?.productname);
+                                  setFieldValue("quantity", 1);
+                                  setFieldValue("unitprice", e?.unitprice);
+                                  setAvailableProductQty(e.availableproductqty);
+                                }}
+                              >
+                                <span>({e.id})</span>&nbsp;{e?.productname}
+                              </Dropdown.Item>
+                            </div>
+                          );
+                        })}
+                      </Dropdown.Menu>
+                    </Dropdown>
                     <div className="row ml-1">
                       <div className="form-group col-md-8 mt-3">
                         <label htmlFor="productname">Product Name</label>
@@ -201,7 +215,7 @@ function ProductsModal(props) {
                             { title: "C GST 14%", value: 14 },
                           ]}
                           selectionLimit={2}
-                          selectedValues={context?.editProduct?.gst}
+                          selectedValues={props?.editProduct?.gst}
                           hidePlaceholder="true"
                           showArrow="true"
                           showCheckbox="true"
@@ -214,19 +228,14 @@ function ProductsModal(props) {
                       </div>
                     </div>
                     <div className="d-flex justify-content-end mt-3">
-                      {context.newOne === true ? (
-                        <Button
-                          type="submit"
-                          className="shadow-none"
-                          disabled={isSubmitting}
-                        >
+                      {props.isAddOrEditeProduct ? (
+                        <Button type="submit" className="shadow-none">
                           Add
                         </Button>
                       ) : (
                         <Button
                           type="submit"
                           className="btn btn-warning shadow-none"
-                          disabled={isSubmitting}
                         >
                           Update
                         </Button>

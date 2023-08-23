@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useContext, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Table } from "react-bootstrap";
-import { BillBook } from "../../../App";
 import { useParams } from "react-router-dom";
 import Pdf from "react-to-pdf";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
+import axiosInstance from "../../../config/AxiosInstance";
 import moment from "moment";
 
 const options = {
@@ -13,24 +13,42 @@ const options = {
 };
 
 function BillTable() {
-  const context = useContext(BillBook);
   const { id } = useParams();
   const ref = useRef();
 
-  const [invoiceObj, setInvoiceObj] = useState([]);
+  const [invoiceObj, setInvoiceObj] = useState({});
 
-  const invoiceData = () => {
-    if (context?.allbilldetails) {
-      const findIndex = context.allbilldetails.findIndex(
-        (invoice) => invoice?._id === id
-      );
-      setInvoiceObj(context?.allbilldetails[findIndex]);
+  // Fetch my profile data
+  const [myprofile, setMyProfile] = useState([]);
+  const fetchProfileData = async () => {
+    try {
+      const response = await axiosInstance.get(`/my-profile`);
+      setMyProfile(response.data.profile[0]);
+    } catch (error) {
+      // Handle error if needed
+      console.log("Error", error);
+    }
+  };
+
+  useEffect(()=>{
+    fetchProfileData()
+  },[])
+
+  const findBillInformationData = async () => {
+    // get existing bill Information
+    try {
+      const res = await axiosInstance.get(`/billInformation/${id}`);
+      if (res.data?.success) {
+        setInvoiceObj(res.data?.bill);
+      }
+    } catch (error) {
+      console.error("Error get bill:", error);
     }
   };
 
   useEffect(() => {
-    invoiceData();
-  }, [context, id]);
+    findBillInformationData();
+  }, [id]);
 
   return (
     <>
@@ -59,17 +77,17 @@ function BillTable() {
         <div className="container">
           <div className="text-center mb-5 mt-5">
             <div>
-              <h2>{context?.myprofile?.companyname}</h2>
+              <h2>{myprofile?.companyname}</h2>
             </div>
             <div>
               <div className="text-uppercase">
-                {context?.myprofile?.address}
+                {myprofile?.address}
               </div>
               <div className="text-uppercase">
-                {context?.myprofile?.state} ,{context?.myprofile?.city}
+                {myprofile?.state} ,{myprofile?.city}
               </div>
-              <div>Phone: {context?.myprofile?.phone}</div>
-              <div>Email: {context?.myprofile?.cemail}</div>
+              <div>Phone: {myprofile?.phone}</div>
+              <div>Email: {myprofile?.cemail}</div>
             </div>
           </div>
           <Table size="sm" className="m-auto table table-borderless">

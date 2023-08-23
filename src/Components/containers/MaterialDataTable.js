@@ -12,7 +12,7 @@ function MaterialDataTable({
   data = [],
   columns = [],
   loading = false,
-  setSate = [],
+  setState = [],
   handleGetData,
   detailPanel = [],
   pageSize = 5,
@@ -53,7 +53,7 @@ function MaterialDataTable({
             tooltip: "Refresh Table",
             isFreeAction: true,
             onClick: () => {
-              setSate([]);
+              setState([]);
               handleGetData();
             },
           },

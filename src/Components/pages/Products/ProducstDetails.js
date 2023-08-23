@@ -102,10 +102,7 @@ function ProducstDetails() {
   return (
     <>
       <div className="d-flex justify-content-end mb-4">
-        <Button
-          className="shadow-none"
-          onClick={() => setOpen(true)}
-        >
+        <Button className="shadow-none" onClick={() => setOpen(true)}>
           Add New Product
         </Button>
       </div>
@@ -115,7 +112,7 @@ function ProducstDetails() {
           columns={columns}
           data={products}
           loading={loading}
-          setSate={setProducts}
+          setState={setProducts}
           handleGetData={getProductsData}
         />
       </div>

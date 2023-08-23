@@ -1,18 +1,32 @@
-import React, { useContext, useState } from "react";
+import React, {  useState, useEffect } from "react";
 import { Button } from "react-bootstrap";
 import { useNavigate, useParams } from "react-router-dom";
-import { BillBook } from "../../../App";
 import { useFormik } from "formik";
 import * as yup from "yup";
 import axiosInstance from "../../../config/AxiosInstance";
 import { SpinLoader } from "../Loaders/loaders";
 
 function ProfileForm() {
-  let context = useContext(BillBook);
 
   const navigate = useNavigate();
   const { id } = useParams();
   const [loadding, setLoadding] = useState(false);
+
+  // Fetch my profile data
+  const [myprofile, setMyProfile] = useState([]);
+  const fetchProfileData = async () => {
+    try {
+      const response = await axiosInstance.get(`/my-profile`);
+      setMyProfile(response.data.profile[0]);
+    } catch (error) {
+      // Handle error if needed
+      console.log("Error", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchProfileData();
+  }, []);
 
   // find the Id data
   const handleSubmit = async (values) => {
@@ -33,35 +47,15 @@ function ProfileForm() {
   };
 
   const companyprofile = useFormik({
+    enableReinitialize: true,
     initialValues: {
-      companyname:
-        context && context.myprofile && context?.myprofile?.companyname
-          ? context?.myprofile?.companyname
-          : "",
-      cemail:
-        context && context?.myprofile && context?.myprofile?.cemail
-          ? context?.myprofile?.cemail
-          : "",
-      address:
-        context && context?.myprofile && context?.myprofile?.address
-          ? context?.myprofile?.address
-          : "",
-      city:
-        context && context?.myprofile && context?.myprofile?.city
-          ? context?.myprofile?.city
-          : "",
-      state:
-        context && context?.myprofile && context?.myprofile?.state
-          ? context?.myprofile?.state
-          : "",
-      pinno:
-        context && context?.myprofile && context?.myprofile?.pinno
-          ? context?.myprofile?.pinno
-          : "",
-      phone:
-        context && context?.myprofile && context?.myprofile?.phone
-          ? context?.myprofile?.phone
-          : "",
+      companyname: myprofile.companyname || "",
+      cemail: myprofile.cemail || "",
+      address: myprofile.address || "",
+      city: myprofile.city || "",
+      state: myprofile.state || "",
+      pinno: myprofile.pinno || "",
+      phone: myprofile.phone || "",
     },
     validationSchema: yup.object({
       companyname: yup.string().required("Required"),
@@ -212,7 +206,7 @@ function ProfileForm() {
         </div>
         <div>
           {/* Phone */}
-          <div className="col col-md-7 mr-5 mb-3">
+          <div className="col col-md-6 mr-5 mb-3">
             <div className="form-floating">
               <input
                 type="number"
