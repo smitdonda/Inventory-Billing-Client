@@ -72,7 +72,6 @@ function Login() {
                   className="form-control"
                   type="email"
                   name="email"
-                  id="email"
                   placeholder="name@example.com"
                   onBlur={formik.handleBlur}
                   onChange={formik.handleChange}

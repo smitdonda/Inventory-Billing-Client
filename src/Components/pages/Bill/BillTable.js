@@ -30,9 +30,9 @@ function BillTable() {
     }
   };
 
-  useEffect(()=>{
-    fetchProfileData()
-  },[])
+  useEffect(() => {
+    fetchProfileData();
+  }, []);
 
   const findBillInformationData = async () => {
     // get existing bill Information
@@ -48,6 +48,7 @@ function BillTable() {
 
   useEffect(() => {
     findBillInformationData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   return (
@@ -80,9 +81,7 @@ function BillTable() {
               <h2>{myprofile?.companyname}</h2>
             </div>
             <div>
-              <div className="text-uppercase">
-                {myprofile?.address}
-              </div>
+              <div className="text-uppercase">{myprofile?.address}</div>
               <div className="text-uppercase">
                 {myprofile?.state} ,{myprofile?.city}
               </div>

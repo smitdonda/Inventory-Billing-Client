@@ -19,6 +19,7 @@ function ProductsModal(props) {
       console.log("Error", error);
     }
   };
+  
   useEffect(() => {
     fetchProductsData();
   }, []);
