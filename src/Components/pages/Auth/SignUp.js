@@ -6,10 +6,13 @@ import { Button } from "react-bootstrap";
 import axiosInstance from "../../../config/AxiosInstance";
 import { SpinLoader } from "../Loaders/loaders";
 import { toast } from "react-toastify";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 
 function Registration() {
   const navigate = useNavigate();
   const [loadding, setLoadding] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (values) => {
     try {
@@ -100,7 +103,6 @@ function Registration() {
                   className="form-control"
                   type="email"
                   name="email"
-                  id="email"
                   placeholder="name@example.com"
                   onBlur={formik.handleBlur}
                   onChange={formik.handleChange}
@@ -116,18 +118,23 @@ function Registration() {
               ) : null}
             </div>
             <div className="mb-3">
-              <div className="form-floating ">
+              <div className="form-floating">
                 <input
                   className="form-control"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="Password"
-                  id="password"
                   name="password"
                   onBlur={formik.handleBlur}
                   onChange={formik.handleChange}
                   value={formik.values.password}
                 />
                 <label htmlFor="password">Password</label>
+                <span
+                  className="password-toggle-icon"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                </span>
               </div>
               {formik.touched.password && formik.errors.password ? (
                 <div style={{ color: "red" }}>{formik.errors.password}</div>
@@ -138,8 +145,7 @@ function Registration() {
               <div className="form-floating ">
                 <input
                   className="form-control"
-                  type="password"
-                  id="cpassword"
+                  type={showPassword ? "text" : "password"}
                   name="cpassword"
                   placeholder="Confirm Password"
                   onBlur={formik.handleBlur}
@@ -147,6 +153,12 @@ function Registration() {
                   value={formik.values.cpassword}
                 />
                 <label htmlFor="password">Confirm Password</label>
+                <span
+                  className="password-toggle-icon"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                </span>
               </div>
               {formik.touched.cpassword && formik.errors.cpassword ? (
                 <div style={{ color: "red" }}>{formik.errors.cpassword}</div>

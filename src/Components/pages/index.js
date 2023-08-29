@@ -14,6 +14,14 @@ import ProfileForm from "./Profile/ProfileForm";
 import Login from "./Auth/Login";
 import SignUp from "./Auth/SignUp";
 
+function Public({ children }) {
+  const isSignedIn = getItem("token");
+  if (isSignedIn) {
+    return <Navigate to="/" replace />;
+  }
+  return <>{children || <Outlet />}</>;
+}
+
 function MainLayout() {
   const token = getItem("token");
   if (!token) {
@@ -36,8 +44,10 @@ function Router() {
   return (
     <>
       <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<SignUp />} />
+        <Route element={<Public />}>
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<SignUp />} />
+        </Route>
         <Route element={<MainLayout />}>
           <Route index element={<Home />} />
           <Route path="/customersdetails" element={<CustomerDetails />} />

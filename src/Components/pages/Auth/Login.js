@@ -7,10 +7,15 @@ import axiosInstance from "../../../config/AxiosInstance";
 import { SpinLoader } from "../Loaders/loaders";
 import { toast } from "react-toastify";
 import { setItem } from "../../../config/cookieStorage";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 
 function Login() {
   const navigate = useNavigate();
   const [loadding, setLoadding] = useState(false);
+  // Inside your functional component
+  const [showPassword, setShowPassword] = useState(false);
+
   const handleSubmit = async (values) => {
     try {
       setLoadding(true);
@@ -81,11 +86,10 @@ function Login() {
             </div>
 
             <div className="mb-3">
-              <div className="form-floating ">
+              <div className="form-floating">
                 <input
                   className="form-control"
-                  type="password"
-                  id="password"
+                  type={showPassword ? "text" : "password"}
                   name="password"
                   placeholder="Password"
                   onBlur={formik.handleBlur}
@@ -93,6 +97,12 @@ function Login() {
                   value={formik.values.password}
                 />
                 <label htmlFor="password">Password</label>
+                <span
+                  className="password-toggle-icon"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                </span>
               </div>
               {formik.touched.password && formik.errors.password ? (
                 <div style={{ color: "red" }}>{formik.errors.password}</div>

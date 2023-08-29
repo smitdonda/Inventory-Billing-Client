@@ -163,3 +163,11 @@ input::-webkit-inner-spin-button {
 #menuToggle {
   cursor: pointer;
 }
+
+.password-toggle-icon {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+}
