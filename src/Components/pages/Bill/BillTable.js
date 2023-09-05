@@ -31,7 +31,7 @@ function BillTable() {
   };
 
   useEffect(() => {
-    fetchProfileData();
+    return () => fetchProfileData();
   }, []);
 
   const findBillInformationData = async () => {
@@ -47,7 +47,7 @@ function BillTable() {
   };
 
   useEffect(() => {
-    findBillInformationData();
+    return () => findBillInformationData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 

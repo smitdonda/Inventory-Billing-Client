@@ -10,9 +10,11 @@ import axiosInstance from "../../../config/AxiosInstance";
 import moment from "moment";
 
 function CustomerDetails() {
+  
   // get customers Information
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(false);
+
   // edit customer data
   const [id, setId] = useState(null);
   const [editData, setEditData] = useState({});
@@ -23,6 +25,7 @@ function CustomerDetails() {
       const response = await axiosInstance.get("/customers");
       if (response.data.customers) {
         setCustomers(response.data.customers);
+        console.log(response.data.customers);
         setLoading(false);
       }
     } catch (error) {
@@ -32,7 +35,7 @@ function CustomerDetails() {
   };
 
   useEffect(() => {
-    customerData();
+    return () => customerData();
   }, []);
 
   const handleDelete = async (id) => {

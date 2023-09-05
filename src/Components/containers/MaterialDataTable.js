@@ -19,6 +19,7 @@ function MaterialDataTable({
   pageSizeOptions = [5, 10, 20],
 }) {
   const defaultMaterialTheme = createTheme();
+
   return (
     <ThemeProvider theme={defaultMaterialTheme}>
       <MaterialTable

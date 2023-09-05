@@ -7,7 +7,6 @@ import { BrowserRouter } from "react-router-dom";
 
 import Main from "./Components/pages";
 
-export const BillBook = React.createContext();
 
 function App() {
   return (
@@ -15,7 +14,7 @@ function App() {
       <Main />
       <ToastContainer
         position="top-right"
-        autoClose={5000}
+        autoClose={4000}
         hideProgressBar={false}
         newestOnTop={false}
         closeOnClick

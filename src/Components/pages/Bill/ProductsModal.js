@@ -19,9 +19,9 @@ function ProductsModal(props) {
       console.log("Error", error);
     }
   };
-  
+
   useEffect(() => {
-    fetchProductsData();
+    return () => fetchProductsData();
   }, []);
 
   const [availableproductqty, setAvailableProductQty] = useState(0);

@@ -30,7 +30,7 @@ function BillInformation() {
   };
 
   useEffect(() => {
-    getBillData();
+    return () => getBillData();
   }, []);
 
   const handleDelete = async (id) => {

@@ -4,7 +4,7 @@ import { useFormik } from "formik";
 import * as yup from "yup";
 import { toast } from "react-toastify";
 import axiosInstance from "../../../config/AxiosInstance";
-import { SpinLoader } from "../Loaders/loaders";
+import { SpinLoader } from "../../containers/Loaders/loaders";
 
 function CustomersFrom({ id, open, handleClose, editData, customerData }) {
   const [loadding, setLoadding] = useState(false);

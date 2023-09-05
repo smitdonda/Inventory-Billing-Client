@@ -9,7 +9,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { toast } from "react-toastify";
 import axiosInstance from "../../../config/AxiosInstance";
-import { SpinLoader } from "../Loaders/loaders";
+import { SpinLoader } from "../../containers/Loaders/loaders";
 
 function BillForm() {
   const { id } = useParams();
@@ -41,7 +41,7 @@ function BillForm() {
   };
 
   useEffect(() => {
-    fetchCustomerData();
+    return () => fetchCustomerData();
   }, []);
 
   useEffect(() => {

@@ -1,13 +1,10 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { BillBook } from "../../../App";
 import Chart from "react-google-charts";
 import axiosInstance from "../../../config/AxiosInstance";
-import { SpinLoader } from "../Loaders/loaders";
+import { SpinLoader } from "../../containers/Loaders/loaders";
 
 function Home() {
-  let context = useContext(BillBook);
-
   const [countdata, setCountData] = useState({
     customer: 0,
     product: 0,
@@ -30,7 +27,7 @@ function Home() {
   };
 
   useEffect(() => {
-    getCountData();
+    return () => getCountData();
   }, []);
 
   // Fetch products data
@@ -46,7 +43,7 @@ function Home() {
   };
 
   useEffect(() => {
-    fetchProductsData();
+    return () => fetchProductsData();
   }, []);
 
   // Create products chart data
@@ -101,7 +98,7 @@ function Home() {
             </div>
             <div className="text-dark align-items-center ml-2">
               <h6>Billing Information</h6>
-              <div>Added Bill {countdata?.billInformation || 0}</div>
+              <div>Added Bill {countdata?.billInformation}</div>
             </div>
           </Link>
         </div>
@@ -121,7 +118,7 @@ function Home() {
             </div>
             <div className="text-dark align-items-center ml-2">
               <h6>Total Customer</h6>
-              <div>{countdata?.customer || 0}</div>
+              <div>{countdata?.customer}</div>
             </div>
           </Link>
         </div>
@@ -141,7 +138,7 @@ function Home() {
             </div>
             <div className="text-dark align-items-center ml-2">
               <h6>Available Products</h6>
-              <div>{countdata?.product || 0}</div>
+              <div>{countdata?.product}</div>
             </div>
           </Link>
         </div>

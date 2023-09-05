@@ -19,7 +19,7 @@ function MyProfile() {
       }
     };
 
-    profileData();
+    return () => profileData();
   }, []);
 
   return (

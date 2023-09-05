@@ -1,13 +1,12 @@
-import React, {  useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "react-bootstrap";
 import { useNavigate, useParams } from "react-router-dom";
 import { useFormik } from "formik";
 import * as yup from "yup";
 import axiosInstance from "../../../config/AxiosInstance";
-import { SpinLoader } from "../Loaders/loaders";
+import { SpinLoader } from "../../containers/Loaders/loaders";
 
 function ProfileForm() {
-
   const navigate = useNavigate();
   const { id } = useParams();
   const [loadding, setLoadding] = useState(false);
@@ -25,8 +24,10 @@ function ProfileForm() {
   };
 
   useEffect(() => {
-    fetchProfileData();
-  }, []);
+    return () => {
+      if (id !== "new") fetchProfileData();
+    };
+  }, [id]);
 
   // find the Id data
   const handleSubmit = async (values) => {
@@ -131,7 +132,7 @@ function ProfileForm() {
           <div className="form-floating">
             <input
               type="text"
-              className="form-control "
+              className="form-control"
               id="address"
               name="address"
               placeholder="mycompanyname"

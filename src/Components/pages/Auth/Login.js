@@ -4,7 +4,7 @@ import { useFormik } from "formik";
 import * as yup from "yup";
 import { Button } from "react-bootstrap";
 import axiosInstance from "../../../config/AxiosInstance";
-import { SpinLoader } from "../Loaders/loaders";
+import { SpinLoader } from "../../containers/Loaders/loaders";
 import { toast } from "react-toastify";
 import { setItem } from "../../../config/cookieStorage";
 import VisibilityIcon from "@mui/icons-material/Visibility";
