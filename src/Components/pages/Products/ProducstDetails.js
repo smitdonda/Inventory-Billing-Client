@@ -100,26 +100,24 @@ function ProducstDetails() {
           data={products}
           loading={loading}
           renderRowActions={({ row }) => (
-            <>
-              <div className="d-flex flex-row justify-content-center align-items-center gap-1">
-                <div>
-                  <IconButton
-                    className="rounded-circle"
-                    onClick={() => handleClickOpen(row.original)}
-                  >
-                    <EditIcon />
-                  </IconButton>
-                </div>
-                <div>
-                  <IconButton
-                    className="rounded-circle"
-                    onClick={() => handleDelete(row.original._id)}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </div>
+            <div className="d-flex flex-row justify-content-center align-items-center gap-1">
+              <div>
+                <IconButton
+                  className="rounded-circle"
+                  onClick={() => handleClickOpen(row.original)}
+                >
+                  <EditIcon />
+                </IconButton>
               </div>
-            </>
+              <div>
+                <IconButton
+                  className="rounded-circle"
+                  onClick={() => handleDelete(row.original._id)}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </div>
+            </div>
           )}
         />
       </div>

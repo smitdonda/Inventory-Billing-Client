@@ -90,7 +90,7 @@ function BillInformation() {
         header: "View",
         accessorKey: "View",
         sorting: false,
-        size: 80,
+        size: 70,
         enableColumnFilter: false,
         enableSorting: false,
         Cell: ({ row }) => (
