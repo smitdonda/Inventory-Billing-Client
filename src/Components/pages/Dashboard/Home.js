@@ -27,7 +27,7 @@ function Home() {
   };
 
   useEffect(() => {
-    return () => getCountData();
+    getCountData();
   }, []);
 
   // Fetch products data
@@ -43,7 +43,7 @@ function Home() {
   };
 
   useEffect(() => {
-    return () => fetchProductsData();
+    fetchProductsData();
   }, []);
 
   // Create products chart data

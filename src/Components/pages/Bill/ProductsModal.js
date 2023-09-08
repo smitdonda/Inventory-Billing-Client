@@ -21,7 +21,7 @@ function ProductsModal(props) {
   };
 
   useEffect(() => {
-    return () => fetchProductsData();
+    fetchProductsData();
   }, []);
 
   const [availableproductqty, setAvailableProductQty] = useState(0);

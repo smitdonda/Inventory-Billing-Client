@@ -41,7 +41,7 @@ function BillForm() {
   };
 
   useEffect(() => {
-    return () => fetchCustomerData();
+    fetchCustomerData();
   }, []);
 
   useEffect(() => {

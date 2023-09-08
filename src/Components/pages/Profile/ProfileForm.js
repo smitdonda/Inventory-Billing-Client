@@ -24,9 +24,7 @@ function ProfileForm() {
   };
 
   useEffect(() => {
-    return () => {
-      if (id !== "new") fetchProfileData();
-    };
+    if (id !== "new") fetchProfileData();
   }, [id]);
 
   // find the Id data
