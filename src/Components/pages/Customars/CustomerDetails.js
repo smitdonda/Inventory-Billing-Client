@@ -1,16 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "react-bootstrap";
-import IconButton from "@mui/material/IconButton";
+import { IconButton } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { ContentCopy } from "@mui/icons-material";
+
 import { toast } from "react-toastify";
-import MaterialDataTable from "../../containers/MaterialDataTable";
+import MaterialReactTable from "../../containers/MaterialReactTable";
 import CustomersFrom from "./CustomersFrom";
 import axiosInstance from "../../../config/AxiosInstance";
 import moment from "moment";
 
 function CustomerDetails() {
-  
   // get customers Information
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -25,7 +26,6 @@ function CustomerDetails() {
       const response = await axiosInstance.get("/customers");
       if (response.data.customers) {
         setCustomers(response.data.customers);
-        console.log(response.data.customers);
         setLoading(false);
       }
     } catch (error) {
@@ -55,8 +55,6 @@ function CustomerDetails() {
     }
   };
 
-  // const [productModelOpen, setProductsModelOpen] = useState(false);
-
   const [productModelOpen, setProductsModelOpen] = useState(false);
 
   const handleClickOpen = (value) => {
@@ -71,62 +69,99 @@ function CustomerDetails() {
     setId(null);
   };
 
-  const columns = [
-    { title: "#", field: "id" },
-    { title: "Name", field: "name" },
-    { title: "Email", field: "email" },
-    {
-      title: "Date",
-      field: "createdAt",
-      render: ({ createdAt }) => <>{moment(createdAt).format("DD/MM/YYYY")}</>,
-    },
-    { title: "Phone", field: "phoneNo" },
-    { title: "Gstno", field: "gstNo" },
-    {
-      field: "actions",
-      title: "Actions",
-      sorting: false,
-      render: (row) => (
-        <div className="d-flex flex-row align-items-center gap-1">
-          <div>
-            <IconButton
-              className="rounded-circle"
-              onClick={() => handleClickOpen(row)}
-            >
-              <EditIcon />
-            </IconButton>
-          </div>
-          <div>
-            <IconButton
-              className="rounded-circle"
-              onClick={() => handleDelete(row._id)}
-            >
-              <DeleteIcon />
-            </IconButton>
-          </div>
-        </div>
-      ),
-    },
-  ];
+  const renderValue = (value) => {
+    return value?.length > 15 ? `${value.substring(0, 15)}...` : value;
+  };
+
+  const columns = useMemo(
+    () => [
+      {
+        accessorKey: "id",
+        header: "#Id",
+        size: 140,
+        enableColumnOrdering: false,
+      },
+      {
+        accessorKey: "name",
+        header: "Name",
+        maxSize: 150,
+        minSize: 130,
+      },
+      {
+        accessorKey: "email",
+        header: "Email",
+        maxSize: 200,
+        minSize: 150,
+      },
+      {
+        accessorKey: "createdAt",
+        header: "Date",
+        size: 140,
+        Cell: ({ renderedCellValue }) => (
+          <>{moment(renderedCellValue).format("DD/MM/YYYY")}</>
+        ),
+      },
+      {
+        accessorKey: "phoneNo",
+        header: "PhoneNo",
+        size: 140,
+      },
+      {
+        accessorKey: "gstNo",
+        header: "GST No",
+        maxSize: 200,
+        minSize: 150,
+        enableClickToCopy: true,
+        Cell: ({ renderedCellValue }) => <>{renderValue(renderedCellValue)}</>,
+        muiTableBodyCellCopyButtonProps: {
+          fullWidth: true,
+          startIcon: <ContentCopy />,
+          sx: { justifyContent: "flex-start" },
+        },
+      },
+    ],
+    []
+  );
 
   return (
     <>
-      <div className="d-flex justify-content-end mb-4 gap-3">
-        <Button
-          className="shadow-none"
-          onClick={() => setProductsModelOpen(true)}
-        >
-          Add New Customar
-        </Button>
+      <div className="d-flex flex-wrap justify-content-between mb-4">
+        <div>
+          <h4 className="page-heading">Customers Information</h4>
+        </div>
+        <div>
+          <Button
+            className="shadow-none"
+            onClick={() => setProductsModelOpen(true)}
+          >
+            Add New Customar
+          </Button>
+        </div>
       </div>
       <div>
-        <MaterialDataTable
-          title="Customers Information"
+        <MaterialReactTable
+          // renderTopToolbarCustomActions={() => (
+          //   <h4 className="MuiTypography-h6">Customers Information</h4>
+          // )}
           columns={columns}
           data={customers}
           loading={loading}
-          setState={setCustomers}
-          handleGetData={customerData}
+          renderRowActions={({ row }) => (
+            <div className="d-flex flex-row justify-content-center align-items-center gap-1">
+              <IconButton
+                className="rounded-circle"
+                onClick={() => handleClickOpen(row.original)}
+              >
+                <EditIcon />
+              </IconButton>
+              <IconButton
+                className="rounded-circle"
+                onClick={() => handleDelete(row.original._id)}
+              >
+                <DeleteIcon />
+              </IconButton>
+            </div>
+          )}
         />
       </div>
       <CustomersFrom

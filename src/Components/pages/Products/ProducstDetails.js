@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "react-bootstrap";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import IconButton from "@mui/material/IconButton";
 import { toast } from "react-toastify";
 import axiosInstance from "../../../config/AxiosInstance";
+import MaterialReactTable from "../../containers/MaterialReactTable";
 import ProductForm from "./ProductFrom";
-import MaterialDataTable from "../../containers/MaterialDataTable";
 
 function ProducstDetails() {
   // get product information
@@ -67,53 +67,60 @@ function ProducstDetails() {
     setOpen(false);
   };
 
-  const columns = [
-    { title: "#", field: "id" },
-    { title: "Product Name", field: "productname" },
-    { title: "Available Qty", field: "availableproductqty" },
-    { title: "Unit Price", field: "unitprice" },
-    {
-      field: "actions",
-      title: "Actions",
-      sorting: false,
-      render: (row) => (
-        <div className="d-flex flex-row align-items-center gap-1">
-          <div>
-            <IconButton
-              className="rounded-circle"
-              onClick={() => handleClickOpen(row)}
-            >
-              <EditIcon />
-            </IconButton>
-          </div>
-          <div>
-            <IconButton
-              className="rounded-circle"
-              onClick={() => handleDelete(row._id)}
-            >
-              <DeleteIcon />
-            </IconButton>
-          </div>
-        </div>
-      ),
-    },
-  ];
+  const columns = useMemo(
+    () => [
+      {
+        header: "#id",
+        accessorKey: "id",
+        size: 140,
+        enableColumnOrdering: false,
+      },
+      { header: "Product Name", accessorKey: "productname" },
+      { header: "Available Qty", accessorKey: "availableproductqty" },
+      { header: "Unit Price", accessorKey: "unitprice" },
+    ],
+    []
+  );
 
   return (
     <>
-      <div className="d-flex justify-content-end mb-4">
-        <Button className="shadow-none" onClick={() => setOpen(true)}>
-          Add New Product
-        </Button>
+      <div className="d-flex flex-wrap justify-content-between mb-4">
+        <div>
+          <h4 className="page-heading">Products Information</h4>
+        </div>
+        <div>
+          <Button className="shadow-none" onClick={() => setOpen(true)}>
+            Add New Product
+          </Button>
+        </div>
       </div>
       <div>
-        <MaterialDataTable
-          title="Products Information"
+        <MaterialReactTable
           columns={columns}
           data={products}
           loading={loading}
-          setState={setProducts}
-          handleGetData={getProductsData}
+          renderRowActions={({ row }) => (
+            <>
+              <div className="d-flex flex-row justify-content-center align-items-center gap-1">
+                <div>
+                  <IconButton
+                    className="rounded-circle"
+                    onClick={() => handleClickOpen(row.original)}
+                  >
+                    <EditIcon />
+                  </IconButton>
+                </div>
+                <div>
+                  <IconButton
+                    className="rounded-circle"
+                    onClick={() => handleDelete(row.original._id)}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </div>
+              </div>
+            </>
+          )}
         />
       </div>
       <ProductForm

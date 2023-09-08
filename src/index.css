@@ -1,48 +1,67 @@
-/* input type="number" */
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+#main {
+  transition: 0.5s;
+}
+.content {
+  padding: 90px 20px;
 }
 
-.MuiDataGrid-root .MuiDataGrid-cell:focus-within {
-  outline: none !important;
+#menuToggle {
+  cursor: pointer;
 }
-.MuiDataGrid-root .MuiDataGrid-cellContent {
-  overflow: initial !important;
-}
-.css-t89xny-MuiDataGrid-columnHeaderTitle {
-  overflow: initial !important;
-}
-
-.users-form {
-  border-radius: 10px;
-  background-color: rgba(255, 255, 255, 0.2);
-}
-
-.MuiTypography-h6 {
-  font-size: 1.5rem !important;
-  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
-  font-weight: 600 !important;
-  line-height: 1.7 !important;
-  letter-spacing: 0.008em !important;
-}
-
-.btn-login .btn-signup {
-  font-size: 0.9rem;
-  letter-spacing: 0.05rem;
-  padding: 0.75rem 1rem;
+@media (max-width: 600px) {
+  #main {
+    margin-left: 74px !important;
+  }
+  #mySidenav {
+    width: 74px;
+  }
+  .sidenav-text {
+    display: none;
+  }
+  .closebtn {
+    display: none;
+  }
+  .nav-bar-heading-title {
+    margin-left: 90px !important;
+    transition: 0.5s;
+  }
 }
 
-/* Dashboard icons  */
-.icons {
-  width: 60px;
-  height: 60px;
-  border-radius: 10%;
+@media (min-width: 600px) {
+  #mySidenav {
+    width: 230px;
+  }
+  #main {
+    margin-left: 230px;
+  }
+  #menuToggle {
+    display: none;
+  }
+  .sidenav-text {
+    display: inline-block;
+  }
 }
-.new-bill {
-  width: 280px;
-  height: 100px;
+
+.header {
+  overflow: hidden;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  background-color: #36246514;
+  padding: 15px;
+  width: 100%;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 70px;
+}
+
+.header a {
+  float: left;
+  text-align: center;
+  padding: 12px;
+  text-decoration: none;
+  font-size: 16px;
+  line-height: 25px;
 }
 
 .sidenav {
@@ -84,6 +103,43 @@ input::-webkit-inner-spin-button {
 .sidenav-icon {
   font-size: 29px !important;
 }
+
+/* input type="number" */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.users-form {
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn-login .btn-signup {
+  font-size: 0.9rem;
+  letter-spacing: 0.05rem;
+  padding: 0.75rem 1rem;
+}
+
+/* Dashboard icons  */
+.icons {
+  width: 60px;
+  height: 60px;
+  border-radius: 10%;
+}
+.new-bill {
+  width: 280px;
+  height: 100px;
+}
+
+.page-heading {
+  font-size: 1.5rem !important;
+  font-weight: 600 !important;
+  line-height: 1.7 !important;
+  letter-spacing: 0.008em !important;
+}
+
 /* chart */
 @media screen and (max-width: 650px) {
   .product-chart {
@@ -98,76 +154,42 @@ input::-webkit-inner-spin-button {
   }
 }
 
-#main {
-  transition: 0.5s;
-}
-.content {
-  padding: 90px 20px;
-}
-
-@media (max-width: 600px) {
-  #main {
-    margin-left: 74px !important;
-  }
-  #mySidenav {
-    width: 74px;
-  }
-  .sidenav-text {
-    display: none;
-  }
-  .closebtn {
-    display: none;
-  }
-  .nav-bar-heading-title {
-    margin-left: 90px !important;
-    transition: 0.5s;
-  }
-}
-
-@media (min-width: 600px) {
-  #mySidenav {
-    width: 230px;
-  }
-  #main {
-    margin-left: 230px;
-  }
-  #menuToggle {
-    display: none;
-  }
-  .sidenav-text {
-    display: inline-block;
-  }
-}
-.header {
-  overflow: hidden;
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
-  background-color: #36246514;
-  padding: 15px;
-  width: 100%;
-  top: 0;
-  right: 0;
-  left: 0;
-  height: 70px;
-}
-
-.header a {
-  float: left;
-  text-align: center;
-  padding: 12px;
-  text-decoration: none;
-  font-size: 16px;
-  line-height: 25px;
-}
-
-#menuToggle {
-  cursor: pointer;
-}
-
 .password-toggle-icon {
   position: absolute;
   right: 15px;
   top: 50%;
   transform: translateY(-50%);
   cursor: pointer;
+}
+
+/*  */
+.MuiTableHead-root {
+  z-index: 0 !important;
+}
+.MuiToolbar-root {
+  z-index: 0 !important;
+}
+
+.MuiOutlinedInput-root {
+  border-radius: 1.9rem !important;
+}
+
+.MuiInputBase-root {
+  height: 3.1rem !important;
+}
+
+.MuiBox-root {
+  align-items: center !important;
+}
+
+@media screen and (max-width: 650px) {
+  .MuiOutlinedInput-root {
+    width: 16rem !important;
+  }
+}
+
+@media screen and (max-width: 400px) {
+  .MuiOutlinedInput-root {
+    width: 12rem !important;
+  }
 }
