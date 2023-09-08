@@ -35,7 +35,7 @@ function CustomerDetails() {
   };
 
   useEffect(() => {
-    return () => customerData();
+   customerData();
   }, []);
 
   const handleDelete = async (id) => {

@@ -33,7 +33,7 @@ function ProducstDetails() {
   };
 
   useEffect(() => {
-    return () => getProductsData();
+    getProductsData();
   }, []);
 
   const handleDelete = async (id) => {

@@ -31,7 +31,7 @@ function BillInformation() {
   };
 
   useEffect(() => {
-    return () => getBillData();
+    getBillData();
   }, []);
 
   const handleDelete = async (id) => {
