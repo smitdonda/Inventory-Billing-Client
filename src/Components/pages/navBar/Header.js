@@ -10,9 +10,9 @@ function Header() {
 
   // logOut
   const token = getItem("token");
+
   const logOut = () => {
     removeItem("token");
-    removeItem("userId");
     navigate("/login");
   };
 

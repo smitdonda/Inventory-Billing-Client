@@ -7,7 +7,8 @@ import { toast } from "react-toastify";
 
 function ProductsModal(props) {
   const [selectedGSTs, setSelectedGSTs] = useState([]);
-
+  const [availableproductqty, setAvailableProductQty] = useState(0);
+  
   // Fetch products data
   const [products, setproducts] = useState([]);
   const fetchProductsData = async () => {
@@ -24,7 +25,7 @@ function ProductsModal(props) {
     fetchProductsData();
   }, []);
 
-  const [availableproductqty, setAvailableProductQty] = useState(0);
+
 
   return (
     <>

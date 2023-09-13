@@ -22,13 +22,14 @@ function Login() {
       const res = await axiosInstance.post(`/login`, values);
       if (res.data.success) {
         setLoadding(false);
-        setItem("token", res.data.token);
-        setItem("userId", res.data.userId);
+        setItem("token", res.data.token, {
+          expires: new Date(res.data?.user?.expiresAt),
+        });
         navigate("/");
       }
     } catch (error) {
       setLoadding(false);
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data.message || error.message);
       console.log("Error", error);
     }
   };

@@ -1,5 +1,5 @@
-import React from "react";
-import { Route, Routes, Navigate, Outlet } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Route, Routes, Navigate, Outlet, useLocation } from "react-router-dom";
 import { getItem } from "../../config/cookieStorage";
 import Sidebar from "./navBar/Sidebar";
 import Header from "./navBar/Header";
@@ -24,8 +24,18 @@ function Public({ children }) {
 
 function MainLayout() {
   const token = getItem("token");
-  if (!token) {
-    return <Navigate to="/login" />;
+  const [isSignedIn, setIsSignedIn] = useState(token ? true : false);
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    if (!token) {
+      return setIsSignedIn(false);
+    }
+  }, [pathname, token]);
+
+  // Check if the token is present
+  if (isSignedIn === false) {
+    return <Navigate to="/login" replace />;
   }
   return (
     <>
@@ -45,6 +55,7 @@ function Router() {
     <>
       <Routes>
         <Route element={<Public />}>
+          {/* {token} */}
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
         </Route>
@@ -57,7 +68,7 @@ function Router() {
           <Route path="/billtable/:id" element={<BillTable />} />
           <Route path="/myprofile" element={<MyProfile />} />
           <Route path="/profileform/:id" element={<ProfileForm />} />
-          <Route path="*" element={<Navigate to="/" />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
     </>

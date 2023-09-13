@@ -158,8 +158,9 @@ function BillForm() {
         .required("Required"),
       gstNo: yup.string().required("Required"),
     }),
-    onSubmit: (values) => {
+    onSubmit: (values, { resetForm }) => {
       handleSubmit(values);
+      resetForm();
     },
   });
 

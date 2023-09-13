@@ -10,7 +10,6 @@ function ProductForm({ id, open, handleClose, editData, getProductsData }) {
   const [loadding, setLoadding] = useState(false);
 
   const handleSubmit = async (values) => {
-    debugger;
     try {
       setLoadding(true);
       let response;
@@ -45,8 +44,9 @@ function ProductForm({ id, open, handleClose, editData, getProductsData }) {
       availableproductqty: yup.number().required("Required"),
       unitprice: yup.number().required("Required"),
     }),
-    onSubmit: (values) => {
+    onSubmit: (values, { resetForm }) => {
       handleSubmit(values);
+      resetForm();
     },
   });
   return (

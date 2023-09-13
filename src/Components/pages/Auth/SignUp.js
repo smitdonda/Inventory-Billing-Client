@@ -24,7 +24,7 @@ function Registration() {
       }
     } catch (error) {
       setLoadding(false);
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || error.message);
       console.log("Error", error);
     }
   };

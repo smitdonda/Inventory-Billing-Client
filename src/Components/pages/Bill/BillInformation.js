@@ -120,10 +120,15 @@ function BillInformation() {
   // ];
   return (
     <>
-      <div className="d-flex justify-content-end align-items-center mb-3">
-        <Link to="/billform/new" className="btn  btn-primary shadow-none">
-          Generate New Bill
-        </Link>
+      <div className="d-flex flex-wrap justify-content-between align-items-center mb-3">
+        <div>
+          <h4 className="page-heading">Bill Information</h4>
+        </div>
+        <div>
+          <Link to="/billform/new" className="btn btn-primary shadow-none">
+            Generate New Bill
+          </Link>
+        </div>
       </div>
       <MaterialReactTable
         loading={loading}
