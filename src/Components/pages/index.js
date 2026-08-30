@@ -1,65 +1,43 @@
-import React, { useEffect, useState } from "react";
-import { Route, Routes, Navigate, Outlet, useLocation } from "react-router-dom";
+import React, { Suspense, lazy } from "react";
+import { Route, Routes, Navigate, Outlet } from "react-router-dom";
 import { getItem } from "../../config/cookieStorage";
-import Sidebar from "./navBar/Sidebar";
-import Header from "./navBar/Header";
+import { BlockLoader } from "../ui/Spinner";
+import AppShell from "../layout/AppShell";
 import Home from "./Dashboard/Home";
 import CustomerDetails from "./Customars/CustomerDetails";
 import ProductsDetails from "./Products/ProducstDetails";
 import BillForm from "./Bill/BillForm";
 import BillInformation from "./Bill/BillInformation";
-import BillTable from "./Bill/BillTable";
 import MyProfile from "./Profile/MyProfile";
 import ProfileForm from "./Profile/ProfileForm";
 import Login from "./Auth/Login";
 import SignUp from "./Auth/SignUp";
 
-function Public({ children }) {
-  const isSignedIn = getItem("token");
-  if (isSignedIn) {
-    return <Navigate to="/" replace />;
-  }
-  return <>{children || <Outlet />}</>;
+// jsPDF and html2canvas are ~250 kB gzipped between them and are only needed
+// on the invoice screen, so that route pulls them in on demand.
+const BillTable = lazy(() => import("./Bill/BillTable"));
+
+/** Login and sign-up: bounce signed-in visitors back to the dashboard. */
+function PublicOnly() {
+  return getItem("token") ? <Navigate to="/" replace /> : <Outlet />;
 }
 
-function MainLayout() {
-  const token = getItem("token");
-  const [isSignedIn, setIsSignedIn] = useState(token ? true : false);
-  const { pathname } = useLocation();
-
-  useEffect(() => {
-    if (!token) {
-      return setIsSignedIn(false);
-    }
-  }, [pathname, token]);
-
-  // Check if the token is present
-  if (isSignedIn === false) {
-    return <Navigate to="/login" replace />;
-  }
-  return (
-    <>
-      <Sidebar />
-      <div id="main">
-        <Header />
-        <div className="content">
-          <Outlet />
-        </div>
-      </div>
-    </>
-  );
+/** Everything else: the cookie is read on every render, so a logout or an
+ *  expiry handled by the axios interceptor takes effect on the next paint. */
+function RequireAuth() {
+  return getItem("token") ? <AppShell /> : <Navigate to="/login" replace />;
 }
 
 function Router() {
   return (
-    <>
+    <Suspense fallback={<BlockLoader />}>
       <Routes>
-        <Route element={<Public />}>
-          {/* {token} */}
+        <Route element={<PublicOnly />}>
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
         </Route>
-        <Route element={<MainLayout />}>
+
+        <Route element={<RequireAuth />}>
           <Route index element={<Home />} />
           <Route path="/customersdetails" element={<CustomerDetails />} />
           <Route path="/productsdetails" element={<ProductsDetails />} />
@@ -71,7 +49,7 @@ function Router() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
-    </>
+    </Suspense>
   );
 }
 

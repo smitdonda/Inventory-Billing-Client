@@ -1,195 +1,184 @@
-#main {
-  transition: 0.5s;
-}
-.content {
-  padding: 90px 20px;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-#menuToggle {
-  cursor: pointer;
-}
-@media (max-width: 600px) {
-  #main {
-    margin-left: 74px !important;
+/* ------------------------------------------------------------------ */
+/*  Design tokens — one light monochrome scale.                        */
+/*  Values are raw RGB channels so Tailwind can apply <alpha-value>.   */
+/* ------------------------------------------------------------------ */
+@layer base {
+  :root {
+    --bg: 250 250 250;
+    --surface: 255 255 255;
+    /* A real step above `surface` — it is what hover fills, table headers and
+       the active nav item are painted with, so it must not equal white. */
+    --elevated: 244 244 245;
+    --line: 228 228 231;
+    --strong: 212 212 216;
+    --fg: 9 9 11;
+    --muted: 82 82 91;
+    --faint: 161 161 170;
+    --accent: 9 9 11;
+    --accent-fg: 250 250 250;
+    --success: 22 163 74;
+    --warning: 217 119 6;
+    --danger: 220 38 38;
+    color-scheme: light;
   }
-  #mySidenav {
-    width: 74px;
+
+  * {
+    @apply border-line;
   }
-  .sidenav-text {
-    display: none;
+
+  html {
+    -webkit-tap-highlight-color: transparent;
   }
-  .closebtn {
-    display: none;
+
+  body {
+    @apply bg-bg text-fg font-sans antialiased;
+    margin: 0;
+    text-rendering: optimizeLegibility;
   }
-  .nav-bar-heading-title {
-    margin-left: 90px !important;
-    transition: 0.5s;
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
   }
-}
 
-@media (min-width: 600px) {
-  #mySidenav {
-    width: 230px;
+  /* Kill the browser spinners on number inputs — quantities use our own. */
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
   }
-  #main {
-    margin-left: 230px;
+  input[type="number"] {
+    -moz-appearance: textfield;
   }
-  #menuToggle {
-    display: none;
+
+  ::selection {
+    @apply bg-fg text-bg;
   }
-  .sidenav-text {
-    display: inline-block;
+
+  /* Scrollbars that read as part of the surface, not on top of it. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--strong)) transparent;
   }
-}
-
-.header {
-  overflow: hidden;
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
-  background-color: #36246514;
-  padding: 15px;
-  width: 100%;
-  top: 0;
-  right: 0;
-  left: 0;
-  height: 70px;
-}
-
-.header a {
-  float: left;
-  text-align: center;
-  padding: 12px;
-  text-decoration: none;
-  font-size: 16px;
-  line-height: 25px;
-}
-
-.sidenav {
-  height: 100%;
-  width: 0;
-  position: fixed;
-  top: 0;
-  left: 0;
-  overflow-x: hidden;
-  transition: 0.5s;
-  padding-top: 60px;
-  z-index: 10;
-}
-
-.nav-text-link {
-  padding: 8px 8px 8px 25px;
-  text-decoration: none;
-  color: #818181;
-  display: block;
-  transition: 0.5s;
-  font-size: large !important;
-}
-.sidenav-text {
-  font-size: large !important;
-}
-
-.sidenav a:hover {
-  color: #f1f1f1;
-}
-
-.sidenav .closebtn {
-  position: absolute;
-  top: 18px;
-  right: 25px;
-  font-size: large !important;
-  cursor: pointer;
-}
-
-.sidenav-icon {
-  font-size: 29px !important;
-}
-
-/* input type="number" */
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-.users-form {
-  border-radius: 10px;
-  background-color: rgba(255, 255, 255, 0.2);
-}
-
-.btn-login .btn-signup {
-  font-size: 0.9rem;
-  letter-spacing: 0.05rem;
-  padding: 0.75rem 1rem;
-}
-
-/* Dashboard icons  */
-.icons {
-  width: 60px;
-  height: 60px;
-  border-radius: 10%;
-}
-.new-bill {
-  width: 280px;
-  height: 100px;
-}
-
-.page-heading {
-  font-size: 1.5rem !important;
-  font-weight: 600 !important;
-  line-height: 1.7 !important;
-  letter-spacing: 0.008em !important;
-}
-
-/* chart */
-@media screen and (max-width: 650px) {
-  .product-chart {
-    width: 300px !important;
-    height: 150px !important;
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
   }
-}
-@media screen and (max-width: 400px) {
-  .product-chart {
-    width: 180px !important;
-    height: 100px !important;
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: rgb(var(--strong));
+    border-radius: 9999px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(var(--faint));
+    background-clip: content-box;
   }
 }
 
-.password-toggle-icon {
-  position: absolute;
-  right: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  cursor: pointer;
-}
+@layer components {
+  .focus-ring {
+    @apply outline-none focus-visible:ring-2 focus-visible:ring-fg/70 focus-visible:ring-offset-2 focus-visible:ring-offset-bg;
+  }
 
-/*  */
-.MuiTableHead-root {
-  z-index: 0 !important;
-}
-.MuiToolbar-root {
-  z-index: 0 !important;
-}
+  .card {
+    @apply bg-surface border border-line rounded-2xl;
+  }
 
-.MuiOutlinedInput-root {
-  border-radius: 1.9rem !important;
-}
-
-.MuiInputBase-root {
-  height: 3.1rem !important;
-}
-
-.MuiBox-root {
-  align-items: center !important;
-}
-
-@media screen and (max-width: 650px) {
-  .MuiOutlinedInput-root {
-    width: 16rem !important;
+  .skeleton {
+    @apply relative overflow-hidden bg-line/70 rounded-md;
+  }
+  .skeleton::after {
+    content: "";
+    @apply absolute inset-0;
+    transform: translateX(-100%);
+    background-image: linear-gradient(
+      90deg,
+      transparent,
+      rgb(var(--surface) / 0.6),
+      transparent
+    );
+    animation: shimmer 1.4s infinite;
+  }
+  @keyframes shimmer {
+    100% {
+      transform: translateX(100%);
+    }
   }
 }
 
-@media screen and (max-width: 400px) {
-  .MuiOutlinedInput-root {
-    width: 12rem !important;
+/* ------------------------------------------------------------------ */
+/*  react-toastify — repainted with the token palette.                  */
+/* ------------------------------------------------------------------ */
+.Toastify__toast {
+  background: rgb(var(--surface));
+  color: rgb(var(--fg));
+  border: 1px solid rgb(var(--line));
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 30px -12px rgb(0 0 0 / 0.28);
+  font-family: inherit;
+  font-size: 0.875rem;
+}
+.Toastify__toast-body {
+  font-family: inherit;
+}
+.Toastify__close-button {
+  color: rgb(var(--muted));
+  opacity: 1;
+}
+.Toastify__progress-bar--success {
+  background: rgb(var(--success));
+}
+.Toastify__progress-bar--error {
+  background: rgb(var(--danger));
+}
+.Toastify__progress-bar--warning {
+  background: rgb(var(--warning));
+}
+.Toastify__progress-bar--info {
+  background: rgb(var(--fg));
+}
+.Toastify__toast-icon svg {
+  fill: currentColor;
+}
+.Toastify__toast--success .Toastify__toast-icon {
+  color: rgb(var(--success));
+}
+.Toastify__toast--error .Toastify__toast-icon {
+  color: rgb(var(--danger));
+}
+.Toastify__toast--warning .Toastify__toast-icon {
+  color: rgb(var(--warning));
+}
+
+/* ------------------------------------------------------------------ */
+/*  Invoice export — html2canvas rasterises this, so keep it literal.   */
+/* ------------------------------------------------------------------ */
+.invoice-sheet {
+  background: #ffffff;
+  color: #111111;
+}
+.invoice-sheet * {
+  border-color: #d4d4d8;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  .invoice-sheet {
+    box-shadow: none !important;
+    border: 0 !important;
   }
 }

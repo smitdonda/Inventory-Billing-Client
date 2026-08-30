@@ -1,0 +1,511 @@
+import React, { useEffect, useMemo, useState } from "react";
+import cn from "./cn";
+import {
+  ChevronDownIcon,
+  ChevronUpIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ChevronsLeftIcon,
+  ChevronsRightIcon,
+  SearchIcon,
+  SortIcon,
+  InboxIcon,
+  CopyIcon,
+  CheckIcon,
+  XIcon,
+} from "./Icons";
+import { Button, IconButton } from "./Button";
+
+/* ------------------------------------------------------------------ */
+/*  helpers                                                            */
+/* ------------------------------------------------------------------ */
+
+const rawValue = (row, col) =>
+  typeof col.accessor === "function" ? col.accessor(row) : row?.[col.key];
+
+const searchText = (row, col) => {
+  if (col.searchValue) return String(col.searchValue(row) ?? "");
+  const value = rawValue(row, col);
+  if (value == null) return "";
+  if (Array.isArray(value))
+    return value.map((v) => v?.productname ?? v).join(" ");
+  return String(value);
+};
+
+const compare = (a, b) => {
+  if (a == null && b == null) return 0;
+  if (a == null) return -1;
+  if (b == null) return 1;
+  if (typeof a === "number" && typeof b === "number") return a - b;
+  const da = Date.parse(a);
+  const db = Date.parse(b);
+  if (
+    !Number.isNaN(da) &&
+    !Number.isNaN(db) &&
+    typeof a === "string" &&
+    a.includes("-")
+  ) {
+    return da - db;
+  }
+  const na = Number(a);
+  const nb = Number(b);
+  if (!Number.isNaN(na) && !Number.isNaN(nb) && a !== "" && b !== "")
+    return na - nb;
+  return String(a).localeCompare(String(b), undefined, { numeric: true });
+};
+
+/* ------------------------------------------------------------------ */
+/*  copy-to-clipboard cell                                             */
+/* ------------------------------------------------------------------ */
+
+function CopyValue({ value }) {
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!copied) return undefined;
+    const timer = window.setTimeout(() => setCopied(false), 1400);
+    return () => window.clearTimeout(timer);
+  }, [copied]);
+
+  if (value == null || value === "")
+    return <span className="text-faint">—</span>;
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(String(value));
+      setCopied(true);
+    } catch {
+      /* clipboard blocked (insecure origin) — leave the value selectable */
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={copy}
+      title={`Copy ${value}`}
+      className="group inline-flex max-w-full items-center gap-1.5 rounded-md px-1.5 py-1 -mx-1.5 text-left transition-colors hover:bg-elevated focus-ring"
+    >
+      <span className="truncate font-mono text-[12.5px]">{String(value)}</span>
+      {copied ? (
+        <CheckIcon size={13} className="text-success" />
+      ) : (
+        <CopyIcon
+          size={13}
+          className="text-faint opacity-0 transition-opacity group-hover:opacity-100"
+        />
+      )}
+    </button>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  table                                                              */
+/* ------------------------------------------------------------------ */
+
+function DataTable({
+  columns = [],
+  data = [],
+  loading = false,
+  rowActions,
+  getRowId = (row, index) => row?._id ?? index,
+  searchable = true,
+  searchPlaceholder = "Search...",
+  pageSizeOptions = [8, 15, 30, 60],
+  initialPageSize = 8,
+  emptyTitle = "Nothing here yet",
+  emptyDescription,
+  emptyAction,
+  toolbar,
+  className = "",
+}) {
+  const [query, setQuery] = useState("");
+  const [sort, setSort] = useState({ key: null, dir: "asc" });
+  const [pageSize, setPageSize] = useState(initialPageSize);
+  const [page, setPage] = useState(0);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return data;
+    const searchCols = columns.filter((col) => col.searchable !== false);
+    return data.filter((row) =>
+      searchCols.some((col) => searchText(row, col).toLowerCase().includes(q))
+    );
+  }, [data, columns, query]);
+
+  const sorted = useMemo(() => {
+    if (!sort.key) return filtered;
+    const col = columns.find((c) => c.key === sort.key);
+    if (!col) return filtered;
+    const factor = sort.dir === "asc" ? 1 : -1;
+    return [...filtered].sort(
+      (a, b) =>
+        factor *
+        compare(
+          col.sortValue ? col.sortValue(a) : rawValue(a, col),
+          col.sortValue ? col.sortValue(b) : rawValue(b, col)
+        )
+    );
+  }, [filtered, columns, sort]);
+
+  const pageCount = Math.max(1, Math.ceil(sorted.length / pageSize));
+  const safePage = Math.min(page, pageCount - 1);
+  const rows = useMemo(
+    () => sorted.slice(safePage * pageSize, safePage * pageSize + pageSize),
+    [sorted, safePage, pageSize]
+  );
+
+  useEffect(() => setPage(0), [query, pageSize, data]);
+
+  const toggleSort = (col) => {
+    if (col.sortable === false) return;
+    setSort((prev) =>
+      prev.key !== col.key
+        ? { key: col.key, dir: "asc" }
+        : prev.dir === "asc"
+          ? { key: col.key, dir: "desc" }
+          : { key: null, dir: "asc" }
+    );
+  };
+
+  const renderCell = (row, col, index) => {
+    const value = rawValue(row, col);
+    if (col.cell) return col.cell({ value, row, index });
+    if (col.copyable) return <CopyValue value={value} />;
+    if (value == null || value === "")
+      return <span className="text-faint">—</span>;
+    return value;
+  };
+
+  const colCount = columns.length + (rowActions ? 1 : 0);
+  const showEmpty = !loading && sorted.length === 0;
+
+  return (
+    <div className={cn("card overflow-hidden", className)}>
+      {/* toolbar ---------------------------------------------------- */}
+      {(searchable || toolbar) && (
+        <div className="flex flex-col gap-3 border-b border-line p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
+          {searchable && (
+            <div className="relative w-full sm:max-w-xs">
+              <SearchIcon
+                size={16}
+                className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-faint"
+              />
+              <input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder={searchPlaceholder}
+                aria-label={searchPlaceholder}
+                className="h-10 w-full rounded-xl border border-line bg-bg pl-10 pr-9 text-sm text-fg placeholder:text-faint transition-colors hover:border-strong focus:border-fg focus:outline-none focus:ring-2 focus:ring-fg/15"
+              />
+              {query && (
+                <button
+                  type="button"
+                  onClick={() => setQuery("")}
+                  aria-label="Clear search"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-1 text-faint transition-colors hover:text-fg focus-ring"
+                >
+                  <XIcon size={14} />
+                </button>
+              )}
+            </div>
+          )}
+          <div className="flex items-center gap-2">
+            {toolbar}
+            <span className="hidden text-[13px] text-faint sm:inline">
+              {sorted.length} {sorted.length === 1 ? "record" : "records"}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* desktop table ---------------------------------------------- */}
+      <div className="hidden overflow-x-auto md:block">
+        <table className="w-full min-w-[52rem] border-collapse text-sm">
+          <thead>
+            <tr className="border-b border-line bg-elevated/50">
+              {columns.map((col) => {
+                const active = sort.key === col.key;
+                const sortable = col.sortable !== false;
+                return (
+                  <th
+                    key={col.key}
+                    scope="col"
+                    style={col.width ? { width: col.width } : undefined}
+                    className={cn(
+                      "px-4 py-3 text-left text-[12px] font-semibold uppercase tracking-wider text-muted",
+                      col.align === "right" && "text-right",
+                      col.align === "center" && "text-center"
+                    )}
+                  >
+                    {sortable ? (
+                      <button
+                        type="button"
+                        onClick={() => toggleSort(col)}
+                        className={cn(
+                          "inline-flex items-center gap-1.5 rounded-md px-1 py-0.5 -mx-1 transition-colors hover:text-fg focus-ring",
+                          active && "text-fg"
+                        )}
+                      >
+                        {col.header}
+                        {active ? (
+                          sort.dir === "asc" ? (
+                            <ChevronUpIcon size={13} />
+                          ) : (
+                            <ChevronDownIcon size={13} />
+                          )
+                        ) : (
+                          <SortIcon size={12} className="opacity-40" />
+                        )}
+                      </button>
+                    ) : (
+                      col.header
+                    )}
+                  </th>
+                );
+              })}
+              {rowActions && (
+                <th
+                  scope="col"
+                  className="w-px whitespace-nowrap px-4 py-3 text-right text-[12px] font-semibold uppercase tracking-wider text-muted"
+                >
+                  Actions
+                </th>
+              )}
+            </tr>
+          </thead>
+
+          <tbody>
+            {loading &&
+              Array.from({ length: Math.min(pageSize, 6) }).map((_, r) => (
+                <tr
+                  key={`sk-${r}`}
+                  className="border-b border-line last:border-0"
+                >
+                  {Array.from({ length: colCount }).map((__, c) => (
+                    <td key={`sk-${r}-${c}`} className="px-4 py-3.5">
+                      <div
+                        className="skeleton h-4"
+                        style={{ width: `${45 + ((r + c) % 4) * 14}%` }}
+                      />
+                    </td>
+                  ))}
+                </tr>
+              ))}
+
+            {!loading &&
+              rows.map((row, index) => (
+                <tr
+                  key={getRowId(row, index)}
+                  className="border-b border-line transition-colors last:border-0 hover:bg-elevated/60"
+                >
+                  {columns.map((col) => (
+                    <td
+                      key={col.key}
+                      className={cn(
+                        "px-4 py-3.5 align-middle text-fg",
+                        col.align === "right" && "text-right",
+                        col.align === "center" && "text-center",
+                        col.mono && "font-mono text-[13px]",
+                        col.truncate && "max-w-[16rem] truncate"
+                      )}
+                    >
+                      {renderCell(row, col, index)}
+                    </td>
+                  ))}
+                  {rowActions && (
+                    <td className="whitespace-nowrap px-4 py-3.5 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        {rowActions(row)}
+                      </div>
+                    </td>
+                  )}
+                </tr>
+              ))}
+
+            {showEmpty && (
+              <tr>
+                <td colSpan={colCount} className="px-4 py-16">
+                  <EmptyBlock
+                    title={query ? "No matches" : emptyTitle}
+                    description={
+                      query ? `Nothing matched "${query}".` : emptyDescription
+                    }
+                    action={
+                      query ? (
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => setQuery("")}
+                        >
+                          Clear search
+                        </Button>
+                      ) : (
+                        emptyAction
+                      )
+                    }
+                  />
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* mobile cards ------------------------------------------------ */}
+      <div className="divide-y divide-line md:hidden">
+        {loading &&
+          Array.from({ length: 3 }).map((_, r) => (
+            <div key={`msk-${r}`} className="space-y-2.5 p-4">
+              <div className="skeleton h-4 w-1/3" />
+              <div className="skeleton h-3 w-2/3" />
+              <div className="skeleton h-3 w-1/2" />
+            </div>
+          ))}
+
+        {!loading &&
+          rows.map((row, index) => {
+            const [primary, ...restCols] = columns;
+            return (
+              <div key={getRowId(row, index)} className="p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[13px] font-medium uppercase tracking-wide text-faint">
+                      {primary.header}
+                    </div>
+                    <div className="mt-0.5 truncate font-medium text-fg">
+                      {renderCell(row, primary, index)}
+                    </div>
+                  </div>
+                  {rowActions && (
+                    <div className="flex shrink-0 items-center gap-1">
+                      {rowActions(row)}
+                    </div>
+                  )}
+                </div>
+                <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2.5">
+                  {restCols.map((col) => (
+                    <div key={col.key} className={cn(col.wide && "col-span-2")}>
+                      <dt className="text-[11px] font-medium uppercase tracking-wide text-faint">
+                        {col.header}
+                      </dt>
+                      <dd className="mt-0.5 break-words text-[13.5px] text-fg">
+                        {renderCell(row, col, index)}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            );
+          })}
+
+        {showEmpty && (
+          <div className="p-10">
+            <EmptyBlock
+              title={query ? "No matches" : emptyTitle}
+              description={
+                query ? `Nothing matched "${query}".` : emptyDescription
+              }
+              action={
+                query ? (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setQuery("")}
+                  >
+                    Clear search
+                  </Button>
+                ) : (
+                  emptyAction
+                )
+              }
+            />
+          </div>
+        )}
+      </div>
+
+      {/* pagination -------------------------------------------------- */}
+      {!showEmpty && (
+        <div className="flex flex-col gap-3 border-t border-line px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4">
+          <div className="flex items-center gap-2 text-[13px] text-muted">
+            <span className="hidden sm:inline">Rows</span>
+            <select
+              value={pageSize}
+              onChange={(event) => setPageSize(Number(event.target.value))}
+              aria-label="Rows per page"
+              className="h-8 rounded-lg border border-line bg-bg px-2 text-[13px] text-fg transition-colors hover:border-strong focus:border-fg focus:outline-none focus:ring-2 focus:ring-fg/15"
+            >
+              {pageSizeOptions.map((n) => (
+                <option key={n} value={n}>
+                  {n}
+                </option>
+              ))}
+            </select>
+            <span className="tabular-nums">
+              {sorted.length === 0
+                ? "0"
+                : `${safePage * pageSize + 1}–${Math.min(
+                    (safePage + 1) * pageSize,
+                    sorted.length
+                  )}`}{" "}
+              of {sorted.length}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1">
+            <IconButton
+              icon={ChevronsLeftIcon}
+              label="First page"
+              disabled={safePage === 0}
+              onClick={() => setPage(0)}
+              className="disabled:opacity-30 disabled:pointer-events-none"
+            />
+            <IconButton
+              icon={ChevronLeftIcon}
+              label="Previous page"
+              disabled={safePage === 0}
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              className="disabled:opacity-30 disabled:pointer-events-none"
+            />
+            <span className="px-2 text-[13px] tabular-nums text-muted">
+              {safePage + 1} / {pageCount}
+            </span>
+            <IconButton
+              icon={ChevronRightIcon}
+              label="Next page"
+              disabled={safePage >= pageCount - 1}
+              onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
+              className="disabled:opacity-30 disabled:pointer-events-none"
+            />
+            <IconButton
+              icon={ChevronsRightIcon}
+              label="Last page"
+              disabled={safePage >= pageCount - 1}
+              onClick={() => setPage(pageCount - 1)}
+              className="disabled:opacity-30 disabled:pointer-events-none"
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function EmptyBlock({ title, description, action }) {
+  return (
+    <div className="flex flex-col items-center justify-center gap-3 text-center">
+      <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-line bg-elevated text-faint">
+        <InboxIcon size={22} />
+      </div>
+      <div>
+        <p className="font-medium text-fg">{title}</p>
+        {description && (
+          <p className="mt-1 max-w-sm text-[13px] text-muted">{description}</p>
+        )}
+      </div>
+      {action}
+    </div>
+  );
+}
+
+export default DataTable;

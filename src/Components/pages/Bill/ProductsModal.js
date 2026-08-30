@@ -1,256 +1,265 @@
-import React, { useEffect, useState } from "react";
-import Multiselect from "multiselect-react-dropdown";
-import { ErrorMessage, Field, Form, Formik } from "formik";
-import { Dropdown, Modal, Button } from "react-bootstrap";
-import axiosInstance from "../../../config/AxiosInstance";
-import { toast } from "react-toastify";
+import React, { useEffect, useMemo, useState } from "react";
 
-function ProductsModal(props) {
-  const [selectedGSTs, setSelectedGSTs] = useState([]);
-  const [availableproductqty, setAvailableProductQty] = useState(0);
-  
-  // Fetch products data
-  const [products, setproducts] = useState([]);
-  const fetchProductsData = async () => {
-    try {
-      const response = await axiosInstance.get(`/products`);
-      setproducts(response?.data?.products);
-    } catch (error) {
-      // Handle error if needed
-      console.log("Error", error);
-    }
-  };
+import Modal from "../../ui/Modal";
+import Select from "../../ui/Select";
+import MultiSelect from "../../ui/MultiSelect";
+import { Button } from "../../ui/Button";
+import { Field } from "../../ui/Field";
+import { money } from "../../ui/format";
+
+const GST_OPTIONS = [
+  { title: "S GST 2.5%", value: 2.5 },
+  { title: "C GST 2.5%", value: 2.5 },
+  { title: "S GST 9%", value: 9 },
+  { title: "C GST 9%", value: 9 },
+  { title: "S GST 14%", value: 14 },
+  { title: "C GST 14%", value: 14 },
+];
+
+const EMPTY = {
+  productId: "",
+  id: undefined,
+  productname: "",
+  unitprice: "",
+  quantity: "1",
+  gst: [],
+};
+
+/** Line total before tax, plus each tax slab applied to it. */
+const priceLine = (unitprice, quantity, gst) => {
+  const pandqtotal = (Number(unitprice) || 0) * (Number(quantity) || 0);
+  const taxes = (gst || []).map((slab) => ({
+    ...slab,
+    taxAmount: (pandqtotal / 100) * Number(slab.value),
+  }));
+  const gsttex = taxes.reduce((sum, slab) => sum + slab.taxAmount, pandqtotal);
+  return { pandqtotal, taxes, gsttex };
+};
+
+/**
+ * Add or edit one bill line.
+ * `maxQtyFor` returns how many units this bill may claim for a product —
+ * live stock, plus whatever this bill already reserved before editing.
+ */
+function ProductsModal({
+  open,
+  onClose,
+  onSave,
+  products = [],
+  initial = null,
+  takenProductIds = [],
+  maxQtyFor,
+}) {
+  const [values, setValues] = useState(EMPTY);
+  const [touched, setTouched] = useState({});
 
   useEffect(() => {
-    fetchProductsData();
-  }, []);
+    if (!open) return;
+    setTouched({});
+    setValues(
+      initial
+        ? {
+            productId: initial.productId || "",
+            id: initial.id,
+            productname: initial.productname || "",
+            unitprice:
+              initial.unitprice != null ? String(initial.unitprice) : "",
+            quantity: initial.quantity != null ? String(initial.quantity) : "1",
+            gst: initial.gst || [],
+          }
+        : EMPTY
+    );
+  }, [open, initial]);
 
+  const isEdit = Boolean(initial);
 
+  const options = useMemo(
+    () =>
+      products
+        .filter(
+          (p) => !takenProductIds.includes(p._id) || p._id === values.productId
+        )
+        .map((p) => ({
+          value: p._id,
+          label: p.productname,
+          hint: `#${p.id}`,
+        })),
+    [products, takenProductIds, values.productId]
+  );
+
+  const maxQty = values.productId ? maxQtyFor(values.productId) : 0;
+  const quantity = Number(values.quantity);
+  const { pandqtotal, taxes, gsttex } = priceLine(
+    values.unitprice,
+    values.quantity,
+    values.gst
+  );
+
+  const errors = {};
+  if (!values.productId) errors.productId = "Pick a product";
+  if (!values.quantity || Number.isNaN(quantity) || quantity <= 0) {
+    errors.quantity = "Enter a quantity";
+  } else if (!Number.isInteger(quantity)) {
+    errors.quantity = "Whole units only";
+  } else if (values.productId && quantity > maxQty) {
+    errors.quantity =
+      maxQty === 0
+        ? "This product is out of stock"
+        : `Only ${maxQty} available`;
+  }
+  if (values.unitprice === "" || Number(values.unitprice) < 0) {
+    errors.unitprice = "Enter a unit price";
+  }
+  if (!values.gst.length) errors.gst = "Pick at least one tax slab";
+
+  const pickProduct = (productId) => {
+    const product = products.find((p) => p._id === productId);
+    if (!product) return;
+    setValues((prev) => ({
+      ...prev,
+      productId,
+      id: product.id,
+      productname: product.productname,
+      unitprice: String(product.unitprice ?? ""),
+      quantity:
+        prev.quantity && Number(prev.quantity) > 0 ? prev.quantity : "1",
+    }));
+  };
+
+  const submit = () => {
+    setTouched({
+      productId: true,
+      quantity: true,
+      unitprice: true,
+      gst: true,
+    });
+    if (Object.keys(errors).length) return;
+
+    onSave({
+      productId: values.productId,
+      id: values.id,
+      productname: values.productname,
+      unitprice: Number(values.unitprice),
+      quantity,
+      gst: taxes,
+      pandqtotal,
+      gsttex,
+    });
+    onClose();
+  };
 
   return (
-    <>
-      <Modal
-        {...props}
-        size="md"
-        aria-labelledby="contained-modal-title-vcenter"
-        centered
-      >
-        <Modal.Header closeButton>
-          <Modal.Title id="contained-modal-title-vcenter">Products</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <div className="d-flex justify-content-center align-self-center">
-            <div>
-              <Formik
-                enableReinitialize={true}
-                initialValues={
-                  props?.editProduct || {
-                    productname: "",
-                    unitprice: "",
-                    quantity: "",
-                    gst: [],
-                  }
-                }
-                validate={(values) => {
-                  const errors = {};
-                  if (!values.productname) {
-                    errors.productname = "Required";
-                    if (!values.unitprice) {
-                      errors.unitprice = "Required";
-                    }
-                    if (!values.quantity) {
-                      errors.quantity = "Required";
-                    }
-                    if (!values.gst || values.gst.length === 0) {
-                      errors.gst = "Required";
-                    }
-                  }
-                  return errors;
-                }}
-                onSubmit={(values, { setSubmitting }) => {
-                  setTimeout(() => {
-                    values["gst"] = selectedGSTs?.length
-                      ? selectedGSTs
-                      : props?.editProduct?.gst;
-                    const productIndex = props.selectedProd.findIndex(
-                      (e) => e.productname === values.productname
-                    );
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={isEdit ? "Edit line item" : "Add a product"}
+      description="Pick the product, quantity and the tax slabs that apply."
+      footer={
+        <>
+          <Button variant="secondary" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button onClick={submit}>
+            {isEdit ? "Update line" : "Add line"}
+          </Button>
+        </>
+      }
+    >
+      <div className="space-y-4">
+        <Select
+          label="Product"
+          value={values.productId}
+          onChange={pickProduct}
+          options={options}
+          placeholder={
+            options.length ? "Select a product" : "No products available"
+          }
+          searchPlaceholder="Search catalogue..."
+          emptyText="No products match"
+          error={errors.productId}
+          touched={touched.productId}
+        />
 
-                    if (productIndex > -1 && !props?.editProduct?._id) {
-                      toast.error(
-                        "Selected product is already added into the bill."
-                      );
-                      return false;
-                    }
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field
+            label="Quantity"
+            name="quantity"
+            type="number"
+            inputMode="numeric"
+            min="1"
+            step="1"
+            value={values.quantity}
+            onChange={(event) =>
+              setValues((prev) => ({ ...prev, quantity: event.target.value }))
+            }
+            onBlur={() => setTouched((prev) => ({ ...prev, quantity: true }))}
+            error={errors.quantity}
+            touched={touched.quantity}
+            hint={
+              values.productId ? `${maxQty} available for this bill` : undefined
+            }
+          />
+          <Field
+            label="Unit price (₹)"
+            name="unitprice"
+            type="number"
+            inputMode="decimal"
+            min="0"
+            step="0.01"
+            value={values.unitprice}
+            onChange={(event) =>
+              setValues((prev) => ({ ...prev, unitprice: event.target.value }))
+            }
+            onBlur={() => setTouched((prev) => ({ ...prev, unitprice: true }))}
+            error={errors.unitprice}
+            touched={touched.unitprice}
+          />
+        </div>
 
-                    if (availableproductqty === 0) {
-                      toast.error("Selected product is out of stock.");
-                      return false;
-                    }
-                    console.log(
-                      "Selected product quantity",
-                      props.selectedProd
-                    );
-                    if (availableproductqty >= values.quantity) {
-                      values["pandqtotal"] =
-                        values.unitprice * parseInt(values.quantity);
-                      values["gsttex"] = values.pandqtotal;
+        <MultiSelect
+          label="Tax slabs"
+          options={GST_OPTIONS}
+          value={values.gst}
+          onChange={(gst) => {
+            setValues((prev) => ({ ...prev, gst }));
+            setTouched((prev) => ({ ...prev, gst: true }));
+          }}
+          limit={2}
+          placeholder="Select GST"
+          error={errors.gst}
+          touched={touched.gst}
+        />
 
-                      // Add S GST and C GST in p and q total
-                      if (values.gst && values?.gst?.length) {
-                        for (let g = 0; g < values?.gst?.length; g++) {
-                          values.gst[g]["taxAmount"] =
-                            (values.pandqtotal / 100) * values.gst[g].value;
-                          values.gsttex += values.gst[g].taxAmount;
-                        }
-                      }
-
-                      // Add product to props.selectedProd array
-                      if (!props?.editProduct._id) {
-                        props.setSelectedProd((prevProd) => {
-                          return [...prevProd, values];
-                        });
-                        // props?.selectedProd.push(values);
-                      } else if (productIndex > -1) {
-                        props.setSelectedProd((prevProd) => {
-                          return [(prevProd[productIndex] = values)];
-                        });
-                        // props.selectedProd[productIndex] = values;
-                      }
-                    } else {
-                      toast.error(
-                        "Please enter the correct quantity. Available quantity is: " +
-                          availableproductqty
-                      );
-                      return false;
-                    }
-
-                    setSubmitting(true);
-                    props.onHide();
-                  }, 200);
-                }}
-              >
-                {({ isSubmitting, setFieldValue }) => (
-                  <Form>
-                    <Dropdown>
-                      <Dropdown.Toggle variant="light">
-                        Select Product
-                      </Dropdown.Toggle>
-                      <Dropdown.Menu>
-                        {products?.map((e, i) => {
-                          return (
-                            <div key={i}>
-                              <Dropdown.Item
-                                onClick={() => {
-                                  setFieldValue("productname", e?.productname);
-                                  setFieldValue("quantity", 1);
-                                  setFieldValue("unitprice", e?.unitprice);
-                                  setAvailableProductQty(e.availableproductqty);
-                                }}
-                              >
-                                <span>({e.id})</span>&nbsp;{e?.productname}
-                              </Dropdown.Item>
-                            </div>
-                          );
-                        })}
-                      </Dropdown.Menu>
-                    </Dropdown>
-                    <div className="row ml-1">
-                      <div className="form-group col-md-6 mt-3">
-                        <label htmlFor="productname">Product Name</label>
-                        <Field
-                          className="form-control"
-                          type="text"
-                          name="productname"
-                          placeholder="Product Name"
-                        />
-                        <ErrorMessage
-                          className="text-danger"
-                          name="productname"
-                          component="div"
-                        />
-                      </div>
-                      <div className="form-group col mt-3">
-                        <label htmlFor="unitprice">Unit Price</label>
-                        <Field
-                          className="form-control"
-                          type="number"
-                          name="unitprice"
-                          placeholder="Unit Price"
-                        />
-                        <ErrorMessage
-                          className="text-danger"
-                          name="unitprice"
-                          component="div"
-                        />
-                      </div>
-                      <div className="form-group col mt-3">
-                        <label htmlFor="quantity">Quantity</label>
-                        <Field
-                          className="form-control"
-                          type="number"
-                          name="quantity"
-                          placeholder="Quantity"
-                        />
-                        <ErrorMessage
-                          className="text-danger"
-                          name="quantity"
-                          component="div"
-                        />
-                      </div>
-                    </div>
-                    <div className="form-group mt-3">
-                      <label htmlFor="gst">Taxes</label>
-                      <Multiselect
-                        id="gst"
-                        displayValue="title"
-                        name="gst"
-                        placeholder="Please select GSTs"
-                        onSelect={function noRefCheck(selectedList) {
-                          setSelectedGSTs(selectedList);
-                        }}
-                        options={[
-                          { title: "S GST 2.5%", value: 2.5 },
-                          { title: "C GST 2.5%", value: 2.5 },
-                          { title: "S GST 9%", value: 9 },
-                          { title: "C GST 9%", value: 9 },
-                          { title: "S GST 14%", value: 14 },
-                          { title: "C GST 14%", value: 14 },
-                        ]}
-                        selectionLimit={2}
-                        selectedValues={props?.editProduct?.gst}
-                        hidePlaceholder="true"
-                        showArrow="true"
-                        showCheckbox="true"
-                      />
-                      <ErrorMessage
-                        className="text-danger"
-                        name="gst"
-                        component="div"
-                      />
-                    </div>
-                    <div className="d-flex justify-content-end mt-3">
-                      {props.isAddOrEditeProduct ? (
-                        <Button type="submit" className="shadow-none">
-                          Add
-                        </Button>
-                      ) : (
-                        <Button
-                          type="submit"
-                          className="btn btn-warning shadow-none"
-                        >
-                          Update
-                        </Button>
-                      )}
-                    </div>
-                  </Form>
-                )}
-              </Formik>
+        {/* live line summary */}
+        <div className="rounded-xl border border-line bg-bg p-3.5">
+          <dl className="space-y-1.5 text-sm">
+            <div className="flex items-center justify-between">
+              <dt className="text-muted">Subtotal</dt>
+              <dd className="font-mono tabular-nums text-fg">
+                {money(pandqtotal)}
+              </dd>
             </div>
-          </div>
-        </Modal.Body>
-      </Modal>
-    </>
+            {taxes.map((slab) => (
+              <div
+                key={slab.title}
+                className="flex items-center justify-between text-[13px]"
+              >
+                <dt className="text-faint">{slab.title}</dt>
+                <dd className="font-mono tabular-nums text-muted">
+                  {money(slab.taxAmount)}
+                </dd>
+              </div>
+            ))}
+            <div className="flex items-center justify-between border-t border-line pt-2 font-medium">
+              <dt className="text-fg">Line total</dt>
+              <dd className="font-mono tabular-nums text-fg">
+                {money(gsttex)}
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+    </Modal>
   );
 }
 

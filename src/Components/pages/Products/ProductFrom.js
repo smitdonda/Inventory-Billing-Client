@@ -1,127 +1,157 @@
 import React, { useState } from "react";
-import { Button, Modal } from "react-bootstrap";
 import { useFormik } from "formik";
 import * as yup from "yup";
 import { toast } from "react-toastify";
-import axiosInstance from "../../../config/AxiosInstance";
-import { SpinLoader } from "../../containers/Loaders/loaders";
+
+import Modal from "../../ui/Modal";
+import { Button } from "../../ui/Button";
+import { FormikField } from "../../ui/Field";
+import { PackageIcon } from "../../ui/Icons";
+import { money } from "../../ui/format";
+import axiosInstance, { errorMessage } from "../../../config/AxiosInstance";
+
+const schema = yup.object({
+  productname: yup.string().trim().required("Product name is required"),
+  availableproductqty: yup
+    .number()
+    .typeError("Enter a number")
+    .integer("Whole units only")
+    .min(0, "Cannot be negative")
+    .required("Quantity is required"),
+  unitprice: yup
+    .number()
+    .typeError("Enter a number")
+    .min(0, "Cannot be negative")
+    .required("Unit price is required"),
+});
 
 function ProductForm({ id, open, handleClose, editData, getProductsData }) {
-  const [loadding, setLoadding] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (values) => {
     try {
-      setLoadding(true);
-      let response;
-      if (id) {
-        response = await axiosInstance.put(`/products/${id}`, values);
-      } else {
-        response = await axiosInstance.post(`/products`, values);
-      }
-      if (response?.data?.success) {
-        getProductsData();
-        toast.success(response.data?.message);
-        setLoadding(false);
+      setLoading(true);
+      const payload = {
+        productname: values.productname.trim(),
+        availableproductqty: Number(values.availableproductqty),
+        unitprice: Number(values.unitprice),
+      };
+      const res = id
+        ? await axiosInstance.put(`/products/${id}`, payload)
+        : await axiosInstance.post("/products", payload);
+
+      if (res?.data?.success) {
+        toast.success(res.data.message || "Saved");
+        await getProductsData();
         handleClose();
+        return;
       }
+      toast.error(res?.data?.message || "Could not save the product");
     } catch (error) {
-      setLoadding(false);
-      console.error("Error occurred while submitting data: ", error);
-      const errorMessage = error.response?.data?.message || error.message;
-      toast.error(errorMessage);
+      toast.error(errorMessage(error, "Could not save the product"));
+    } finally {
+      setLoading(false);
     }
   };
 
-  var formik = useFormik({
+  const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
-      productname: editData.productname || "",
-      availableproductqty: editData.availableproductqty || "",
-      unitprice: editData.unitprice || "",
+      productname: editData?.productname || "",
+      availableproductqty:
+        editData?.availableproductqty != null
+          ? String(editData.availableproductqty)
+          : "",
+      unitprice: editData?.unitprice != null ? String(editData.unitprice) : "",
     },
-    validationSchema: yup.object({
-      productname: yup.string().required("Required"),
-      availableproductqty: yup.number().required("Required"),
-      unitprice: yup.number().required("Required"),
-    }),
-    onSubmit: (values, { resetForm }) => {
-      handleSubmit(values);
-      resetForm();
-    },
+    validationSchema: schema,
+    onSubmit: handleSubmit,
   });
+
+  const close = () => {
+    formik.resetForm();
+    handleClose();
+  };
+
+  const stockValue =
+    Number(formik.values.availableproductqty || 0) *
+    Number(formik.values.unitprice || 0);
+
   return (
-    <Modal show={open} onHide={handleClose} centered className="p-0">
-      <form onSubmit={formik.handleSubmit}>
-        <Modal.Header closeButton>
-          <Modal.Title>Modal heading</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <div className="form-group mt-1 mb-3">
-            <div className="form-floating">
-              <input
-                name="productname"
-                type="text"
-                className="form-control"
-                placeholder="Enter Name"
-                onBlur={formik.handleBlur}
-                onChange={formik.handleChange}
-                value={formik.values.productname}
-              />
-              <label htmlFor="productname">Product Name</label>
-            </div>
-            {formik.touched.productname && formik.errors.productname ? (
-              <div className="text-danger">{formik.errors.productname}</div>
-            ) : null}
+    <Modal
+      open={open}
+      onClose={loading ? undefined : close}
+      title={id ? "Edit product" : "New product"}
+      description={
+        id
+          ? "Update the name, stock level or price."
+          : "Add an item you sell and its opening stock."
+      }
+      footer={
+        <>
+          <Button variant="secondary" onClick={close} disabled={loading}>
+            Cancel
+          </Button>
+          <Button
+            onClick={formik.handleSubmit}
+            loading={loading}
+            loadingText="Saving..."
+          >
+            {id ? "Save changes" : "Add product"}
+          </Button>
+        </>
+      }
+    >
+      <form onSubmit={formik.handleSubmit} className="space-y-4" noValidate>
+        <FormikField
+          formik={formik}
+          name="productname"
+          label="Product name"
+          placeholder="A4 Copier Paper 500 sheets"
+          icon={PackageIcon}
+          required
+          data-autofocus
+        />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormikField
+            formik={formik}
+            name="availableproductqty"
+            type="number"
+            inputMode="numeric"
+            min="0"
+            step="1"
+            label="Quantity in stock"
+            placeholder="0"
+            required
+          />
+          <FormikField
+            formik={formik}
+            name="unitprice"
+            type="number"
+            inputMode="decimal"
+            min="0"
+            step="0.01"
+            label="Unit price (₹)"
+            placeholder="0.00"
+            required
+          />
+        </div>
+
+        {stockValue > 0 && (
+          <div className="flex items-center justify-between rounded-xl border border-line bg-bg px-3.5 py-3 text-sm">
+            <span className="text-muted">Stock value</span>
+            <span className="font-mono tabular-nums text-fg">
+              {money(stockValue)}
+            </span>
           </div>
-          <div className="form-group mt-3">
-            <div className="form-floating">
-              <input
-                name="availableproductqty"
-                type="text"
-                className="form-control"
-                placeholder="Add Qty"
-                onBlur={formik.handleBlur}
-                onChange={formik.handleChange}
-                value={formik.values.availableproductqty}
-              />
-              <label htmlFor="availableproductqty">Available Product Qty</label>
-            </div>
-            {formik.touched.availableproductqty &&
-            formik.errors.availableproductqty ? (
-              <div className="text-danger">
-                {formik.errors.availableproductqty}
-              </div>
-            ) : null}
-          </div>
-          <div className="form-group mt-3">
-            <div className="form-floating">
-              <input
-                name="unitprice"
-                type="number"
-                className="form-control"
-                placeholder="Enter One Product Price"
-                onBlur={formik.handleBlur}
-                onChange={formik.handleChange}
-                value={formik.values.unitprice}
-              />
-              <label htmlFor="unitprice">Unit Price</label>
-            </div>
-            {formik.touched.unitprice && formik.errors.unitprice ? (
-              <div className="text-danger">{formik.errors.unitprice}</div>
-            ) : null}
-          </div>
-        </Modal.Body>
-        <Modal.Footer>
-          {id ? (
-            <Button type="submit" variant="warning">
-              {loadding ? <SpinLoader /> : "Update"}
-            </Button>
-          ) : (
-            <Button type="submit" variant="primary">
-              {loadding ? <SpinLoader /> : "Submit"}
-            </Button>
-          )}
-        </Modal.Footer>
+        )}
+
+        <button
+          type="submit"
+          className="hidden"
+          tabIndex={-1}
+          aria-hidden="true"
+        />
       </form>
     </Modal>
   );

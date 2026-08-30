@@ -1,123 +1,105 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { Button } from "react-bootstrap";
-import { IconButton } from "@mui/material";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import { ContentCopy } from "@mui/icons-material";
-
-import { toast } from "react-toastify";
-import MaterialReactTable from "../../containers/MaterialReactTable";
-import CustomersFrom from "./CustomersFrom";
-import axiosInstance from "../../../config/AxiosInstance";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import moment from "moment";
+import { toast } from "react-toastify";
+
+import PageHeader from "../../ui/PageHeader";
+import DataTable from "../../ui/DataTable";
+import ConfirmDialog from "../../ui/ConfirmDialog";
+import { Button, IconButton } from "../../ui/Button";
+import { PlusIcon, PencilIcon, TrashIcon } from "../../ui/Icons";
+import CustomersFrom from "./CustomersFrom";
+import axiosInstance, { errorMessage } from "../../../config/AxiosInstance";
 
 function CustomerDetails() {
-  // get customers Information
   const [customers, setCustomers] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // edit customer data
-  const [id, setId] = useState(null);
+  const [formOpen, setFormOpen] = useState(false);
   const [editData, setEditData] = useState({});
+  const [editId, setEditId] = useState(null);
 
-  const customerData = async () => {
+  const [pendingDelete, setPendingDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const customerData = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get("/customers");
-      if (response.data.customers) {
-        setCustomers(response.data.customers);
-        setLoading(false);
-      }
+      const res = await axiosInstance.get("/customers");
+      setCustomers(res.data?.customers || []);
     } catch (error) {
+      toast.error(errorMessage(error, "Could not load customers"));
+    } finally {
       setLoading(false);
-      console.error("Error fetching customer data:", error);
     }
-  };
-
-  useEffect(() => {
-   customerData();
   }, []);
 
-  const handleDelete = async (id) => {
-    try {
-      setLoading(true);
-      const response = await axiosInstance.delete(`/customers/${id}`);
-      if (response.data.success) {
-        customerData();
-        setLoading(false);
-        toast.success("DELETEED");
-      }
-    } catch (error) {
-      setLoading(false);
-      console.error("Error deleting customer:", error);
-      const errorMessage = error.response?.data?.message || error.message;
-      toast.error(errorMessage);
-    }
-  };
+  useEffect(() => {
+    customerData();
+  }, [customerData]);
 
-  const [productModelOpen, setProductsModelOpen] = useState(false);
-
-  const handleClickOpen = (value) => {
-    setEditData(value);
-    setId(value._id);
-    setProductsModelOpen(true);
-  };
-
-  const handleClose = () => {
-    setProductsModelOpen(false);
+  const openCreate = () => {
     setEditData({});
-    setId(null);
+    setEditId(null);
+    setFormOpen(true);
   };
 
-  const renderValue = (value) => {
-    return value?.length > 15 ? `${value.substring(0, 15)}...` : value;
+  const openEdit = (row) => {
+    setEditData(row);
+    setEditId(row._id);
+    setFormOpen(true);
+  };
+
+  const closeForm = () => {
+    setFormOpen(false);
+    setEditData({});
+    setEditId(null);
+  };
+
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
+    try {
+      setDeleting(true);
+      const res = await axiosInstance.delete(`/customers/${pendingDelete._id}`);
+      if (res.data?.success) {
+        toast.success("Customer deleted");
+        setPendingDelete(null);
+        await customerData();
+        return;
+      }
+      toast.error(res.data?.message || "Could not delete the customer");
+    } catch (error) {
+      toast.error(errorMessage(error, "Could not delete the customer"));
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const columns = useMemo(
     () => [
       {
-        accessorKey: "id",
-        header: "#Id",
-        size: 140,
-        enableColumnOrdering: false,
-      },
-      {
-        accessorKey: "name",
-        header: "Name",
-        maxSize: 150,
-        minSize: 130,
-      },
-      {
-        accessorKey: "email",
-        header: "Email",
-        maxSize: 200,
-        minSize: 150,
-      },
-      {
-        accessorKey: "createdAt",
-        header: "Date",
-        size: 140,
-        Cell: ({ renderedCellValue }) => (
-          <>{moment(renderedCellValue).format("DD/MM/YYYY")}</>
+        key: "name",
+        header: "Customer",
+        cell: ({ row }) => (
+          <div className="min-w-0">
+            <p className="truncate font-medium text-fg">{row.name || "—"}</p>
+            <p className="truncate text-[12px] text-faint">#{row.id}</p>
+          </div>
         ),
       },
+      { key: "email", header: "Email", truncate: true },
+      { key: "phoneNo", header: "Phone", mono: true },
+      { key: "gstNo", header: "GST number", copyable: true, wide: true },
       {
-        accessorKey: "phoneNo",
-        header: "PhoneNo",
-        size: 140,
-      },
-      {
-        accessorKey: "gstNo",
-        header: "GST No",
-        maxSize: 200,
-        minSize: 150,
-        enableClickToCopy: true,
-        Cell: ({ renderedCellValue }) => <>{renderValue(renderedCellValue)}</>,
-        muiTableBodyCellCopyButtonProps: {
-          fullWidth: true,
-          startIcon: <ContentCopy />,
-          sx: { justifyContent: "flex-start" },
-        },
+        key: "createdAt",
+        header: "Added",
+        cell: ({ value }) =>
+          value ? (
+            <span className="whitespace-nowrap text-muted">
+              {moment(value).format("DD MMM YYYY")}
+            </span>
+          ) : (
+            <span className="text-faint">—</span>
+          ),
       },
     ],
     []
@@ -125,51 +107,64 @@ function CustomerDetails() {
 
   return (
     <>
-      <div className="d-flex flex-wrap justify-content-between mb-4">
-        <div>
-          <h4 className="page-heading">Customers Information</h4>
-        </div>
-        <div>
-          <Button
-            className="shadow-none"
-            onClick={() => setProductsModelOpen(true)}
-          >
-            Add New Customar
+      <PageHeader
+        title="Customers"
+        description="Everyone you raise invoices for."
+        actions={
+          <Button icon={PlusIcon} onClick={openCreate}>
+            New customer
           </Button>
-        </div>
-      </div>
-      <div>
-        <MaterialReactTable
-          // renderTopToolbarCustomActions={() => (
-          //   <h4 className="MuiTypography-h6">Customers Information</h4>
-          // )}
-          columns={columns}
-          data={customers}
-          loading={loading}
-          renderRowActions={({ row }) => (
-            <div className="d-flex flex-row justify-content-center align-items-center gap-1">
-              <IconButton
-                className="rounded-circle"
-                onClick={() => handleClickOpen(row.original)}
-              >
-                <EditIcon />
-              </IconButton>
-              <IconButton
-                className="rounded-circle"
-                onClick={() => handleDelete(row.original._id)}
-              >
-                <DeleteIcon />
-              </IconButton>
-            </div>
-          )}
-        />
-      </div>
+        }
+      />
+
+      <DataTable
+        columns={columns}
+        data={customers}
+        loading={loading}
+        searchPlaceholder="Search name, email, GST..."
+        emptyTitle="No customers yet"
+        emptyDescription="Add a customer and they'll be selectable when you raise a bill."
+        emptyAction={
+          <Button size="sm" icon={PlusIcon} onClick={openCreate}>
+            New customer
+          </Button>
+        }
+        rowActions={(row) => (
+          <>
+            <IconButton
+              icon={PencilIcon}
+              label="Edit customer"
+              onClick={() => openEdit(row)}
+            />
+            <IconButton
+              icon={TrashIcon}
+              label="Delete customer"
+              tone="danger"
+              onClick={() => setPendingDelete(row)}
+            />
+          </>
+        )}
+      />
+
       <CustomersFrom
-        id={id}
-        handleClose={handleClose}
-        open={productModelOpen}
+        id={editId}
+        open={formOpen}
+        handleClose={closeForm}
         editData={editData}
         customerData={customerData}
+      />
+
+      <ConfirmDialog
+        open={Boolean(pendingDelete)}
+        onClose={() => setPendingDelete(null)}
+        onConfirm={confirmDelete}
+        loading={deleting}
+        title="Delete this customer?"
+        description={
+          pendingDelete
+            ? `"${pendingDelete.name}" will be removed. Bills already raised for them are not affected.`
+            : undefined
+        }
       />
     </>
   );

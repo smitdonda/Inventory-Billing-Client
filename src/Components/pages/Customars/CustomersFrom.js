@@ -1,157 +1,142 @@
 import React, { useState } from "react";
-import { Button, Modal } from "react-bootstrap";
 import { useFormik } from "formik";
 import * as yup from "yup";
 import { toast } from "react-toastify";
-import axiosInstance from "../../../config/AxiosInstance";
-import { SpinLoader } from "../../containers/Loaders/loaders";
+
+import Modal from "../../ui/Modal";
+import { Button } from "../../ui/Button";
+import { FormikField } from "../../ui/Field";
+import { MailIcon, PhoneIcon, UserCircleIcon, HashIcon } from "../../ui/Icons";
+import axiosInstance, { errorMessage } from "../../../config/AxiosInstance";
+
+const schema = yup.object({
+  name: yup.string().trim().required("Name is required"),
+  email: yup
+    .string()
+    .email("Enter a valid email")
+    .required("Email is required"),
+  phoneNo: yup
+    .string()
+    .matches(/^\d{10}$/, "Enter a 10-digit number")
+    .required("Phone number is required"),
+  gstNo: yup.string().trim().required("GST number is required"),
+});
 
 function CustomersFrom({ id, open, handleClose, editData, customerData }) {
-  const [loadding, setLoadding] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  // Helper function to handle form submission
   const handleSubmit = async (values) => {
     try {
-      setLoadding(true);
-      let response;
-      if (id) {
-        response = await axiosInstance.put(`/customers/${id}`, values);
-      } else {
-        response = await axiosInstance.post(`/customers`, values);
-      }
-      if (response?.data?.success) {
-        customerData();
-        setLoadding(false);
-        toast.success(response?.data?.message);
+      setLoading(true);
+      const res = id
+        ? await axiosInstance.put(`/customers/${id}`, values)
+        : await axiosInstance.post("/customers", values);
+
+      if (res?.data?.success) {
+        toast.success(res.data.message || "Saved");
+        await customerData();
         handleClose();
+        return;
       }
+      toast.error(res?.data?.message || "Could not save the customer");
     } catch (error) {
-      setLoadding(false);
-      console.log("Error", error);
-      const errorMessage = error.response?.data?.message || error.message;
-      toast.error(errorMessage);
+      toast.error(errorMessage(error, "Could not save the customer"));
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Schema for form validation
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
       name: editData?.name || "",
       email: editData?.email || "",
-      phoneNo: editData?.phoneNo || "",
+      phoneNo: editData?.phoneNo ? String(editData.phoneNo) : "",
       gstNo: editData?.gstNo || "",
     },
-    validationSchema: yup.object({
-      name: yup.string().required("Required"),
-      email: yup.string().email("Invaild Email").required("Required"),
-      phoneNo: yup
-        .string()
-        .matches(/^\d{10}$/, "Mobile Number is not valid")
-        .required("Required"),
-      gstNo: yup.string().required("Required"),
-    }),
-    onSubmit: (values, { resetForm }) => {
-      handleSubmit(values);
-      resetForm()
-    },
+    validationSchema: schema,
+    onSubmit: handleSubmit,
   });
 
+  // Reset happens on close rather than on submit, so a failed save keeps input.
+  const close = () => {
+    formik.resetForm();
+    handleClose();
+  };
+
   return (
-    <div>
-      <Modal show={open} onHide={handleClose} centered className="p-0">
-        <form onSubmit={formik.handleSubmit}>
-          <Modal.Header closeButton>
-            <Modal.Title>Customer Form</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <div>
-              <div className="form-group mb-3">
-                <div className="form-floating">
-                  <input
-                    name="name"
-                    type="text"
-                    className="form-control"
-                    placeholder="Enter Name"
-                    onBlur={formik.handleBlur}
-                    onChange={formik.handleChange}
-                    value={formik.values.name}
-                  />
-                  <label htmlFor="name">Customer Name</label>
-                </div>
-                {formik.touched.name && formik.errors.name ? (
-                  <div style={{ color: "red" }}>{formik.errors.name}</div>
-                ) : null}
-              </div>
-              <div className="form-group mt-3">
-                <div className="form-floating">
-                  <input
-                    name="email"
-                    type="email"
-                    className="form-control"
-                    placeholder="Enter email"
-                    onBlur={formik.handleBlur}
-                    onChange={formik.handleChange}
-                    value={formik.values.email}
-                  />
-                  <label htmlFor="email">Email</label>
-                </div>
-                {formik.touched.email && formik.errors.email ? (
-                  <div className="text-danger">{formik.errors.email}</div>
-                ) : null}
-              </div>
-              <div className="row">
-                <div className="form-group col mt-3">
-                  <div className="form-floating">
-                    <input
-                      name="phoneNo"
-                      type="number"
-                      className="form-control"
-                      placeholder="Enter Phone No."
-                      onBlur={formik.handleBlur}
-                      onChange={formik.handleChange}
-                      value={formik.values.phoneNo}
-                    />
-                    <label htmlFor="phoneNo">Phone No.</label>
-                  </div>
-                  {formik.touched.phoneNo && formik.errors.phoneNo ? (
-                    <div className="text-danger">{formik.errors.phoneNo}</div>
-                  ) : null}
-                </div>
-              </div>
-              <div className="form-group mt-3">
-                <div className="form-floating">
-                  <input
-                    name="gstNo"
-                    type="text"
-                    className="form-control"
-                    placeholder="Gst No."
-                    onBlur={formik.handleBlur}
-                    onChange={formik.handleChange}
-                    value={formik.values.gstNo}
-                  />
-                  <label htmlFor="gstNo">Gst No.</label>
-                </div>
-                {formik.touched.gstNo && formik.errors.gstNo ? (
-                  <div className="text-danger">{formik.errors.gstNo}</div>
-                ) : null}
-              </div>
-            </div>
-          </Modal.Body>
-          <Modal.Footer>
-            {id ? (
-              <Button type="submit" variant="warning">
-                {loadding ? <SpinLoader /> : "Update"}
-              </Button>
-            ) : (
-              <Button type="submit" variant="primary">
-                {loadding ? <SpinLoader /> : "Submit"}
-              </Button>
-            )}
-          </Modal.Footer>
-        </form>
-      </Modal>
-    </div>
+    <Modal
+      open={open}
+      onClose={loading ? undefined : close}
+      title={id ? "Edit customer" : "New customer"}
+      description={
+        id
+          ? "Update this customer's billing details."
+          : "Add a customer you bill."
+      }
+      footer={
+        <>
+          <Button variant="secondary" onClick={close} disabled={loading}>
+            Cancel
+          </Button>
+          <Button
+            onClick={formik.handleSubmit}
+            loading={loading}
+            loadingText="Saving..."
+          >
+            {id ? "Save changes" : "Add customer"}
+          </Button>
+        </>
+      }
+    >
+      <form onSubmit={formik.handleSubmit} className="space-y-4" noValidate>
+        <FormikField
+          formik={formik}
+          name="name"
+          label="Customer name"
+          placeholder="Acme Traders"
+          icon={UserCircleIcon}
+          required
+          data-autofocus
+        />
+        <FormikField
+          formik={formik}
+          name="email"
+          type="email"
+          label="Email"
+          placeholder="billing@acme.com"
+          icon={MailIcon}
+          required
+        />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormikField
+            formik={formik}
+            name="phoneNo"
+            type="tel"
+            inputMode="numeric"
+            label="Phone"
+            placeholder="9876543210"
+            icon={PhoneIcon}
+            required
+          />
+          <FormikField
+            formik={formik}
+            name="gstNo"
+            label="GST number"
+            placeholder="24AAAAA0000A1Z5"
+            icon={HashIcon}
+            required
+          />
+        </div>
+        {/* Enter should submit even though the button lives in the footer. */}
+        <button
+          type="submit"
+          className="hidden"
+          tabIndex={-1}
+          aria-hidden="true"
+        />
+      </form>
+    </Modal>
   );
 }
 

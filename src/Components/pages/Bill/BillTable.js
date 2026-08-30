@@ -1,187 +1,346 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Table } from "react-bootstrap";
-import { useParams } from "react-router-dom";
-import Pdf from "react-to-pdf";
-import FileDownloadIcon from "@mui/icons-material/FileDownload";
-import axiosInstance from "../../../config/AxiosInstance";
+import React, { useEffect, useMemo, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { usePDF, Resolution, Margin } from "react-to-pdf";
 import moment from "moment";
+import { toast } from "react-toastify";
 
-const options = {
-  orientation: "landscape",
-  unit: "in",
-  format: [13.6, 10],
+import { Button } from "../../ui/Button";
+import { money } from "../../ui/format";
+import { DownloadIcon, ChevronLeftIcon, FileTextIcon } from "../../ui/Icons";
+import axiosInstance, { errorMessage } from "../../../config/AxiosInstance";
+
+const PDF_OPTIONS = {
+  method: "save",
+  resolution: Resolution.MEDIUM,
+  page: { margin: Margin.SMALL, format: "a4", orientation: "portrait" },
+  canvas: { mimeType: "image/png", qualityRatio: 1 },
 };
+
+/* The sheet is a document, not app chrome: its colours are pinned to paper
+   rather than to the app tokens, so the exported PDF never shifts with them. */
+const SHEET_TEXT = "text-zinc-900";
+const SHEET_MUTED = "text-zinc-500";
+const SHEET_LINE = "border-zinc-300";
 
 function BillTable() {
   const { id } = useParams();
-  const ref = useRef();
+  const navigate = useNavigate();
 
-  const [invoiceObj, setInvoiceObj] = useState({});
+  const [invoice, setInvoice] = useState({});
+  const [profile, setProfile] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
 
-  // Fetch my profile data
-  const [myprofile, setMyProfile] = useState([]);
-  const fetchProfileData = async () => {
+  const { toPDF, targetRef: sheetRef } = usePDF(PDF_OPTIONS);
+
+  const downloadPdf = async () => {
     try {
-      const response = await axiosInstance.get(`/my-profile`);
-      setMyProfile(response.data.profile[0]);
+      setExporting(true);
+      await toPDF({ filename: `invoice-${invoice?.id || id}.pdf` });
     } catch (error) {
-      // Handle error if needed
-      console.log("Error", error);
+      toast.error("Could not build the PDF — use Print instead");
+    } finally {
+      setExporting(false);
     }
   };
 
   useEffect(() => {
-    fetchProfileData();
-  }, []);
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      const [billRes, profileRes] = await Promise.allSettled([
+        axiosInstance.get(`/billInformation/${id}`),
+        axiosInstance.get("/my-profile"),
+      ]);
+      if (cancelled) return;
 
-  const findBillInformationData = async () => {
-    // get existing bill Information
-    try {
-      const res = await axiosInstance.get(`/billInformation/${id}`);
-      if (res.data?.success) {
-        setInvoiceObj(res.data?.bill);
+      if (billRes.status === "fulfilled" && billRes.value.data?.success) {
+        setInvoice(billRes.value.data.bill || {});
+      } else if (billRes.status === "rejected") {
+        toast.error(errorMessage(billRes.reason, "Could not load the invoice"));
       }
-    } catch (error) {
-      console.error("Error get bill:", error);
-    }
-  };
-
-  useEffect(() => {
-    findBillInformationData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+      if (profileRes.status === "fulfilled") {
+        setProfile(profileRes.value.data?.profile?.[0] || {});
+      }
+      setLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [id]);
+
+  const items = useMemo(() => invoice?.products || [], [invoice]);
+
+  const totals = useMemo(
+    () =>
+      items.reduce(
+        (acc, line) => {
+          acc.subtotal += Number(line.pandqtotal) || 0;
+          acc.total += Number(line.gsttex) || 0;
+          return acc;
+        },
+        { subtotal: 0, total: 0 }
+      ),
+    [items]
+  );
+  const tax = totals.total - totals.subtotal;
+  const grandTotal = Number(invoice?.totalproductsprice) || totals.total;
 
   return (
     <>
-      <div className="d-flex justify-content-end align-items-end mb-1">
-        <h3>Genrate PDF</h3>
-      </div>
-      <div className="d-flex justify-content-end align-items-end mb-4 mr-4">
-        <Pdf targetRef={ref} filename="Invoice.pdf" options={options}>
-          {({ toPdf }) => (
-            <button className="btn btn-primary shadow-none" onClick={toPdf}>
-              <FileDownloadIcon />
-              &nbsp;Invoice
-            </button>
-          )}
-        </Pdf>
-      </div>
-      <div
-        ref={ref}
-        className="mb-5"
-        style={{
-          width: "auto",
-          height: "auto",
-          fontFamily: "VT323, monospace",
-        }}
-      >
-        <div className="container">
-          <div className="text-center mb-5 mt-5">
-            <div>
-              <h2>{myprofile?.companyname}</h2>
-            </div>
-            <div>
-              <div className="text-uppercase">{myprofile?.address}</div>
-              <div className="text-uppercase">
-                {myprofile?.state} ,{myprofile?.city}
-              </div>
-              <div>Phone: {myprofile?.phone}</div>
-              <div>Email: {myprofile?.cemail}</div>
-            </div>
-          </div>
-          <Table size="sm" className="m-auto table table-borderless">
-            <tr>
-              <th scope="col">Bill to&nbsp;</th>
-            </tr>
-            <tr>
-              <th scope="col">
-                Name:&nbsp;
-                <span className="fw-normal">{invoiceObj?.name}</span>
-              </th>
-              <th scope="col">
-                Invoice Id No:&nbsp; &#35;
-                <span className="fw-normal">{invoiceObj?.id}</span>
-              </th>
-            </tr>
-            <tr>
-              <th scope="col">
-                Phone No:&nbsp;
-                <span className="fw-normal">{invoiceObj?.phoneNo}</span>
-              </th>
-              <th scope="col">
-                Invoice Date:&nbsp;
-                <span className="fw-normal">
-                  {moment(invoiceObj?.createdAt).format("DD/MM/YYYY")}
-                </span>
-              </th>
-            </tr>
-            <tr>
-              <th scope="col" colSpan="2">
-                GST No:&nbsp;
-                <span className="fw-normal">{invoiceObj?.gstNo}</span>
-              </th>
-            </tr>
-          </Table>
-          <table className="table table-bordered text-center mt-5 m-auto mb-5">
-            <thead>
-              <tr>
-                <th scope="col" style={{ width: "10px" }}>
-                  sr.no
-                </th>
-                <th scope="col" style={{ width: "300px" }}>
-                  Products
-                </th>
-                <th scope="col" style={{ width: "80px" }}>
-                  Qty
-                </th>
-                <th scope="col" style={{ width: "90px" }}>
-                  Unit Price
-                </th>
-                <th scope="col" style={{ width: "100px" }}>
-                  Gst Tax
-                </th>
-                <th scope="col" style={{ width: "100px" }}>
-                  Amount
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {invoiceObj?.products?.map((e, i) => {
-                return (
-                  <tr key={i}>
-                    <th>{i + 1}</th>
-                    <td className="text-left">{e?.productname}</td>
-                    <td>{e?.quantity}</td>
-                    <td>{e?.unitprice}</td>
-                    <td>
-                      {e?.gst?.map((g, i) => {
-                        return (
-                          <div key={i}>
-                            {g?.title}&nbsp;{g?.taxAmount?.toFixed(2)}
-                            <br />
-                          </div>
-                        );
-                      })}
-                    </td>
-                    <td>{e?.gsttex?.toFixed(2)}</td>
-                  </tr>
-                );
-              })}
-              <tr>
-                <td colSpan="5" className="fw-bold text-right">
-                  Total:
-                </td>
-                <td className="fw-bold">
-                  &#x20B9;{invoiceObj?.totalproductsprice?.toFixed(2)}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <div className="d-flex justify-content-end align-items-center">
-            <h4 className="border-top border-dark mr-2">Signature</h4>
+      {/* toolbar */}
+      <div className="no-print mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="secondary"
+            icon={ChevronLeftIcon}
+            onClick={() => navigate("/billinformation")}
+          >
+            Back
+          </Button>
+          <div>
+            <h1 className="text-lg font-semibold tracking-tight text-fg">
+              Invoice {invoice?.id ? `#${invoice.id}` : ""}
+            </h1>
+            <p className="text-[13px] text-muted">
+              Download it as a PDF or print it.
+            </p>
           </div>
         </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            variant="secondary"
+            icon={FileTextIcon}
+            onClick={() => window.print()}
+          >
+            Print
+          </Button>
+          <Button
+            icon={DownloadIcon}
+            onClick={downloadPdf}
+            disabled={loading}
+            loading={exporting}
+            loadingText="Building..."
+          >
+            Download PDF
+          </Button>
+        </div>
       </div>
+
+      {loading ? (
+        <div className="card space-y-4 p-8">
+          <div className="skeleton mx-auto h-7 w-56" />
+          <div className="skeleton mx-auto h-4 w-72" />
+          <div className="skeleton mt-8 h-40 w-full" />
+        </div>
+      ) : (
+        /* The sheet keeps a fixed A4-ish width and scrolls horizontally on
+           phones rather than reflowing — an invoice has to keep its shape. */
+        <div className="overflow-x-auto pb-4">
+          <div
+            ref={sheetRef}
+            className={`invoice-sheet mx-auto w-[52rem] min-w-[52rem] rounded-2xl border ${SHEET_LINE} p-10 shadow-soft`}
+          >
+            {/* company */}
+            <header className="text-center">
+              <h2
+                className={`text-2xl font-semibold tracking-tight ${SHEET_TEXT}`}
+              >
+                {profile?.companyname || "Your company"}
+              </h2>
+              <div className={`mt-2 space-y-0.5 text-[13px] ${SHEET_MUTED}`}>
+                {profile?.address && (
+                  <p className="uppercase">{profile.address}</p>
+                )}
+                {(profile?.city || profile?.state) && (
+                  <p className="uppercase">
+                    {[profile?.city, profile?.state, profile?.pinno]
+                      .filter(Boolean)
+                      .join(", ")}
+                  </p>
+                )}
+                <p>
+                  {profile?.phone ? `Phone ${profile.phone}` : ""}
+                  {profile?.phone && profile?.cemail ? "  ·  " : ""}
+                  {profile?.cemail || ""}
+                </p>
+              </div>
+              <p
+                className={`mt-5 inline-block border-y ${SHEET_LINE} px-6 py-1.5 text-[12px] font-semibold uppercase tracking-[0.2em] ${SHEET_TEXT}`}
+              >
+                Tax invoice
+              </p>
+            </header>
+
+            {/* meta */}
+            <section className="mt-8 grid grid-cols-2 gap-8 text-[13px]">
+              <div>
+                <p
+                  className={`mb-2 text-[11px] font-semibold uppercase tracking-wider ${SHEET_MUTED}`}
+                >
+                  Bill to
+                </p>
+                <p className={`font-semibold ${SHEET_TEXT}`}>
+                  {invoice?.name || "—"}
+                </p>
+                {invoice?.email && (
+                  <p className={SHEET_MUTED}>{invoice.email}</p>
+                )}
+                {invoice?.phoneNo && (
+                  <p className={SHEET_MUTED}>Phone {invoice.phoneNo}</p>
+                )}
+                {invoice?.gstNo && (
+                  <p className={SHEET_MUTED}>GST {invoice.gstNo}</p>
+                )}
+              </div>
+              <div className="text-right">
+                <p
+                  className={`mb-2 text-[11px] font-semibold uppercase tracking-wider ${SHEET_MUTED}`}
+                >
+                  Invoice details
+                </p>
+                <p className={SHEET_TEXT}>
+                  <span className={SHEET_MUTED}>No.&nbsp;</span>#{invoice?.id}
+                </p>
+                <p className={SHEET_TEXT}>
+                  <span className={SHEET_MUTED}>Date&nbsp;</span>
+                  {invoice?.createdAt
+                    ? moment(invoice.createdAt).format("DD MMM YYYY")
+                    : "—"}
+                </p>
+              </div>
+            </section>
+
+            {/* items */}
+            <table className="mt-8 w-full border-collapse text-[13px]">
+              <thead>
+                <tr className={`border-y ${SHEET_LINE}`}>
+                  <th
+                    className={`w-10 px-2 py-2.5 text-left font-semibold ${SHEET_TEXT}`}
+                  >
+                    #
+                  </th>
+                  <th
+                    className={`px-2 py-2.5 text-left font-semibold ${SHEET_TEXT}`}
+                  >
+                    Product
+                  </th>
+                  <th
+                    className={`w-16 px-2 py-2.5 text-right font-semibold ${SHEET_TEXT}`}
+                  >
+                    Qty
+                  </th>
+                  <th
+                    className={`w-28 px-2 py-2.5 text-right font-semibold ${SHEET_TEXT}`}
+                  >
+                    Unit price
+                  </th>
+                  <th
+                    className={`w-40 px-2 py-2.5 text-left font-semibold ${SHEET_TEXT}`}
+                  >
+                    Tax
+                  </th>
+                  <th
+                    className={`w-32 px-2 py-2.5 text-right font-semibold ${SHEET_TEXT}`}
+                  >
+                    Amount
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {items.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={6}
+                      className={`px-2 py-10 text-center ${SHEET_MUTED}`}
+                    >
+                      This bill has no line items.
+                    </td>
+                  </tr>
+                )}
+                {items.map((line, index) => (
+                  <tr
+                    key={`${line.productname}-${index}`}
+                    className={`border-b ${SHEET_LINE}`}
+                  >
+                    <td className={`px-2 py-3 align-top ${SHEET_MUTED}`}>
+                      {index + 1}
+                    </td>
+                    <td className={`px-2 py-3 align-top ${SHEET_TEXT}`}>
+                      {line.productname}
+                    </td>
+                    <td
+                      className={`px-2 py-3 text-right align-top tabular-nums ${SHEET_TEXT}`}
+                    >
+                      {line.quantity}
+                    </td>
+                    <td
+                      className={`px-2 py-3 text-right align-top tabular-nums ${SHEET_TEXT}`}
+                    >
+                      {money(line.unitprice)}
+                    </td>
+                    <td className={`px-2 py-3 align-top ${SHEET_MUTED}`}>
+                      {line.gst?.map((slab) => (
+                        <div key={slab.title} className="whitespace-nowrap">
+                          {slab.title}
+                          {slab.taxAmount != null && (
+                            <span className="ml-1.5 tabular-nums">
+                              {money(slab.taxAmount)}
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </td>
+                    <td
+                      className={`px-2 py-3 text-right align-top tabular-nums ${SHEET_TEXT}`}
+                    >
+                      {money(line.gsttex)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {/* totals */}
+            <section className="mt-6 flex justify-end">
+              <dl className="w-72 space-y-2 text-[13px]">
+                <div className="flex justify-between">
+                  <dt className={SHEET_MUTED}>Subtotal</dt>
+                  <dd className={`tabular-nums ${SHEET_TEXT}`}>
+                    {money(totals.subtotal)}
+                  </dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className={SHEET_MUTED}>Tax</dt>
+                  <dd className={`tabular-nums ${SHEET_TEXT}`}>{money(tax)}</dd>
+                </div>
+                <div
+                  className={`flex justify-between border-t ${SHEET_LINE} pt-2.5 text-[15px] font-semibold`}
+                >
+                  <dt className={SHEET_TEXT}>Total</dt>
+                  <dd className={`tabular-nums ${SHEET_TEXT}`}>
+                    {money(grandTotal)}
+                  </dd>
+                </div>
+              </dl>
+            </section>
+
+            <footer className="mt-16 flex items-end justify-between">
+              <p className={`text-[11px] ${SHEET_MUTED}`}>
+                Computer-generated invoice.
+              </p>
+              <div className="text-center">
+                <div className={`w-48 border-t ${SHEET_LINE} pt-2`}>
+                  <span className={`text-[12px] ${SHEET_MUTED}`}>
+                    Authorised signature
+                  </span>
+                </div>
+              </div>
+            </footer>
+          </div>
+        </div>
+      )}
     </>
   );
 }

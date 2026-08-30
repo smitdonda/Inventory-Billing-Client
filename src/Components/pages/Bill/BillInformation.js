@@ -1,160 +1,221 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
-import IconButton from "@mui/material/IconButton";
-import { toast } from "react-toastify";
-import axiosInstance from "../../../config/AxiosInstance";
-
-import MaterialReactTable from "../../containers/MaterialReactTable";
 import moment from "moment";
+import { toast } from "react-toastify";
+
+import PageHeader from "../../ui/PageHeader";
+import DataTable from "../../ui/DataTable";
+import ConfirmDialog from "../../ui/ConfirmDialog";
+import { Button, IconButton } from "../../ui/Button";
+import { money } from "../../ui/format";
+import { PlusIcon, PencilIcon, TrashIcon, FileTextIcon } from "../../ui/Icons";
+import axiosInstance, { errorMessage } from "../../../config/AxiosInstance";
 
 function BillInformation() {
-  const [allBillDetails, setAllBillDetails] = useState([]);
-  const [loading, setLoading] = React.useState(false);
+  const [bills, setBills] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [pendingDelete, setPendingDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
-  const getBillData = async () => {
+  const getBillData = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get(`/billInformation`);
-      if (response?.data?.success) {
-        setAllBillDetails(response.data.billinfo);
-      } else {
-        setAllBillDetails([]);
-      }
-      setLoading(false);
+      const res = await axiosInstance.get("/billInformation");
+      setBills(res.data?.billinfo || []);
     } catch (error) {
+      toast.error(errorMessage(error, "Could not load bills"));
+    } finally {
       setLoading(false);
-      console.error("Error fetching bill data:", error);
     }
-  };
+  }, []);
 
   useEffect(() => {
     getBillData();
-  }, []);
+  }, [getBillData]);
 
-  const handleDelete = async (id) => {
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
     try {
-      setLoading(true);
-      const response = await axiosInstance.delete(`billInformation/${id}`);
-      if (response.data.success) {
-        setLoading(false);
-        getBillData();
-        toast.success("DELETEED");
+      setDeleting(true);
+      const res = await axiosInstance.delete(
+        `/billInformation/${pendingDelete._id}`
+      );
+      if (res.data?.success) {
+        toast.success("Bill deleted");
+        setPendingDelete(null);
+        await getBillData();
+        return;
       }
+      toast.error(res.data?.message || "Could not delete the bill");
     } catch (error) {
-      setLoading(false);
-      console.error("Error deleting bill:", error);
-      if (error.response.data.message) {
-        toast.error(error.response.data.message);
-      } else {
-        toast.error(error.message);
-      }
+      toast.error(errorMessage(error, "Could not delete the bill"));
+    } finally {
+      setDeleting(false);
     }
   };
 
   const columns = useMemo(
     () => [
       {
-        header: "#Id",
-        accessorKey: "id",
-        size: 135,
-      },
-      { header: "Name", accessorKey: "name", size: 150 },
-      {
-        header: "Date",
-        accessorKey: "createdAt",
-        size: 140,
-        Cell: ({ renderedCellValue }) => (
-          <>{moment(renderedCellValue).format("DD/MM/YYYY")}</>
-        ),
-      },
-      {
-        header: "Products",
-        accessorKey: "products",
-        size: 150,
-        enableSorting: false,
-        Cell: ({ renderedCellValue }) => (
-          <>
-            {renderedCellValue?.map((product, i) => (
-              <div key={i}>
-                <span>{i + 1}</span>.&nbsp;{product.productname}
-              </div>
-            ))}
-          </>
-        ),
-      },
-      { header: "Total Rs.", accessorKey: "totalproductsprice", size: 140 },
-      {
-        header: "View",
-        accessorKey: "View",
-        sorting: false,
-        size: 70,
-        enableColumnFilter: false,
-        enableSorting: false,
-        Cell: ({ row }) => (
-          <div>
-            <Link to={`/billtable/${row.original._id}`}>
-              <IconButton
-                className="shadow-none"
-                style={{ backgroundColor: "#CC0000" }}
-              >
-                <PictureAsPdfIcon sx={{ color: "#fff" }} />
-              </IconButton>
-            </Link>
+        key: "name",
+        header: "Bill",
+        cell: ({ row }) => (
+          <div className="min-w-0">
+            <p className="truncate font-medium text-fg">
+              {row.name || "Unnamed customer"}
+            </p>
+            <p className="truncate font-mono text-[12px] text-faint">
+              #{row.id}
+            </p>
           </div>
+        ),
+        searchValue: (row) =>
+          `${row.name || ""} ${row.id ?? ""} ${row.gstNo || ""}`,
+      },
+      {
+        key: "createdAt",
+        header: "Date",
+        cell: ({ value }) => (
+          <span className="whitespace-nowrap text-muted">
+            {value ? moment(value).format("DD MMM YYYY") : "—"}
+          </span>
+        ),
+      },
+      {
+        key: "products",
+        header: "Items",
+        sortable: false,
+        wide: true,
+        searchValue: (row) =>
+          (row.products || []).map((p) => p.productname).join(" "),
+        cell: ({ value }) => {
+          const items = value || [];
+          if (!items.length) return <span className="text-faint">—</span>;
+          const head = items.slice(0, 2);
+          return (
+            <div className="min-w-0">
+              {head.map((p, i) => (
+                <p
+                  key={`${p.productname}-${i}`}
+                  className="truncate text-[13px]"
+                >
+                  {p.productname}
+                  {p.quantity ? (
+                    <span className="ml-1.5 text-faint">×{p.quantity}</span>
+                  ) : null}
+                </p>
+              ))}
+              {items.length > head.length && (
+                <p className="text-[12px] text-faint">
+                  +{items.length - head.length} more
+                </p>
+              )}
+            </div>
+          );
+        },
+      },
+      {
+        key: "totalproductsprice",
+        header: "Total",
+        align: "right",
+        cell: ({ value }) => (
+          <span className="font-mono tabular-nums font-medium text-fg">
+            {money(value)}
+          </span>
+        ),
+      },
+      {
+        key: "invoice",
+        header: "Invoice",
+        align: "center",
+        sortable: false,
+        searchable: false,
+        cell: ({ row }) => (
+          <Link
+            to={`/billtable/${row._id}`}
+            aria-label="Open invoice"
+            title="Open invoice"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-line text-muted transition-colors hover:border-strong hover:text-fg focus-ring"
+          >
+            <FileTextIcon size={16} />
+          </Link>
         ),
       },
     ],
     []
   );
 
-  // const detailPanel = [
-  //   {
-  //     tooltip: "Depth",
-  //     render: (rowData) => {
-  //       return <div style={{ paddingLeft: "50px" }}>"FIJQEOF"</div>;
-  //     },
-  //   },
-  // ];
+  const totalBilled = useMemo(
+    () =>
+      bills.reduce((sum, b) => sum + (Number(b.totalproductsprice) || 0), 0),
+    [bills]
+  );
+
   return (
     <>
-      <div className="d-flex flex-wrap justify-content-between align-items-center mb-3">
-        <div>
-          <h4 className="page-heading">Bill Information</h4>
-        </div>
-        <div>
-          <Link to="/billform/new" className="btn btn-primary shadow-none">
-            Generate New Bill
-          </Link>
-        </div>
-      </div>
-      <MaterialReactTable
-        loading={loading}
-        data={allBillDetails}
+      <PageHeader
+        title="Bills"
+        description="Every invoice you have raised."
+        actions={
+          <Button to="/billform/new" icon={PlusIcon}>
+            New bill
+          </Button>
+        }
+      />
+
+      <DataTable
         columns={columns}
-        renderRowActions={({ row }) => (
+        data={bills}
+        loading={loading}
+        searchPlaceholder="Search customer, id, product..."
+        emptyTitle="No bills yet"
+        emptyDescription="Raise your first invoice and it will show up here."
+        emptyAction={
+          <Button to="/billform/new" size="sm" icon={PlusIcon}>
+            New bill
+          </Button>
+        }
+        toolbar={
+          bills.length > 0 && (
+            <span className="hidden text-[13px] text-muted lg:inline">
+              <span className="font-mono tabular-nums text-fg">
+                {money(totalBilled)}
+              </span>{" "}
+              billed
+            </span>
+          )
+        }
+        rowActions={(row) => (
           <>
-            <div className="d-flex flex-row justify-content-center align-items-center gap-1">
-              <div>
-                <Link to={`/billform/${row.original._id}`}>
-                  <IconButton className="rounded-circle">
-                    <EditIcon />
-                  </IconButton>
-                </Link>
-              </div>
-              <div>
-                <IconButton
-                  className="rounded-circle"
-                  onClick={() => handleDelete(row.original._id)}
-                >
-                  <DeleteIcon />
-                </IconButton>
-              </div>
-            </div>
+            <Link
+              to={`/billform/${row._id}`}
+              aria-label="Edit bill"
+              title="Edit bill"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-muted transition-colors hover:bg-elevated hover:text-fg focus-ring"
+            >
+              <PencilIcon size={16} />
+            </Link>
+            <IconButton
+              icon={TrashIcon}
+              label="Delete bill"
+              tone="danger"
+              onClick={() => setPendingDelete(row)}
+            />
           </>
         )}
+      />
+
+      <ConfirmDialog
+        open={Boolean(pendingDelete)}
+        onClose={() => setPendingDelete(null)}
+        onConfirm={confirmDelete}
+        loading={deleting}
+        title="Delete this bill?"
+        description={
+          pendingDelete
+            ? `Bill #${pendingDelete.id} for "${pendingDelete.name}" will be removed and its stock returned to inventory.`
+            : undefined
+        }
       />
     </>
   );

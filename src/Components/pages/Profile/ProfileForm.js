@@ -1,240 +1,215 @@
-import React, { useState, useEffect } from "react";
-import { Button } from "react-bootstrap";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useFormik } from "formik";
 import * as yup from "yup";
-import axiosInstance from "../../../config/AxiosInstance";
-import { SpinLoader } from "../../containers/Loaders/loaders";
+import { toast } from "react-toastify";
+
+import PageHeader from "../../ui/PageHeader";
+import { Button } from "../../ui/Button";
+import { FormikField } from "../../ui/Field";
+import {
+  BuildingIcon,
+  MailIcon,
+  MapPinIcon,
+  PhoneIcon,
+  ChevronLeftIcon,
+} from "../../ui/Icons";
+import axiosInstance, { errorMessage } from "../../../config/AxiosInstance";
+
+const schema = yup.object({
+  companyname: yup.string().trim().required("Company name is required"),
+  cemail: yup
+    .string()
+    .email("Enter a valid email")
+    .required("Email is required"),
+  address: yup.string().trim().required("Address is required"),
+  city: yup.string().trim().required("City is required"),
+  state: yup.string().trim().required("State is required"),
+  pinno: yup
+    .string()
+    .matches(/^\d{4,10}$/, "Enter a valid PIN code")
+    .required("PIN code is required"),
+  phone: yup
+    .string()
+    .matches(/^\d{10}$/, "Enter a 10-digit number")
+    .required("Phone number is required"),
+});
 
 function ProfileForm() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const [loadding, setLoadding] = useState(false);
+  const isNew = id === "new";
 
-  // Fetch my profile data
-  const [myprofile, setMyProfile] = useState([]);
-  const fetchProfileData = async () => {
-    try {
-      const response = await axiosInstance.get(`/my-profile`);
-      setMyProfile(response.data.profile[0]);
-    } catch (error) {
-      // Handle error if needed
-      console.log("Error", error);
-    }
-  };
+  const [profile, setProfile] = useState({});
+  const [loading, setLoading] = useState(!isNew);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (id !== "new") fetchProfileData();
-  }, [id]);
-
-  // find the Id data
-  const handleSubmit = async (values) => {
-    try {
-      setLoadding(true);
-      const res = await (id !== "new"
-        ? axiosInstance.put(`/my-profile/${id}`, values)
-        : axiosInstance.post(`/my-profile`, values));
-      if (res?.data?.success) {
-        setLoadding(false);
-        navigate("/myprofile");
+    if (isNew) return undefined;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await axiosInstance.get("/my-profile");
+        if (!cancelled) setProfile(res.data?.profile?.[0] || {});
+      } catch (error) {
+        if (!cancelled) {
+          toast.error(
+            errorMessage(error, "Could not load the company profile")
+          );
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-    } catch (error) {
-      // Handle error here, if needed
-      setLoadding(false);
-      console.error("Error occurred:", error);
-    }
-  };
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [id, isNew]);
 
-  const companyprofile = useFormik({
+  const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
-      companyname: myprofile.companyname || "",
-      cemail: myprofile.cemail || "",
-      address: myprofile.address || "",
-      city: myprofile.city || "",
-      state: myprofile.state || "",
-      pinno: myprofile.pinno || "",
-      phone: myprofile.phone || "",
+      companyname: profile.companyname || "",
+      cemail: profile.cemail || "",
+      address: profile.address || "",
+      city: profile.city || "",
+      state: profile.state || "",
+      pinno: profile.pinno ? String(profile.pinno) : "",
+      phone: profile.phone ? String(profile.phone) : "",
     },
-    validationSchema: yup.object({
-      companyname: yup.string().required("Required"),
-      cemail: yup.string().email("Invalid Email").required("Required"),
-      address: yup.string().required("Required"),
-      city: yup.string().required("Required"),
-      state: yup.string().required("Required"),
-      pinno: yup.number().required("Required"),
-      phone: yup
-        .string()
-        .matches(/^\d{10}$/, "Mobile Number is not valid")
-        .required("Required"),
-    }),
-    onSubmit: (values) => {
-      handleSubmit(values);
+    validationSchema: schema,
+    onSubmit: async (values) => {
+      try {
+        setSaving(true);
+        const res = isNew
+          ? await axiosInstance.post("/my-profile", values)
+          : await axiosInstance.put(`/my-profile/${id}`, values);
+
+        if (res?.data?.success) {
+          toast.success(res.data.message || "Company details saved");
+          navigate("/myprofile");
+          return;
+        }
+        toast.error(res?.data?.message || "Could not save the details");
+      } catch (error) {
+        toast.error(errorMessage(error, "Could not save the details"));
+      } finally {
+        setSaving(false);
+      }
     },
   });
 
   return (
     <>
-      <div>
-        <h2 className="text-center">Company Details </h2>
-      </div>
-      <form
-        className="container col-md-4 col-xl-6 mt-5"
-        onSubmit={companyprofile.handleSubmit}
-      >
-        <div className="row">
-          <div className="col ml-3 mb-3">
-            {/* company name */}
-            <div className="form-floating">
-              <input
-                type="text"
-                className="form-control"
-                id="companyname"
+      <PageHeader
+        title={isNew ? "Add company details" : "Edit company details"}
+        description="Shown as the letterhead on every invoice."
+        actions={
+          <Button
+            variant="secondary"
+            icon={ChevronLeftIcon}
+            onClick={() => navigate("/myprofile")}
+          >
+            Back
+          </Button>
+        }
+      />
+
+      {loading ? (
+        <div className="card space-y-4 p-6">
+          <div className="skeleton h-11 w-full" />
+          <div className="skeleton h-11 w-full" />
+          <div className="skeleton h-11 w-full" />
+        </div>
+      ) : (
+        <form
+          onSubmit={formik.handleSubmit}
+          className="card max-w-3xl p-6"
+          noValidate
+        >
+          <div className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <FormikField
+                formik={formik}
                 name="companyname"
-                placeholder="mycompanyname"
-                onBlur={companyprofile.handleBlur}
-                onChange={companyprofile.handleChange}
-                value={companyprofile.values.companyname}
+                label="Company name"
+                placeholder="Acme Trading Co."
+                icon={BuildingIcon}
+                required
               />
-              <label htmlFor="companyname">Company Name</label>
-            </div>
-            {companyprofile.touched.companyname &&
-            companyprofile.errors.companyname ? (
-              <div style={{ color: "red" }}>
-                {companyprofile.errors.companyname}
-              </div>
-            ) : null}
-          </div>
-          {/* Company Email */}
-          <div className="col mb-3">
-            <div className="form-floating">
-              <input
-                type="email"
-                className="form-control"
-                id="cemail"
+              <FormikField
+                formik={formik}
                 name="cemail"
-                placeholder="mycompanyname"
-                onBlur={companyprofile.handleBlur}
-                onChange={companyprofile.handleChange}
-                value={companyprofile.values.cemail}
+                type="email"
+                label="Company email"
+                placeholder="accounts@acme.com"
+                icon={MailIcon}
+                required
               />
-              <label htmlFor="cemail">company Email Id</label>
             </div>
-            {companyprofile.touched.cemail && companyprofile.errors.cemail ? (
-              <div style={{ color: "red" }}>{companyprofile.errors.cemail}</div>
-            ) : null}
-          </div>
-        </div>
-        {/*Address*/}
-        <div className="col mb-4">
-          <div className="form-floating">
-            <input
-              type="text"
-              className="form-control"
-              id="address"
+
+            <FormikField
+              formik={formik}
               name="address"
-              placeholder="mycompanyname"
-              onBlur={companyprofile.handleBlur}
-              onChange={companyprofile.handleChange}
-              value={companyprofile.values.address}
+              label="Address"
+              placeholder="12 Industrial Estate, Ring Road"
+              icon={MapPinIcon}
+              required
             />
-            <label htmlFor="address">Address</label>
-          </div>
-          {companyprofile.touched.address && companyprofile.errors.address ? (
-            <div style={{ color: "red" }}>{companyprofile.errors.address}</div>
-          ) : null}
-        </div>
-        <div className="row ml-1">
-          {/* city */}
-          <div className="col mr-5 mb-3">
-            <div className="form-floating">
-              <input
-                type="text"
-                className="form-control"
-                id="city"
+
+            <div className="grid gap-4 sm:grid-cols-3">
+              <FormikField
+                formik={formik}
                 name="city"
-                placeholder="mycompanyname"
-                onBlur={companyprofile.handleBlur}
-                onChange={companyprofile.handleChange}
-                value={companyprofile.values.city}
+                label="City"
+                placeholder="Surat"
+                required
               />
-              <label htmlFor="city">City</label>
-            </div>
-            {companyprofile.touched.city && companyprofile.errors.city ? (
-              <div style={{ color: "red" }}>{companyprofile.errors.city}</div>
-            ) : null}
-          </div>
-          {/* state */}
-          <div className="col mr-5 mb-3">
-            <div className="form-floating">
-              <input
-                type="text"
-                className="form-control"
-                id="state"
+              <FormikField
+                formik={formik}
                 name="state"
-                placeholder="mycompanyname"
-                onBlur={companyprofile.handleBlur}
-                onChange={companyprofile.handleChange}
-                value={companyprofile.values.state}
+                label="State"
+                placeholder="Gujarat"
+                required
               />
-              <label htmlFor="state">State</label>
-            </div>
-            {companyprofile.touched.state && companyprofile.errors.state ? (
-              <div style={{ color: "red" }}>{companyprofile.errors.state}</div>
-            ) : null}
-          </div>
-          {/* pinno */}
-          <div className="col mr-5 mb-3">
-            <div className="form-floating">
-              <input
-                type="text"
-                className="form-control"
-                id="pinno"
+              <FormikField
+                formik={formik}
                 name="pinno"
-                placeholder="mycompanyname"
-                onBlur={companyprofile.handleBlur}
-                onChange={companyprofile.handleChange}
-                value={companyprofile.values.pinno}
+                inputMode="numeric"
+                label="PIN code"
+                placeholder="395006"
+                required
               />
-              <label htmlFor="pinno">Pin code</label>
             </div>
-            {companyprofile.touched.pinno && companyprofile.errors.pinno ? (
-              <div style={{ color: "red" }}>{companyprofile.errors.pinno}</div>
-            ) : null}
+
+            <FormikField
+              formik={formik}
+              name="phone"
+              type="tel"
+              inputMode="numeric"
+              label="Phone"
+              placeholder="9876543210"
+              icon={PhoneIcon}
+              className="sm:max-w-xs"
+              required
+            />
           </div>
-        </div>
-        <div>
-          {/* Phone */}
-          <div className="col col-md-6 mr-5 mb-3">
-            <div className="form-floating">
-              <input
-                type="number"
-                className="form-control"
-                id="phone"
-                name="phone"
-                onBlur={companyprofile.handleBlur}
-                onChange={companyprofile.handleChange}
-                value={companyprofile.values.phone}
-              />
-              <label htmlFor="phone">Mobile No</label>
-            </div>
-            {companyprofile.touched.phone && companyprofile.errors.phone ? (
-              <div style={{ color: "red" }}>{companyprofile.errors.phone}</div>
-            ) : null}
+
+          <div className="mt-7 flex flex-wrap justify-end gap-2 border-t border-line pt-5">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => navigate("/myprofile")}
+              disabled={saving}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" loading={saving} loadingText="Saving...">
+              {isNew ? "Save details" : "Save changes"}
+            </Button>
           </div>
-        </div>
-        <div className="ml-3">
-          {id !== "new" ? (
-            <Button type="submit" variant="warning">
-              {loadding ? <SpinLoader /> : "Update"}
-            </Button>
-          ) : (
-            <Button type="submit" variant="primary">
-              {loadding ? <SpinLoader /> : "Submit"}
-            </Button>
-          )}
-        </div>
-      </form>
+        </form>
+      )}
     </>
   );
 }

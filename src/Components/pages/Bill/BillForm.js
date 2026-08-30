@@ -1,399 +1,598 @@
-import React, { useEffect, useState } from "react";
-import ProductsModal from "./ProductsModal";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Dropdown, Table, Button } from "react-bootstrap";
 import { useFormik } from "formik";
 import * as yup from "yup";
-import IconButton from "@mui/material/IconButton";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
 import { toast } from "react-toastify";
-import axiosInstance from "../../../config/AxiosInstance";
-import { SpinLoader } from "../../containers/Loaders/loaders";
+
+import PageHeader from "../../ui/PageHeader";
+import Select from "../../ui/Select";
+import ConfirmDialog from "../../ui/ConfirmDialog";
+import { Button, IconButton } from "../../ui/Button";
+import { FormikField } from "../../ui/Field";
+import { money } from "../../ui/format";
+import {
+  PlusIcon,
+  PencilIcon,
+  TrashIcon,
+  ChevronLeftIcon,
+  MailIcon,
+  PhoneIcon,
+  HashIcon,
+  InboxIcon,
+} from "../../ui/Icons";
+import ProductsModal from "./ProductsModal";
+import axiosInstance, { errorMessage } from "../../../config/AxiosInstance";
+
+/** Bills saved before line items carried a productId fall back to the name. */
+const lineKey = (line) => line?.productId || line?.productname;
 
 function BillForm() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [totalproductsprice, setTotalProductsPrice] = useState(0);
-  const [selectedProd, setSelectedProd] = useState([]);
-  const [billInfoData, setBillInfoData] = useState({});
-  const [editProduct, setEditProduct] = useState({});
+  const isNew = id === "new";
 
-  const [isAddOrEditeProduct, setIsAddOrEditeProduct] = useState(true);
-
-  //  Products modal Visible or Invisible
-  const [modalShow, setModalShow] = useState(false);
-
-  const [loadding, setLoadding] = useState(false);
-
-  // Fetch customer data
   const [customers, setCustomers] = useState([]);
-  const fetchCustomerData = async () => {
-    try {
-      const response = await axiosInstance.get(`/customers`);
-      if (response?.data?.success) {
-        setCustomers(response?.data?.customers);
-      }
-    } catch (error) {
-      // Handle error if needed
-      console.log("Error", error);
-    }
-  };
+  const [products, setProducts] = useState([]);
+  const [bill, setBill] = useState({});
+  const [lines, setLines] = useState([]);
+  const [originalLines, setOriginalLines] = useState([]);
+
+  const [loading, setLoading] = useState(!isNew);
+  const [saving, setSaving] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingLine, setEditingLine] = useState(null);
+  const [pendingRemove, setPendingRemove] = useState(null);
+
+  /* ---------------- data ---------------- */
 
   useEffect(() => {
-    fetchCustomerData();
+    let cancelled = false;
+    (async () => {
+      const [customerRes, productRes] = await Promise.allSettled([
+        axiosInstance.get("/customers"),
+        axiosInstance.get("/products"),
+      ]);
+      if (cancelled) return;
+      if (customerRes.status === "fulfilled") {
+        setCustomers(customerRes.value.data?.customers || []);
+      }
+      if (productRes.status === "fulfilled") {
+        setProducts(productRes.value.data?.products || []);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
-    // Calculate total amount of products
-    let sum = 0;
-    for (var t = 0; t < selectedProd?.length; t++) {
-      sum += selectedProd[t]?.gsttex;
+    if (isNew) {
+      setBill({});
+      setLines([]);
+      setOriginalLines([]);
+      setLoading(false);
+      return undefined;
     }
-    setTotalProductsPrice(sum);
-  }, [selectedProd]);
 
-  const findEditeBillInformationData = async () => {
-    if (id !== "new") {
-      // Update existing bill Information
+    let cancelled = false;
+    (async () => {
       try {
+        setLoading(true);
         const res = await axiosInstance.get(`/billInformation/${id}`);
+        if (cancelled) return;
         if (res.data?.success) {
-          setSelectedProd(res.data?.bill.products);
-          setBillInfoData(res.data?.bill);
+          const loaded = res.data.bill?.products || [];
+          setBill(res.data.bill || {});
+          setLines(loaded);
+          setOriginalLines(loaded);
         }
       } catch (error) {
-        console.error("Error updating bill:", error);
-        if (error.response.data.message) {
-          toast.error(error.response.data.message);
-        } else {
-          toast.error(error.message);
-        }
+        if (!cancelled)
+          toast.error(errorMessage(error, "Could not load the bill"));
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-    }
-  };
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [id, isNew]);
 
-  useEffect(() => {
-    findEditeBillInformationData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  /* ---------------- totals ---------------- */
 
-  const handleSubmit = async (values) => {
-    setLoadding(true);
-    values.totalproductsprice = totalproductsprice?.toFixed(2);
-    values.products = selectedProd || [];
-    if (id !== "new") {
-      // Update existing bill Information
-      try {
-        const res = await axiosInstance.put(`/billInformation/${id}`, values);
-        if (res.data?.success) {
-          updateProductQuantities(values.products);
-          navigate("/billinformation");
-          toast.success(res.data?.message);
-          setLoadding(false);
-        }
-      } catch (error) {
-        console.error("Error updating bill:", error);
-        if (error.response.data.message) {
-          toast.error(error.response.data.message);
-        } else {
-          toast.error(error.message);
-        }
-        setLoadding(false);
-      }
-    } else {
-      // Create a new bill Information
-      try {
-        setLoadding(true);
-        const billInfo = await axiosInstance.post("/billInformation", values);
-        if (billInfo.data?.success) {
-          updateProductQuantities(values.products);
-          navigate("/billinformation");
-          setLoadding(false);
-          toast.success(billInfo.data?.message);
-        }
-      } catch (error) {
-        setLoadding(false);
-        console.error("Error creating bill:", error);
-        if (error.response.data.message) {
-          toast.error(error.response.data.message);
-        } else {
-          toast.error(error.message);
-        }
-      }
-    }
-  };
+  const totals = useMemo(
+    () =>
+      lines.reduce(
+        (acc, line) => {
+          acc.subtotal += Number(line.pandqtotal) || 0;
+          acc.total += Number(line.gsttex) || 0;
+          return acc;
+        },
+        { subtotal: 0, total: 0 }
+      ),
+    [lines]
+  );
+  const tax = totals.total - totals.subtotal;
 
-  const updateProductQuantities = async (products) => {
-    for (let i = 0; i < products.length; i++) {
-      const product = products[i];
-      const pfindIndex = products?.findIndex((e) => e._id === product._id);
-      if (pfindIndex !== -1) {
-        products[pfindIndex].availableproductqty -= product?.quantity;
-        try {
-          await axiosInstance.put(`/products/${products[pfindIndex]._id}`, {
-            availableproductqty: products[pfindIndex].availableproductqty,
-          });
-        } catch (error) {
-          console.error("Error updating product quantity:", error);
-        }
-      }
-    }
-  };
+  /* ---------------- stock guard ---------------- */
+
+  // What this bill may claim: live stock plus whatever it already reserved.
+  const maxQtyFor = useCallback(
+    (productId) => {
+      const product = products.find((p) => p._id === productId);
+      const live = Number(product?.availableproductqty) || 0;
+      const previous = originalLines.find(
+        (line) => lineKey(line) === (productId || product?.productname)
+      );
+      return live + (Number(previous?.quantity) || 0);
+    },
+    [products, originalLines]
+  );
+
+  /* ---------------- form ---------------- */
 
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
-      name: billInfoData?.name || "",
-      email: billInfoData?.email || "",
-      phoneNo: billInfoData?.phoneNo || "",
-      gstNo: billInfoData?.gstNo || "",
+      name: bill?.name || "",
+      email: bill?.email || "",
+      phoneNo: bill?.phoneNo ? String(bill.phoneNo) : "",
+      gstNo: bill?.gstNo || "",
     },
     validationSchema: yup.object({
-      name: yup.string().required("Required"),
-      email: yup.string().email("Invaild Email").required("Required"),
+      name: yup.string().required("Select a customer"),
+      email: yup
+        .string()
+        .email("Enter a valid email")
+        .required("Email is required"),
       phoneNo: yup
         .string()
-        .matches(/^\d{10}$/, "Mobile Number is not valid")
-        .required("Required"),
-      gstNo: yup.string().required("Required"),
+        .matches(/^\d{10}$/, "Enter a 10-digit number")
+        .required("Phone number is required"),
+      gstNo: yup.string().required("GST number is required"),
     }),
-    onSubmit: (values, { resetForm }) => {
-      handleSubmit(values);
-      resetForm();
+    onSubmit: async (values) => {
+      if (!lines.length) {
+        toast.error("Add at least one product to the bill");
+        return;
+      }
+      try {
+        setSaving(true);
+        const payload = {
+          ...values,
+          products: lines,
+          totalproductsprice: Number(totals.total.toFixed(2)),
+        };
+        const res = isNew
+          ? await axiosInstance.post("/billInformation", payload)
+          : await axiosInstance.put(`/billInformation/${id}`, payload);
+
+        if (res.data?.success) {
+          toast.success(res.data.message || "Bill saved");
+          navigate("/billinformation");
+          return;
+        }
+        toast.error(res.data?.message || "Could not save the bill");
+      } catch (error) {
+        toast.error(errorMessage(error, "Could not save the bill"));
+      } finally {
+        setSaving(false);
+      }
     },
   });
 
-  // produts delete
-  // one product object delete
-  const handleDelete = (product) => {
-    setTotalProductsPrice(totalproductsprice - product.gsttex);
-    setSelectedProd((prevProd) => prevProd.filter((p) => p !== product));
+  const selectCustomer = (customerId) => {
+    const customer = customers.find((c) => c._id === customerId);
+    if (!customer) return;
+    formik.setValues({
+      name: customer.name || "",
+      email: customer.email || "",
+      phoneNo: customer.phoneNo ? String(customer.phoneNo) : "",
+      gstNo: customer.gstNo || "",
+    });
   };
+
+  // An older bill can name a customer who has since been deleted. Show that
+  // name in the picker instead of an empty placeholder that reads as "unset".
+  const ORPHAN = "__on-this-bill__";
+  const customerOptions = useMemo(() => {
+    const options = customers.map((c) => ({
+      value: c._id,
+      label: c.name,
+      hint: `#${c.id}`,
+    }));
+    if (
+      formik.values.name &&
+      !customers.some((c) => c.name === formik.values.name)
+    ) {
+      options.unshift({
+        value: ORPHAN,
+        label: formik.values.name,
+        hint: "on this bill",
+      });
+    }
+    return options;
+  }, [customers, formik.values.name]);
+
+  const selectedCustomerId =
+    customers.find((c) => c.name === formik.values.name)?._id ||
+    (formik.values.name ? ORPHAN : "");
+
+  /* ---------------- line item handlers ---------------- */
+
+  const saveLine = (line) => {
+    setLines((prev) => {
+      const index = prev.findIndex((item) => lineKey(item) === lineKey(line));
+      if (index === -1) return [...prev, line];
+      const next = [...prev];
+      next[index] = line;
+      return next;
+    });
+  };
+
+  const removeLine = () => {
+    if (!pendingRemove) return;
+    setLines((prev) =>
+      prev.filter((line) => lineKey(line) !== lineKey(pendingRemove))
+    );
+    setPendingRemove(null);
+  };
+
+  const takenProductIds = lines
+    .filter((line) => lineKey(line) !== lineKey(editingLine))
+    .map((line) => line.productId)
+    .filter(Boolean);
+
+  /* ---------------- render ---------------- */
 
   return (
     <>
-      <div id="bill-form">
-        <div className="text-center">
-          <h2>Bill Form</h2>
-          <hr />
-        </div>
+      <PageHeader
+        title={isNew ? "New bill" : `Edit bill #${bill?.id ?? ""}`}
+        description="Pick a customer, add line items, then save."
+        actions={
+          <>
+            <Button
+              variant="secondary"
+              icon={ChevronLeftIcon}
+              onClick={() => navigate("/billinformation")}
+            >
+              Back
+            </Button>
+            <Button
+              onClick={formik.handleSubmit}
+              loading={saving}
+              loadingText="Saving..."
+              disabled={loading}
+            >
+              {isNew ? "Save bill" : "Update bill"}
+            </Button>
+          </>
+        }
+      />
 
-        <form onSubmit={formik.handleSubmit} style={{ width: "100%" }}>
-          <div className="d-flex justify-content-between">
-            <div className="ml-3">
-              <Dropdown>
-                <Dropdown.Toggle
-                  variant="primary"
-                  className="shadow-none"
-                  size="md"
-                >
-                  Select Customers
-                </Dropdown.Toggle>
-                <Dropdown.Menu>
-                  {customers?.map((e, i) => {
-                    return (
-                      <div key={i}>
-                        <Dropdown.Item
-                          onClick={() => {
-                            formik.setFieldValue("name", e.name);
-                            formik.setFieldValue("email", e.email);
-                            formik.setFieldValue("phoneNo", e.phoneNo);
-                            formik.setFieldValue("gstNo", e.gstNo);
-                          }}
-                        >
-                          {e?.name}&nbsp;<span>({e.id})</span>
-                        </Dropdown.Item>
-                      </div>
-                    );
-                  })}
-                </Dropdown.Menu>
-              </Dropdown>
-            </div>
-            {/* update and  submit buttons  */}
-            <div>
-              {/* save and updated */}
-              {id !== "new" ? (
-                <Button
-                  type="submit"
-                  variant="warning"
-                  className="mr-3 shadow-none"
-                >
-                  {loadding ? <SpinLoader /> : "Update"}
-                </Button>
-              ) : (
-                <Button
-                  type="submit"
-                  variant="success"
-                  className="mr-3 shadow-none"
-                >
-                  {loadding ? <SpinLoader /> : "Save"}
-                </Button>
-              )}
-            </div>
-          </div>
-          <div className="col-xl-6 col-lg-5">
-            <div className="form-group mt-3">
-              <label htmlFor="name">Customer Name</label>
-              <input
-                name="name"
-                type="text"
-                className="form-control"
-                placeholder="Customers Name"
-                onBlur={formik.handleBlur}
-                onChange={formik.handleChange}
-                value={formik.values.name}
-                disabled
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+        {/* left column */}
+        <div className="space-y-4 xl:col-span-2">
+          <section className="card p-5">
+            <h2 className="text-base font-semibold tracking-tight text-fg">
+              Bill to
+            </h2>
+            <p className="mt-0.5 text-[13px] text-muted">
+              Choose a saved customer, or adjust the details for this bill only.
+            </p>
+
+            <div className="mt-5 space-y-4">
+              <Select
+                label="Customer"
+                value={selectedCustomerId}
+                onChange={selectCustomer}
+                options={customerOptions}
+                placeholder={
+                  customers.length ? "Select a customer" : "No customers yet"
+                }
+                searchPlaceholder="Search customers..."
+                emptyText="No customers match"
+                error={formik.errors.name}
+                touched={formik.touched.name || formik.submitCount > 0}
               />
-              {formik.touched.name && formik.errors.name ? (
-                <div style={{ color: "red" }}>{formik.errors.name}</div>
-              ) : null}
-            </div>
-            <div className="form-group  mt-3">
-              <label htmlFor="email">Email Id</label>
-              <input
-                name="email"
-                type="email"
-                className="form-control"
-                placeholder="Enter Your Email"
-                onBlur={formik.handleBlur}
-                onChange={formik.handleChange}
-                value={formik.values.email}
-              />
-              {formik.touched.email && formik.errors.email ? (
-                <div className="text-danger">{formik.errors.email}</div>
-              ) : null}
-            </div>
-            <div className="row  mt-3">
-              <div className="form-group col">
-                <label htmlFor="phoneNo">Phone</label>
-                <input
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <FormikField
+                  formik={formik}
+                  name="email"
+                  type="email"
+                  label="Email"
+                  placeholder="billing@acme.com"
+                  icon={MailIcon}
+                />
+                <FormikField
+                  formik={formik}
                   name="phoneNo"
-                  type="number"
-                  className="form-control"
-                  placeholder="Enter Phone No."
-                  onBlur={formik.handleBlur}
-                  onChange={formik.handleChange}
-                  value={formik.values.phoneNo}
+                  type="tel"
+                  inputMode="numeric"
+                  label="Phone"
+                  placeholder="9876543210"
+                  icon={PhoneIcon}
                 />
-                {formik.touched.phoneNo && formik.errors.phoneNo ? (
-                  <div className="text-danger">{formik.errors.phoneNo}</div>
-                ) : null}
               </div>
-              <div className="form-group  mt-3">
-                <label htmlFor="gstNo">Gst No.</label>
-                <input
-                  name="gstNo"
-                  type="text"
-                  className="form-control"
-                  placeholder="Gst No."
-                  onBlur={formik.handleBlur}
-                  onChange={formik.handleChange}
-                  value={formik.values.gstNo}
-                />
-                {formik.touched.gstNo && formik.errors.gstNo ? (
-                  <div className="text-danger">{formik.errors.gstNo}</div>
-                ) : null}
-              </div>
+              <FormikField
+                formik={formik}
+                name="gstNo"
+                label="GST number"
+                placeholder="24AAAAA0000A1Z5"
+                icon={HashIcon}
+              />
             </div>
-          </div>
-        </form>
-        {/* add product modal */}
-        <div className="d-flex justify-content-end mt-1">
-          <Button
-            className="mt-4 mb-3 mr-4  shadow none"
-            onClick={() => {
-              setModalShow(true);
-              setEditProduct({});
-              setIsAddOrEditeProduct(true);
-            }}
-          >
-            Add Products
-          </Button>
-          <ProductsModal
-            show={modalShow}
-            onHide={() => setModalShow(false)}
-            setSelectedProd={setSelectedProd}
-            selectedProd={selectedProd}
-            editProduct={editProduct}
-            setEditProduct={setEditProduct}
-            isAddOrEditeProduct={isAddOrEditeProduct}
-            setIsAddOrEditeProduct={setIsAddOrEditeProduct}
-          />
-        </div>
+          </section>
 
-        {/* table product */}
-        <div>
-          <Table bordered responsive="sm" className="text-center mb-5">
-            <thead>
-              <tr className="bg-dark text-white">
-                <th scope="col">No.</th>
-                <th scope="col">Product Name</th>
-                <th scope="col">Quantity</th>
-                <th scope="col">Unitprice</th>
-                <th scope="col">Tax</th>
-                <th scope="col">Product Total</th>
-                <th scope="col">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {selectedProd?.map((row, i) => {
-                return (
-                  <tr key={i}>
-                    <th scope="col">{i + 1}</th>
-                    <td>{row?.productname}</td>
-                    <td>{row?.quantity}</td>
-                    <td>{row?.unitprice}</td>
-                    <td>
-                      {row?.gst?.map((g, i) => {
-                        return (
-                          <div key={i}>
-                            <li type="none">
-                              {g?.title}&nbsp;
-                              {g?.taxAmount ? (
-                                <>{g?.taxAmount?.toFixed(2)}</>
-                              ) : (
-                                <></>
+          <section className="card overflow-hidden">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line p-5">
+              <div>
+                <h2 className="text-base font-semibold tracking-tight text-fg">
+                  Line items
+                </h2>
+                <p className="mt-0.5 text-[13px] text-muted">
+                  {lines.length} {lines.length === 1 ? "product" : "products"}{" "}
+                  on this bill
+                </p>
+              </div>
+              <Button
+                size="sm"
+                icon={PlusIcon}
+                onClick={() => {
+                  setEditingLine(null);
+                  setModalOpen(true);
+                }}
+              >
+                Add product
+              </Button>
+            </div>
+
+            {loading ? (
+              <div className="divide-y divide-line">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-4 p-4">
+                    <div className="skeleton h-4 flex-1" />
+                    <div className="skeleton h-4 w-16" />
+                    <div className="skeleton h-4 w-20" />
+                  </div>
+                ))}
+              </div>
+            ) : lines.length === 0 ? (
+              <div className="flex flex-col items-center gap-3 py-14 text-center">
+                <InboxIcon size={22} className="text-faint" />
+                <p className="text-sm text-muted">No products added yet.</p>
+                <Button
+                  size="sm"
+                  icon={PlusIcon}
+                  onClick={() => {
+                    setEditingLine(null);
+                    setModalOpen(true);
+                  }}
+                >
+                  Add the first product
+                </Button>
+              </div>
+            ) : (
+              <>
+                {/* desktop */}
+                <div className="hidden overflow-x-auto md:block">
+                  <table className="w-full min-w-[44rem] border-collapse text-sm">
+                    <thead>
+                      <tr className="border-b border-line bg-elevated/50 text-[12px] uppercase tracking-wider text-muted">
+                        <th className="px-4 py-3 text-left font-semibold">
+                          Product
+                        </th>
+                        <th className="px-4 py-3 text-right font-semibold">
+                          Qty
+                        </th>
+                        <th className="px-4 py-3 text-right font-semibold">
+                          Unit price
+                        </th>
+                        <th className="px-4 py-3 text-left font-semibold">
+                          Tax
+                        </th>
+                        <th className="px-4 py-3 text-right font-semibold">
+                          Line total
+                        </th>
+                        <th className="w-px px-4 py-3 text-right font-semibold">
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {lines.map((line, index) => (
+                        <tr
+                          key={lineKey(line) || index}
+                          className="border-b border-line last:border-0 hover:bg-elevated/50"
+                        >
+                          <td className="px-4 py-3.5">
+                            <p className="font-medium text-fg">
+                              {line.productname}
+                            </p>
+                            {line.id != null && (
+                              <p className="text-[12px] text-faint">
+                                #{line.id}
+                              </p>
+                            )}
+                          </td>
+                          <td className="px-4 py-3.5 text-right font-mono tabular-nums">
+                            {line.quantity}
+                          </td>
+                          <td className="px-4 py-3.5 text-right font-mono tabular-nums">
+                            {money(line.unitprice)}
+                          </td>
+                          <td className="px-4 py-3.5">
+                            <ul className="space-y-0.5">
+                              {line.gst?.map((slab) => (
+                                <li
+                                  key={slab.title}
+                                  className="text-[12.5px] text-muted"
+                                >
+                                  {slab.title}
+                                  {slab.taxAmount != null && (
+                                    <span className="ml-1.5 font-mono tabular-nums text-faint">
+                                      {money(slab.taxAmount)}
+                                    </span>
+                                  )}
+                                </li>
+                              ))}
+                            </ul>
+                          </td>
+                          <td className="px-4 py-3.5 text-right font-mono tabular-nums font-medium text-fg">
+                            {money(line.gsttex)}
+                          </td>
+                          <td className="whitespace-nowrap px-4 py-3.5 text-right">
+                            <div className="flex justify-end gap-1">
+                              <IconButton
+                                icon={PencilIcon}
+                                label="Edit line"
+                                onClick={() => {
+                                  setEditingLine(line);
+                                  setModalOpen(true);
+                                }}
+                              />
+                              <IconButton
+                                icon={TrashIcon}
+                                label="Remove line"
+                                tone="danger"
+                                onClick={() => setPendingRemove(line)}
+                              />
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* mobile */}
+                <div className="divide-y divide-line md:hidden">
+                  {lines.map((line, index) => (
+                    <div key={lineKey(line) || index} className="p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="truncate font-medium text-fg">
+                            {line.productname}
+                          </p>
+                          <p className="text-[12px] text-faint">
+                            {line.quantity} × {money(line.unitprice)}
+                          </p>
+                        </div>
+                        <div className="flex shrink-0 gap-1">
+                          <IconButton
+                            icon={PencilIcon}
+                            label="Edit line"
+                            onClick={() => {
+                              setEditingLine(line);
+                              setModalOpen(true);
+                            }}
+                          />
+                          <IconButton
+                            icon={TrashIcon}
+                            label="Remove line"
+                            tone="danger"
+                            onClick={() => setPendingRemove(line)}
+                          />
+                        </div>
+                      </div>
+                      <div className="mt-3 flex items-end justify-between gap-3">
+                        <ul className="space-y-0.5">
+                          {line.gst?.map((slab) => (
+                            <li
+                              key={slab.title}
+                              className="text-[12px] text-muted"
+                            >
+                              {slab.title}
+                              {slab.taxAmount != null && (
+                                <span className="ml-1.5 font-mono text-faint">
+                                  {money(slab.taxAmount)}
+                                </span>
                               )}
                             </li>
-                          </div>
-                        );
-                      })}
-                    </td>
-                    <td>
-                      {row?.gsttex ? <>{row?.gsttex?.toFixed(2)}</> : <></>}
-                    </td>
-                    <td className="d-flex flex-row justify-content-center align-items-center gap-1">
-                      <IconButton
-                        className="rounded-circle"
-                        onClick={() => {
-                          setModalShow(true);
-                          setEditProduct(row);
-                          setIsAddOrEditeProduct(false);
-                        }}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        className="rounded-circle"
-                        onClick={() => handleDelete(row)}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </td>
-                  </tr>
-                );
-              })}
-              <tr className="bg-dark text-white">
-                <td colSpan="4"></td>
-                <td className="font-weight-bold">Total Products Price</td>
-                <td className="h6">{totalproductsprice.toFixed(2)}</td>
-                <td></td>
-              </tr>
-            </tbody>
-          </Table>
+                          ))}
+                        </ul>
+                        <span className="font-mono tabular-nums font-medium text-fg">
+                          {money(line.gsttex)}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </section>
         </div>
+
+        {/* summary */}
+        <aside className="xl:sticky xl:top-24 xl:self-start">
+          <section className="card p-5">
+            <h2 className="text-base font-semibold tracking-tight text-fg">
+              Summary
+            </h2>
+            <dl className="mt-5 space-y-3 text-sm">
+              <div className="flex items-center justify-between">
+                <dt className="text-muted">Subtotal</dt>
+                <dd className="font-mono tabular-nums text-fg">
+                  {money(totals.subtotal)}
+                </dd>
+              </div>
+              <div className="flex items-center justify-between">
+                <dt className="text-muted">Tax</dt>
+                <dd className="font-mono tabular-nums text-fg">{money(tax)}</dd>
+              </div>
+              <div className="flex items-center justify-between border-t border-line pt-3">
+                <dt className="font-medium text-fg">Total</dt>
+                <dd className="text-lg font-semibold tracking-tight text-fg">
+                  {money(totals.total)}
+                </dd>
+              </div>
+            </dl>
+
+            <Button
+              className="mt-5 w-full"
+              size="lg"
+              onClick={formik.handleSubmit}
+              loading={saving}
+              loadingText="Saving..."
+              disabled={loading}
+            >
+              {isNew ? "Save bill" : "Update bill"}
+            </Button>
+            <p className="mt-3 text-[12px] leading-relaxed text-faint">
+              Saving adjusts product stock by the difference between this bill
+              and what was previously recorded.
+            </p>
+          </section>
+        </aside>
       </div>
+
+      <ProductsModal
+        open={modalOpen}
+        onClose={() => {
+          setModalOpen(false);
+          setEditingLine(null);
+        }}
+        onSave={saveLine}
+        products={products}
+        initial={editingLine}
+        takenProductIds={takenProductIds}
+        maxQtyFor={maxQtyFor}
+      />
+
+      <ConfirmDialog
+        open={Boolean(pendingRemove)}
+        onClose={() => setPendingRemove(null)}
+        onConfirm={removeLine}
+        title="Remove this line?"
+        description={
+          pendingRemove
+            ? `"${pendingRemove.productname}" will be taken off this bill.`
+            : undefined
+        }
+        confirmLabel="Remove"
+      />
     </>
   );
 }

@@ -2,139 +2,105 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useFormik } from "formik";
 import * as yup from "yup";
-import { Button } from "react-bootstrap";
-import axiosInstance from "../../../config/AxiosInstance";
-import { SpinLoader } from "../../containers/Loaders/loaders";
 import { toast } from "react-toastify";
+
+import AuthLayout, { DemoCredentials } from "../../layout/AuthLayout";
+import { Button } from "../../ui/Button";
+import { FormikField } from "../../ui/Field";
+import { MailIcon } from "../../ui/Icons";
+import axiosInstance, { errorMessage } from "../../../config/AxiosInstance";
 import { setItem } from "../../../config/cookieStorage";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+
+const DEMO = { email: "user@gmail.com", password: "User@123" };
 
 function Login() {
   const navigate = useNavigate();
-  const [loadding, setLoadding] = useState(false);
-  // Inside your functional component
-  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (values) => {
     try {
-      setLoadding(true);
-      const res = await axiosInstance.post(`/login`, values);
-      if (res.data.success) {
-        setLoadding(false);
+      setLoading(true);
+      const res = await axiosInstance.post("/login", values);
+      if (res.data?.success) {
+        const expiresAt = res.data?.user?.expiresAt;
         setItem("token", res.data.token, {
-          expires: new Date(res.data?.user?.expiresAt),
+          expires: expiresAt ? new Date(expiresAt) : undefined,
         });
-        navigate("/");
+        navigate("/", { replace: true });
+        return;
       }
+      toast.error(res.data?.message || "Could not sign you in");
     } catch (error) {
-      setLoadding(false);
-      toast.error(error.response?.data.message || error.message);
-      console.log("Error", error);
+      toast.error(errorMessage(error, "Could not sign you in"));
+    } finally {
+      setLoading(false);
     }
   };
 
   const formik = useFormik({
-    initialValues: {
-      email: "",
-      password: "",
-    },
+    initialValues: { email: "", password: "" },
     validationSchema: yup.object({
-      email: yup.string().email("Invalid Email").required("Required"),
-      password: yup
+      email: yup
         .string()
-        .required("No Password Provided")
-        .min(8, "Password is too short")
-        .matches(
-          /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/,
-          "Must Contain One Uppercase, One Lowercase, One Number and one special case Character"
-        ),
+        .email("Enter a valid email")
+        .required("Email is required"),
+      password: yup.string().required("Password is required"),
     }),
-    onSubmit: (values) => {
-      handleSubmit(values);
-    },
+    onSubmit: handleSubmit,
   });
-  return (
-    <div
-      className="bg-dark d-flex justify-content-center align-items-center"
-      style={{ height: "100vh" }}
-    >
-      <div className="container">
-        <div className="d-flex justify-content-center align-items-center">
-          <form
-            onSubmit={formik.handleSubmit}
-            className="p-4 border border-3"
-            style={{ borderRadius: "2%", width: "30rem" }}
-          >
-            <h2 className="mb-4 text-center text-primary">Login</h2>
-            <div className="mb-3 ">
-              <div className="form-floating">
-                <input
-                  className="form-control"
-                  type="email"
-                  name="email"
-                  placeholder="name@example.com"
-                  onBlur={formik.handleBlur}
-                  onChange={formik.handleChange}
-                  value={formik.values.email}
-                />
-                <label htmlFor="email">Email Id</label>
-              </div>
-              {formik.touched.email && formik.errors.email ? (
-                <div style={{ color: "red" }}>{formik.errors.email}</div>
-              ) : null}
-            </div>
 
-            <div className="mb-3">
-              <div className="form-floating">
-                <input
-                  className="form-control"
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  placeholder="Password"
-                  onBlur={formik.handleBlur}
-                  onChange={formik.handleChange}
-                  value={formik.values.password}
-                />
-                <label htmlFor="password">Password</label>
-                <span
-                  className="password-toggle-icon"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                </span>
-              </div>
-              {formik.touched.password && formik.errors.password ? (
-                <div style={{ color: "red" }}>{formik.errors.password}</div>
-              ) : null}
-            </div>
-            <div className="d-grid mb-3">
-              <Button
-                type="submit"
-                variant="primary"
-                className="text-uppercase"
-                size="lg"
-              >
-                {loadding ? <SpinLoader /> : "Login"}
-              </Button>
-            </div>
-            <Link
-              className="d-block text-center mt-2 text-white text-decoration-none h6"
-              to="/signup"
-            >
-              Have New account? Sign Up
-            </Link>
-            <hr className="text-white" />
-            <div className="text-white">
-              <h3>Demo Credentials</h3>
-              <p>
-                Email:&nbsp;user@gmail.com &nbsp;&nbsp; Password:&nbsp;User@123
-              </p>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
+  return (
+    <AuthLayout
+      title="Welcome back"
+      subtitle="Sign in to manage your bills, stock and customers."
+      footer={
+        <DemoCredentials
+          email={DEMO.email}
+          password={DEMO.password}
+          onUse={() => formik.setValues(DEMO)}
+        />
+      }
+    >
+      <form onSubmit={formik.handleSubmit} className="space-y-4" noValidate>
+        <FormikField
+          formik={formik}
+          name="email"
+          type="email"
+          label="Email"
+          placeholder="you@company.com"
+          autoComplete="email"
+          icon={MailIcon}
+        />
+        <FormikField
+          formik={formik}
+          name="password"
+          type="password"
+          label="Password"
+          placeholder="••••••••"
+          autoComplete="current-password"
+        />
+
+        <Button
+          type="submit"
+          size="lg"
+          className="w-full"
+          loading={loading}
+          loadingText="Signing in..."
+        >
+          Sign in
+        </Button>
+
+        <p className="pt-1 text-center text-sm text-muted">
+          Don&apos;t have an account?{" "}
+          <Link
+            to="/signup"
+            className="font-medium text-fg underline decoration-strong underline-offset-4 transition-colors hover:decoration-fg"
+          >
+            Create one
+          </Link>
+        </p>
+      </form>
+    </AuthLayout>
   );
 }
 
