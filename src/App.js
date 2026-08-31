@@ -10,11 +10,9 @@ function App() {
   return (
     // Outside the router, so a crash in routing itself is still caught.
     <ErrorBoundary>
-      {/* Opt into the v7 behaviours now — they are what this app already
-          assumes, and it keeps the console free of upgrade warnings. */}
-      <BrowserRouter
-        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-      >
+      {/* On react-router 7 the old v6 future flags are the defaults, so the
+          opt-in prop they needed is gone. */}
+      <BrowserRouter>
         <Main />
         <ToastContainer
           position="top-right"
