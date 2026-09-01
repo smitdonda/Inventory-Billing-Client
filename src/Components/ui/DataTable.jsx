@@ -1,4 +1,10 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import cn from "./cn";
 import {
   ChevronDownIcon,
@@ -54,6 +60,12 @@ const compare = (a, b) => {
   return String(a).localeCompare(String(b), undefined, { numeric: true });
 };
 
+const alignClass = (col) =>
+  cn(
+    col.align === "right" && "text-right tabular-nums",
+    col.align === "center" && "text-center"
+  );
+
 /* ------------------------------------------------------------------ */
 /*  copy-to-clipboard cell                                             */
 /* ------------------------------------------------------------------ */
@@ -84,15 +96,15 @@ function CopyValue({ value }) {
       type="button"
       onClick={copy}
       title={`Copy ${value}`}
-      className="group inline-flex max-w-full items-center gap-1.5 rounded-md px-1.5 py-1 -mx-1.5 text-left transition-colors hover:bg-elevated focus-ring"
+      className="group/copy inline-flex max-w-full items-center gap-1.5 rounded-md px-1.5 py-1 -mx-1.5 text-left transition-colors hover:bg-strong/40 focus-ring"
     >
       <span className="truncate font-mono text-[12.5px]">{String(value)}</span>
       {copied ? (
-        <CheckIcon size={13} className="text-success" />
+        <CheckIcon size={13} className="shrink-0 text-success" />
       ) : (
         <CopyIcon
           size={13}
-          className="text-faint opacity-0 transition-opacity group-hover:opacity-100"
+          className="shrink-0 text-faint opacity-0 transition-opacity group-hover/copy:opacity-100"
         />
       )}
     </button>
@@ -113,6 +125,7 @@ function DataTable({
   searchPlaceholder = "Search...",
   pageSizeOptions = [8, 15, 30, 60],
   initialPageSize = 8,
+  minWidth = "52rem",
   emptyTitle = "Nothing here yet",
   emptyDescription,
   emptyAction,
@@ -157,6 +170,26 @@ function DataTable({
 
   useEffect(() => setPage(0), [query, pageSize, data]);
 
+  /* Wide tables scroll sideways with nothing to say so. These two fades are
+     the only hint that a column is hiding past the edge. */
+  const scrollRef = useRef(null);
+  const [edges, setEdges] = useState({ left: false, right: false });
+
+  const syncEdges = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setEdges({
+      left: el.scrollLeft > 2,
+      right: el.scrollLeft + el.clientWidth < el.scrollWidth - 2,
+    });
+  }, []);
+
+  useEffect(() => {
+    syncEdges();
+    window.addEventListener("resize", syncEdges);
+    return () => window.removeEventListener("resize", syncEdges);
+  }, [syncEdges, rows, loading]);
+
   const toggleSort = (col) => {
     if (col.sortable === false) return;
     setSort((prev) =>
@@ -179,6 +212,29 @@ function DataTable({
 
   const colCount = columns.length + (rowActions ? 1 : 0);
   const showEmpty = !loading && sorted.length === 0;
+
+  const emptyBlock = (
+    <EmptyBlock
+      title={query ? "No matches" : emptyTitle}
+      description={query ? `Nothing matched "${query}".` : emptyDescription}
+      action={
+        query ? (
+          <Button variant="secondary" size="sm" onClick={() => setQuery("")}>
+            Clear search
+          </Button>
+        ) : (
+          emptyAction
+        )
+      }
+    />
+  );
+
+  /* border-collapse drops a sticky header's own border as it scrolls, so the
+     header rule is drawn as an inset shadow instead. */
+  const headCell =
+    "sticky top-0 z-10 bg-elevated px-4 py-3 first:pl-5 last:pr-5 text-left " +
+    "text-[11.5px] font-semibold uppercase tracking-[0.07em] text-muted " +
+    "shadow-[inset_0_-1px_0_0_rgb(var(--strong))]";
 
   return (
     <div className={cn("card overflow-hidden", className)}>
@@ -210,9 +266,9 @@ function DataTable({
               )}
             </div>
           )}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             {toolbar}
-            <span className="hidden text-[13px] text-faint sm:inline">
+            <span className="hidden shrink-0 rounded-full border border-line bg-elevated px-2.5 py-1 text-[12px] font-medium tabular-nums text-muted sm:inline">
               {sorted.length} {sorted.length === 1 ? "record" : "records"}
             </span>
           </div>
@@ -220,136 +276,154 @@ function DataTable({
       )}
 
       {/* desktop table ---------------------------------------------- */}
-      <div className="hidden overflow-x-auto md:block">
-        <table className="w-full min-w-[52rem] border-collapse text-sm">
-          <thead>
-            <tr className="border-b border-line bg-elevated/50">
-              {columns.map((col) => {
-                const active = sort.key === col.key;
-                const sortable = col.sortable !== false;
-                return (
+      <div className="relative hidden md:block">
+        <div
+          ref={scrollRef}
+          onScroll={syncEdges}
+          className="max-h-[70vh] overflow-auto"
+        >
+          <table
+            className="w-full border-collapse text-sm"
+            style={{ minWidth }}
+          >
+            <thead>
+              <tr>
+                {columns.map((col) => {
+                  const active = sort.key === col.key;
+                  const sortable = col.sortable !== false;
+                  return (
+                    <th
+                      key={col.key}
+                      scope="col"
+                      style={col.width ? { width: col.width } : undefined}
+                      className={cn(headCell, alignClass(col))}
+                    >
+                      {sortable ? (
+                        <button
+                          type="button"
+                          onClick={() => toggleSort(col)}
+                          aria-label={`Sort by ${col.header}`}
+                          className={cn(
+                            "group/sort inline-flex items-center gap-1.5 rounded-md px-1 py-0.5 -mx-1",
+                            /* A button does not inherit the header cell's
+                               text-transform, so the case is restated here or
+                               sortable columns read differently to the rest. */
+                            "uppercase tracking-[0.07em]",
+                            "transition-colors hover:text-fg focus-ring",
+                            active && "text-fg",
+                            col.align === "right" && "flex-row-reverse"
+                          )}
+                        >
+                          {col.header}
+                          {active ? (
+                            sort.dir === "asc" ? (
+                              <ChevronUpIcon size={13} />
+                            ) : (
+                              <ChevronDownIcon size={13} />
+                            )
+                          ) : (
+                            /* Idle arrows on every column are noise; they
+                               show up only under the pointer. */
+                            <SortIcon
+                              size={12}
+                              className="opacity-0 transition-opacity group-hover/sort:opacity-50"
+                            />
+                          )}
+                        </button>
+                      ) : (
+                        col.header
+                      )}
+                    </th>
+                  );
+                })}
+                {rowActions && (
                   <th
-                    key={col.key}
                     scope="col"
-                    style={col.width ? { width: col.width } : undefined}
-                    className={cn(
-                      "px-4 py-3 text-left text-[12px] font-semibold uppercase tracking-wider text-muted",
-                      col.align === "right" && "text-right",
-                      col.align === "center" && "text-center"
-                    )}
+                    className={cn(headCell, "w-px whitespace-nowrap text-right")}
                   >
-                    {sortable ? (
-                      <button
-                        type="button"
-                        onClick={() => toggleSort(col)}
+                    Actions
+                  </th>
+                )}
+              </tr>
+            </thead>
+
+            <tbody>
+              {loading &&
+                Array.from({ length: Math.min(pageSize, 6) }).map((_, r) => (
+                  <tr
+                    key={`sk-${r}`}
+                    className="border-b border-line last:border-0"
+                  >
+                    {Array.from({ length: colCount }).map((__, c) => (
+                      <td
+                        key={`sk-${r}-${c}`}
+                        className="px-4 py-3.5 first:pl-5 last:pr-5"
+                      >
+                        <div
+                          className="skeleton h-4"
+                          style={{ width: `${45 + ((r + c) % 4) * 14}%` }}
+                        />
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+
+              {!loading &&
+                rows.map((row, index) => (
+                  <tr
+                    key={getRowId(row, index)}
+                    className="group border-b border-line transition-colors last:border-0 hover:bg-elevated"
+                  >
+                    {columns.map((col) => (
+                      <td
+                        key={col.key}
                         className={cn(
-                          "inline-flex items-center gap-1.5 rounded-md px-1 py-0.5 -mx-1 transition-colors hover:text-fg focus-ring",
-                          active && "text-fg"
+                          "px-4 py-3.5 first:pl-5 last:pr-5 align-middle text-fg",
+                          alignClass(col),
+                          col.mono && "font-mono text-[13px]",
+                          col.truncate && "max-w-[16rem] truncate"
                         )}
                       >
-                        {col.header}
-                        {active ? (
-                          sort.dir === "asc" ? (
-                            <ChevronUpIcon size={13} />
-                          ) : (
-                            <ChevronDownIcon size={13} />
-                          )
-                        ) : (
-                          <SortIcon size={12} className="opacity-40" />
-                        )}
-                      </button>
-                    ) : (
-                      col.header
+                        {renderCell(row, col, index)}
+                      </td>
+                    ))}
+                    {rowActions && (
+                      <td className="whitespace-nowrap px-4 py-3.5 pr-5 text-right">
+                        {/* Dimmed rather than hidden: still findable without a
+                            pointer, but it stops competing with the data. */}
+                        <div className="flex items-center justify-end gap-1 opacity-60 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+                          {rowActions(row)}
+                        </div>
+                      </td>
                     )}
-                  </th>
-                );
-              })}
-              {rowActions && (
-                <th
-                  scope="col"
-                  className="w-px whitespace-nowrap px-4 py-3 text-right text-[12px] font-semibold uppercase tracking-wider text-muted"
-                >
-                  Actions
-                </th>
+                  </tr>
+                ))}
+
+              {showEmpty && (
+                <tr>
+                  <td colSpan={colCount} className="px-4 py-16">
+                    {emptyBlock}
+                  </td>
+                </tr>
               )}
-            </tr>
-          </thead>
+            </tbody>
+          </table>
+        </div>
 
-          <tbody>
-            {loading &&
-              Array.from({ length: Math.min(pageSize, 6) }).map((_, r) => (
-                <tr
-                  key={`sk-${r}`}
-                  className="border-b border-line last:border-0"
-                >
-                  {Array.from({ length: colCount }).map((__, c) => (
-                    <td key={`sk-${r}-${c}`} className="px-4 py-3.5">
-                      <div
-                        className="skeleton h-4"
-                        style={{ width: `${45 + ((r + c) % 4) * 14}%` }}
-                      />
-                    </td>
-                  ))}
-                </tr>
-              ))}
-
-            {!loading &&
-              rows.map((row, index) => (
-                <tr
-                  key={getRowId(row, index)}
-                  className="border-b border-line transition-colors last:border-0 hover:bg-elevated/60"
-                >
-                  {columns.map((col) => (
-                    <td
-                      key={col.key}
-                      className={cn(
-                        "px-4 py-3.5 align-middle text-fg",
-                        col.align === "right" && "text-right",
-                        col.align === "center" && "text-center",
-                        col.mono && "font-mono text-[13px]",
-                        col.truncate && "max-w-[16rem] truncate"
-                      )}
-                    >
-                      {renderCell(row, col, index)}
-                    </td>
-                  ))}
-                  {rowActions && (
-                    <td className="whitespace-nowrap px-4 py-3.5 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        {rowActions(row)}
-                      </div>
-                    </td>
-                  )}
-                </tr>
-              ))}
-
-            {showEmpty && (
-              <tr>
-                <td colSpan={colCount} className="px-4 py-16">
-                  <EmptyBlock
-                    title={query ? "No matches" : emptyTitle}
-                    description={
-                      query ? `Nothing matched "${query}".` : emptyDescription
-                    }
-                    action={
-                      query ? (
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => setQuery("")}
-                        >
-                          Clear search
-                        </Button>
-                      ) : (
-                        emptyAction
-                      )
-                    }
-                  />
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+        <div
+          aria-hidden="true"
+          className={cn(
+            "pointer-events-none absolute inset-y-0 left-0 z-20 w-6 bg-gradient-to-r from-fg/10 to-transparent transition-opacity duration-150",
+            edges.left ? "opacity-100" : "opacity-0"
+          )}
+        />
+        <div
+          aria-hidden="true"
+          className={cn(
+            "pointer-events-none absolute inset-y-0 right-0 z-20 w-6 bg-gradient-to-l from-fg/10 to-transparent transition-opacity duration-150",
+            edges.right ? "opacity-100" : "opacity-0"
+          )}
+        />
       </div>
 
       {/* mobile cards ------------------------------------------------ */}
@@ -367,15 +441,13 @@ function DataTable({
           rows.map((row, index) => {
             const [primary, ...restCols] = columns;
             return (
-              <div key={getRowId(row, index)} className="p-4">
+              <div
+                key={getRowId(row, index)}
+                className="p-4 transition-colors active:bg-elevated"
+              >
                 <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0 flex-1">
-                    <div className="text-[13px] font-medium uppercase tracking-wide text-faint">
-                      {primary.header}
-                    </div>
-                    <div className="mt-0.5 truncate font-medium text-fg">
-                      {renderCell(row, primary, index)}
-                    </div>
+                  <div className="min-w-0 flex-1 font-medium text-fg">
+                    {renderCell(row, primary, index)}
                   </div>
                   {rowActions && (
                     <div className="flex shrink-0 items-center gap-1">
@@ -383,13 +455,13 @@ function DataTable({
                     </div>
                   )}
                 </div>
-                <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2.5">
+                <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2.5 border-t border-line pt-3">
                   {restCols.map((col) => (
                     <div key={col.key} className={cn(col.wide && "col-span-2")}>
-                      <dt className="text-[11px] font-medium uppercase tracking-wide text-faint">
+                      <dt className="text-[11px] font-semibold uppercase tracking-[0.07em] text-faint">
                         {col.header}
                       </dt>
-                      <dd className="mt-0.5 break-words text-[13.5px] text-fg">
+                      <dd className="mt-1 break-words text-[13.5px] text-fg">
                         {renderCell(row, col, index)}
                       </dd>
                     </div>
@@ -399,41 +471,19 @@ function DataTable({
             );
           })}
 
-        {showEmpty && (
-          <div className="p-10">
-            <EmptyBlock
-              title={query ? "No matches" : emptyTitle}
-              description={
-                query ? `Nothing matched "${query}".` : emptyDescription
-              }
-              action={
-                query ? (
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => setQuery("")}
-                  >
-                    Clear search
-                  </Button>
-                ) : (
-                  emptyAction
-                )
-              }
-            />
-          </div>
-        )}
+        {showEmpty && <div className="p-10">{emptyBlock}</div>}
       </div>
 
       {/* pagination -------------------------------------------------- */}
       {!showEmpty && (
-        <div className="flex flex-col gap-3 border-t border-line px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4">
+        <div className="flex flex-col gap-3 border-t border-line bg-elevated/40 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4">
           <div className="flex items-center gap-2 text-[13px] text-muted">
             <span className="hidden sm:inline">Rows</span>
             <select
               value={pageSize}
               onChange={(event) => setPageSize(Number(event.target.value))}
               aria-label="Rows per page"
-              className="h-8 rounded-lg border border-line bg-bg px-2 text-[13px] text-fg transition-colors hover:border-strong focus:border-fg focus:outline-none focus:ring-2 focus:ring-fg/15"
+              className="h-8 rounded-lg border border-line bg-surface px-2 text-[13px] text-fg transition-colors hover:border-strong focus:border-fg focus:outline-none focus:ring-2 focus:ring-fg/15"
             >
               {pageSizeOptions.map((n) => (
                 <option key={n} value={n}>
@@ -467,8 +517,9 @@ function DataTable({
               onClick={() => setPage((p) => Math.max(0, p - 1))}
               className="disabled:opacity-30 disabled:pointer-events-none"
             />
-            <span className="px-2 text-[13px] tabular-nums text-muted">
-              {safePage + 1} / {pageCount}
+            <span className="px-2 text-[13px] font-medium tabular-nums text-fg">
+              Page {safePage + 1}
+              <span className="font-normal text-muted"> of {pageCount}</span>
             </span>
             <IconButton
               icon={ChevronRightIcon}
