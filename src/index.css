@@ -3,26 +3,33 @@
 @tailwind utilities;
 
 /* ------------------------------------------------------------------ */
-/*  Design tokens — one light monochrome scale.                        */
+/*  Design tokens — Nordic Calm: cool, low-saturation neutrals under a  */
+/*  muted navy. Everything in the app reads through these thirteen      */
+/*  values, so a repaint never reaches a component.                     */
 /*  Values are raw RGB channels so Tailwind can apply <alpha-value>.   */
 /* ------------------------------------------------------------------ */
 @layer base {
   :root {
-    --bg: 250 250 250;
+    --bg: 244 246 248;
     --surface: 255 255 255;
     /* A real step above `surface` — it is what hover fills, table headers and
        the active nav item are painted with, so it must not equal white. */
-    --elevated: 244 244 245;
-    --line: 228 228 231;
-    --strong: 212 212 216;
-    --fg: 9 9 11;
-    --muted: 82 82 91;
-    --faint: 161 161 170;
-    --accent: 9 9 11;
-    --accent-fg: 250 250 250;
-    --success: 22 163 74;
-    --warning: 217 119 6;
-    --danger: 220 38 38;
+    --elevated: 237 241 245;
+    --line: 218 225 232;
+    --strong: 196 206 217;
+    --fg: 27 35 45;
+    --muted: 82 95 110;
+    --faint: 146 159 175;
+    /* The one saturated colour in the set, and the only thing that says
+       "act here". Deliberately desaturated so the numbers in a table stay
+       the loudest thing on screen. White on it reads 8.23:1. */
+    --accent: 45 82 112;
+    --accent-fg: 255 255 255;
+    /* Pulled toward the neutrals so a status chip does not shout over the
+       accent, while staying unmistakably green / amber / red. */
+    --success: 39 119 92;
+    --warning: 165 118 33;
+    --danger: 173 57 57;
     color-scheme: light;
   }
 
@@ -46,6 +53,10 @@
     *::after {
       animation-duration: 0.01ms !important;
       transition-duration: 0.01ms !important;
+      /* The sidebar stagger sets its delays inline, so cutting the duration
+         alone would still leave the wait. */
+      animation-delay: 0.01ms !important;
+      transition-delay: 0.01ms !important;
     }
   }
 

@@ -20,7 +20,7 @@ const compact = (value) =>
 
 /**
  * Horizontal bar chart for "compare magnitude across items".
- * One series, so length carries the value and a single ink colour carries the
+ * One series, so length carries the value and the accent alone carries the
  * mark — no legend, no per-hue palette. Long tails fold into "Other".
  */
 function BarChart({
@@ -105,7 +105,9 @@ function BarChart({
                   <div
                     className={cn(
                       "absolute left-0 top-0 h-full rounded-r transition-[width,opacity] duration-500 ease-out",
-                      row.isOther ? "bg-faint" : "bg-fg",
+                      /* The accent, not the text colour: a bar is a mark, and
+                         it should follow the theme the rest of the app does. */
+                      row.isOther ? "bg-faint" : "bg-accent",
                       active ? "opacity-100" : "opacity-90"
                     )}
                     style={{

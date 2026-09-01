@@ -143,7 +143,7 @@ function MultiSelect({
                         className={cn(
                           "flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors",
                           checked
-                            ? "border-fg bg-fg text-bg"
+                            ? "border-accent bg-accent text-accent-fg"
                             : "border-strong bg-transparent"
                         )}
                       >
