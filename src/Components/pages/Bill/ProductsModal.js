@@ -5,7 +5,7 @@ import Select from "../../ui/Select";
 import MultiSelect from "../../ui/MultiSelect";
 import { Button } from "../../ui/Button";
 import { Field } from "../../ui/Field";
-import { money } from "../../ui/format";
+import { money, toPaise, rupeeInput } from "../../ui/format";
 
 const GST_OPTIONS = [
   { title: "S GST 2.5%", value: 2.5 },
@@ -25,12 +25,19 @@ const EMPTY = {
   gst: [],
 };
 
-/** Line total before tax, plus each tax slab applied to it. */
-const priceLine = (unitprice, quantity, gst) => {
-  const pandqtotal = (Number(unitprice) || 0) * (Number(quantity) || 0);
+/**
+ * Line total before tax, plus each tax slab applied to it.
+ *
+ * `unitPaise` is already whole paise, so every amount out of here is a whole
+ * number too — the same arithmetic the server does, which is what keeps this
+ * preview from disagreeing with what gets saved.
+ */
+const priceLine = (unitPaise, quantity, gst) => {
+  const qty = Math.max(0, Math.trunc(Number(quantity) || 0));
+  const pandqtotal = unitPaise * qty;
   const taxes = (gst || []).map((slab) => ({
     ...slab,
-    taxAmount: (pandqtotal / 100) * Number(slab.value),
+    taxAmount: Math.round((pandqtotal * Number(slab.value)) / 100),
   }));
   const gsttex = taxes.reduce((sum, slab) => sum + slab.taxAmount, pandqtotal);
   return { pandqtotal, taxes, gsttex };
@@ -62,8 +69,7 @@ function ProductsModal({
             productId: initial.productId || "",
             id: initial.id,
             productname: initial.productname || "",
-            unitprice:
-              initial.unitprice != null ? String(initial.unitprice) : "",
+            unitprice: rupeeInput(initial.unitprice),
             quantity: initial.quantity != null ? String(initial.quantity) : "1",
             gst: initial.gst || [],
           }
@@ -89,8 +95,11 @@ function ProductsModal({
 
   const maxQty = values.productId ? maxQtyFor(values.productId) : 0;
   const quantity = Number(values.quantity);
+  // The field holds rupees, because that is what a person types. Everything
+  // downstream of this line is whole paise.
+  const unitPaise = toPaise(values.unitprice);
   const { pandqtotal, taxes, gsttex } = priceLine(
-    values.unitprice,
+    unitPaise,
     values.quantity,
     values.gst
   );
@@ -120,7 +129,7 @@ function ProductsModal({
       productId,
       id: product.id,
       productname: product.productname,
-      unitprice: String(product.unitprice ?? ""),
+      unitprice: rupeeInput(product.unitprice),
       quantity:
         prev.quantity && Number(prev.quantity) > 0 ? prev.quantity : "1",
     }));
@@ -139,7 +148,7 @@ function ProductsModal({
       productId: values.productId,
       id: values.id,
       productname: values.productname,
-      unitprice: Number(values.unitprice),
+      unitprice: unitPaise,
       quantity,
       gst: taxes,
       pandqtotal,

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { toast } from "react-toastify";
 
 import PageHeader from "../../ui/PageHeader";
@@ -7,6 +7,7 @@ import ConfirmDialog from "../../ui/ConfirmDialog";
 import { Button, IconButton } from "../../ui/Button";
 import { PlusIcon, PencilIcon, TrashIcon } from "../../ui/Icons";
 import { money, number } from "../../ui/format";
+import useServerTable from "../../../hooks/useServerTable";
 import ProductForm from "./ProductFrom";
 import axiosInstance, { errorMessage } from "../../../config/AxiosInstance";
 
@@ -37,8 +38,19 @@ function StockBadge({ qty }) {
 }
 
 function ProducstDetails() {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  /* One page of the catalogue at a time. Search, sort and paging are the
+     database's job — see hooks/useServerTable. */
+  const {
+    rows: products,
+    meta,
+    loading,
+    reload,
+    server,
+  } = useServerTable({
+    url: "/products",
+    dataKey: "products",
+    errorText: "Could not load products",
+  });
 
   const [formOpen, setFormOpen] = useState(false);
   const [editData, setEditData] = useState({});
@@ -46,22 +58,6 @@ function ProducstDetails() {
 
   const [pendingDelete, setPendingDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
-
-  const getProductsData = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await axiosInstance.get("/products");
-      setProducts(res.data?.products || []);
-    } catch (error) {
-      toast.error(errorMessage(error, "Could not load products"));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    getProductsData();
-  }, [getProductsData]);
 
   const openCreate = () => {
     setEditData({});
@@ -89,7 +85,7 @@ function ProducstDetails() {
       if (res.data?.success) {
         toast.success("Product deleted");
         setPendingDelete(null);
-        await getProductsData();
+        await reload();
         return;
       }
       toast.error(res.data?.message || "Could not delete the product");
@@ -132,6 +128,9 @@ function ProducstDetails() {
         header: "Stock value",
         align: "right",
         searchable: false,
+        // Derived per row, so the database cannot order by it — and sorting
+        // one page of it would be a lie about the whole catalogue.
+        sortable: false,
         accessor: (row) =>
           (Number(row.unitprice) || 0) * (Number(row.availableproductqty) || 0),
         cell: ({ value }) => (
@@ -142,20 +141,6 @@ function ProducstDetails() {
       },
     ],
     []
-  );
-
-  const totals = useMemo(
-    () =>
-      products.reduce(
-        (acc, p) => {
-          acc.units += Number(p.availableproductqty) || 0;
-          acc.value +=
-            (Number(p.unitprice) || 0) * (Number(p.availableproductqty) || 0);
-          return acc;
-        },
-        { units: 0, value: 0 }
-      ),
-    [products]
   );
 
   return (
@@ -174,6 +159,7 @@ function ProducstDetails() {
         columns={columns}
         data={products}
         loading={loading}
+        server={server}
         searchPlaceholder="Search products..."
         emptyTitle="No products yet"
         emptyDescription="Add the items you sell so they can be picked when billing."
@@ -183,18 +169,20 @@ function ProducstDetails() {
           </Button>
         }
         toolbar={
-          products.length > 0 && (
+          meta.total > 0 && (
+            /* Summed across the whole catalogue by the server, not across the
+               rows that happen to be on screen. */
             <span className="hidden items-center gap-3 text-[13px] text-muted lg:flex">
               <span>
                 <span className="font-mono tabular-nums text-fg">
-                  {number(totals.units)}
+                  {number(meta.stockUnits || 0)}
                 </span>{" "}
                 units
               </span>
               <span className="h-3.5 w-px bg-line" />
               <span>
                 <span className="font-mono tabular-nums text-fg">
-                  {money(totals.value)}
+                  {money(meta.stockValue || 0)}
                 </span>{" "}
                 on hand
               </span>
@@ -223,7 +211,7 @@ function ProducstDetails() {
         open={formOpen}
         handleClose={closeForm}
         editData={editData}
-        getProductsData={getProductsData}
+        getProductsData={reload}
       />
 
       <ConfirmDialog

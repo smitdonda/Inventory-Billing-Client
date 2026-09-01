@@ -8,28 +8,23 @@ import AuthLayout, { DemoCredentials } from "../../layout/AuthLayout";
 import { Button } from "../../ui/Button";
 import { FormikField } from "../../ui/Field";
 import { MailIcon } from "../../ui/Icons";
-import axiosInstance, { errorMessage } from "../../../config/AxiosInstance";
-import { setItem } from "../../../config/cookieStorage";
+import { errorMessage } from "../../../config/AxiosInstance";
+import { useAuth } from "../../../context/AuthContext";
 
 const DEMO = { email: "user@gmail.com", password: "User@123" };
 
 function Login() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (values) => {
     try {
       setLoading(true);
-      const res = await axiosInstance.post("/login", values);
-      if (res.data?.success) {
-        const expiresAt = res.data?.user?.expiresAt;
-        setItem("token", res.data.token, {
-          expires: expiresAt ? new Date(expiresAt) : undefined,
-        });
-        navigate("/", { replace: true });
-        return;
-      }
-      toast.error(res.data?.message || "Could not sign you in");
+      // The server sets an httpOnly cookie; nothing about the session is
+      // stored here, so there is no token to hold on to.
+      await login(values);
+      navigate("/", { replace: true });
     } catch (error) {
       toast.error(errorMessage(error, "Could not sign you in"));
     } finally {

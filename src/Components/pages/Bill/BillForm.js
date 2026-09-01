@@ -49,8 +49,12 @@ function BillForm() {
     let cancelled = false;
     (async () => {
       const [customerRes, productRes] = await Promise.allSettled([
-        axiosInstance.get("/customers"),
-        axiosInstance.get("/products"),
+        /* The two pickers search their own options locally, so they want the
+           whole list rather than a page of it. 500 is the server's ceiling —
+           past that a shop needs a picker that queries as you type, not a
+           bigger download. */
+        axiosInstance.get("/customers", { params: { limit: 500 } }),
+        axiosInstance.get("/products", { params: { limit: 500 } }),
       ]);
       if (cancelled) return;
       if (customerRes.status === "fulfilled") {
@@ -161,7 +165,10 @@ function BillForm() {
         const payload = {
           ...values,
           products: lines,
-          totalproductsprice: Number(totals.total.toFixed(2)),
+          // Already whole paise — rounding it to two decimals was a rupee
+          // habit, and it is the server's number anyway: it reprices every
+          // line and ignores whatever total arrives.
+          totalproductsprice: totals.total,
         };
         const res = isNew
           ? await axiosInstance.post("/billInformation", payload)

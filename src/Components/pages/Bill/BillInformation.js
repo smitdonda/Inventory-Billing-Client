@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import moment from "moment";
 import { toast } from "react-toastify";
@@ -9,29 +9,25 @@ import ConfirmDialog from "../../ui/ConfirmDialog";
 import { Button, IconButton } from "../../ui/Button";
 import { money } from "../../ui/format";
 import { PlusIcon, PencilIcon, TrashIcon, FileTextIcon } from "../../ui/Icons";
+import useServerTable from "../../../hooks/useServerTable";
 import axiosInstance, { errorMessage } from "../../../config/AxiosInstance";
 
 function BillInformation() {
-  const [bills, setBills] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    rows: bills,
+    meta,
+    loading,
+    reload,
+    server,
+  } = useServerTable({
+    url: "/billInformation",
+    dataKey: "billinfo",
+    initialSort: { key: "createdAt", dir: "desc" },
+    errorText: "Could not load bills",
+  });
+
   const [pendingDelete, setPendingDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
-
-  const getBillData = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await axiosInstance.get("/billInformation");
-      setBills(res.data?.billinfo || []);
-    } catch (error) {
-      toast.error(errorMessage(error, "Could not load bills"));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    getBillData();
-  }, [getBillData]);
 
   const confirmDelete = async () => {
     if (!pendingDelete) return;
@@ -43,7 +39,7 @@ function BillInformation() {
       if (res.data?.success) {
         toast.success("Bill deleted");
         setPendingDelete(null);
-        await getBillData();
+        await reload();
         return;
       }
       toast.error(res.data?.message || "Could not delete the bill");
@@ -145,12 +141,6 @@ function BillInformation() {
     []
   );
 
-  const totalBilled = useMemo(
-    () =>
-      bills.reduce((sum, b) => sum + (Number(b.totalproductsprice) || 0), 0),
-    [bills]
-  );
-
   return (
     <>
       <PageHeader
@@ -167,6 +157,7 @@ function BillInformation() {
         columns={columns}
         data={bills}
         loading={loading}
+        server={server}
         searchPlaceholder="Search customer, id, product..."
         emptyTitle="No bills yet"
         emptyDescription="Raise your first invoice and it will show up here."
@@ -176,10 +167,12 @@ function BillInformation() {
           </Button>
         }
         toolbar={
-          bills.length > 0 && (
+          meta.total > 0 && (
+            /* Summed in the database over every matching bill. Adding it up
+               here meant downloading all of them first. */
             <span className="hidden text-[13px] text-muted lg:inline">
               <span className="font-mono tabular-nums text-fg">
-                {money(totalBilled)}
+                {money(meta.totalBilled || 0)}
               </span>{" "}
               billed
             </span>

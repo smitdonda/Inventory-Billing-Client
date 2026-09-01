@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import moment from "moment";
 import { toast } from "react-toastify";
 
@@ -7,12 +7,21 @@ import DataTable from "../../ui/DataTable";
 import ConfirmDialog from "../../ui/ConfirmDialog";
 import { Button, IconButton } from "../../ui/Button";
 import { PlusIcon, PencilIcon, TrashIcon } from "../../ui/Icons";
+import useServerTable from "../../../hooks/useServerTable";
 import CustomersFrom from "./CustomersFrom";
 import axiosInstance, { errorMessage } from "../../../config/AxiosInstance";
 
 function CustomerDetails() {
-  const [customers, setCustomers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    rows: customers,
+    loading,
+    reload,
+    server,
+  } = useServerTable({
+    url: "/customers",
+    dataKey: "customers",
+    errorText: "Could not load customers",
+  });
 
   const [formOpen, setFormOpen] = useState(false);
   const [editData, setEditData] = useState({});
@@ -20,22 +29,6 @@ function CustomerDetails() {
 
   const [pendingDelete, setPendingDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
-
-  const customerData = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await axiosInstance.get("/customers");
-      setCustomers(res.data?.customers || []);
-    } catch (error) {
-      toast.error(errorMessage(error, "Could not load customers"));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    customerData();
-  }, [customerData]);
 
   const openCreate = () => {
     setEditData({});
@@ -63,7 +56,7 @@ function CustomerDetails() {
       if (res.data?.success) {
         toast.success("Customer deleted");
         setPendingDelete(null);
-        await customerData();
+        await reload();
         return;
       }
       toast.error(res.data?.message || "Could not delete the customer");
@@ -87,8 +80,17 @@ function CustomerDetails() {
         ),
       },
       { key: "email", header: "Email", truncate: true },
-      { key: "phoneNo", header: "Phone", mono: true },
-      { key: "gstNo", header: "GST number", copyable: true, wide: true },
+      // Searchable server-side, but not indexed for ordering — offering a
+      // sort the database cannot back would just be slow and occasionally
+      // fail on a large list.
+      { key: "phoneNo", header: "Phone", mono: true, sortable: false },
+      {
+        key: "gstNo",
+        header: "GST number",
+        copyable: true,
+        wide: true,
+        sortable: false,
+      },
       {
         key: "createdAt",
         header: "Added",
@@ -121,6 +123,7 @@ function CustomerDetails() {
         columns={columns}
         data={customers}
         loading={loading}
+        server={server}
         searchPlaceholder="Search name, email, GST..."
         emptyTitle="No customers yet"
         emptyDescription="Add a customer and they'll be selectable when you raise a bill."
@@ -151,7 +154,7 @@ function CustomerDetails() {
         open={formOpen}
         handleClose={closeForm}
         editData={editData}
-        customerData={customerData}
+        customerData={reload}
       />
 
       <ConfirmDialog

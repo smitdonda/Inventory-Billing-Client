@@ -4,6 +4,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 import ErrorBoundary from "./Components/ui/ErrorBoundary";
+import { AuthProvider } from "./context/AuthContext";
 import Main from "./Components/pages";
 
 function App() {
@@ -13,7 +14,9 @@ function App() {
       {/* On react-router 7 the old v6 future flags are the defaults, so the
           opt-in prop they needed is gone. */}
       <BrowserRouter>
-        <Main />
+        <AuthProvider>
+          <Main />
+        </AuthProvider>
         <ToastContainer
           position="top-right"
           autoClose={3500}

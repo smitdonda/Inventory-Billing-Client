@@ -131,23 +131,46 @@ function DataTable({
   emptyAction,
   toolbar,
   className = "",
+  server = null,
 }) {
-  const [query, setQuery] = useState("");
-  const [sort, setSort] = useState({ key: null, dir: "asc" });
-  const [pageSize, setPageSize] = useState(initialPageSize);
-  const [page, setPage] = useState(0);
+  /*
+   * Two modes, one component.
+   *
+   * Without `server` the table owns its search, sort and paging and works over
+   * whatever rows it was handed — right for a short, fully loaded list.
+   *
+   * With `server` (see hooks/useServerTable) those three pieces of state live
+   * outside and each change refetches one page. `data` is then already the
+   * page: nothing here filters, sorts or slices it, because the database did.
+   */
+  const controlled = Boolean(server);
+
+  const [localQuery, setLocalQuery] = useState("");
+  const [localSort, setLocalSort] = useState({ key: null, dir: "asc" });
+  const [localPageSize, setLocalPageSize] = useState(initialPageSize);
+  const [localPage, setLocalPage] = useState(0);
+
+  const query = controlled ? server.query : localQuery;
+  const setQuery = controlled ? server.onQueryChange : setLocalQuery;
+  const sort = controlled ? server.sort : localSort;
+  const setSort = controlled ? server.onSortChange : setLocalSort;
+  const pageSize = controlled ? server.pageSize : localPageSize;
+  const setPageSize = controlled ? server.onPageSizeChange : setLocalPageSize;
+  const page = controlled ? server.page : localPage;
+  const setPage = controlled ? server.onPageChange : setLocalPage;
 
   const filtered = useMemo(() => {
+    if (controlled) return data;
     const q = query.trim().toLowerCase();
     if (!q) return data;
     const searchCols = columns.filter((col) => col.searchable !== false);
     return data.filter((row) =>
       searchCols.some((col) => searchText(row, col).toLowerCase().includes(q))
     );
-  }, [data, columns, query]);
+  }, [controlled, data, columns, query]);
 
   const sorted = useMemo(() => {
-    if (!sort.key) return filtered;
+    if (controlled || !sort.key) return filtered;
     const col = columns.find((c) => c.key === sort.key);
     if (!col) return filtered;
     const factor = sort.dir === "asc" ? 1 : -1;
@@ -159,16 +182,27 @@ function DataTable({
           col.sortValue ? col.sortValue(b) : rawValue(b, col)
         )
     );
-  }, [filtered, columns, sort]);
+  }, [controlled, filtered, columns, sort]);
 
-  const pageCount = Math.max(1, Math.ceil(sorted.length / pageSize));
+  // In server mode these describe the whole result set, not the loaded page.
+  const totalRows = controlled ? server.total : sorted.length;
+  const pageCount = controlled
+    ? Math.max(1, server.pageCount)
+    : Math.max(1, Math.ceil(sorted.length / pageSize));
   const safePage = Math.min(page, pageCount - 1);
+
   const rows = useMemo(
-    () => sorted.slice(safePage * pageSize, safePage * pageSize + pageSize),
-    [sorted, safePage, pageSize]
+    () =>
+      controlled
+        ? sorted
+        : sorted.slice(safePage * pageSize, safePage * pageSize + pageSize),
+    [controlled, sorted, safePage, pageSize]
   );
 
-  useEffect(() => setPage(0), [query, pageSize, data]);
+  useEffect(() => {
+    // The server hook resets its own page; doing it here too would fight it.
+    if (!controlled) setLocalPage(0);
+  }, [controlled, query, pageSize, data]);
 
   /* Wide tables scroll sideways with nothing to say so. These two fades are
      the only hint that a column is hiding past the edge. */
@@ -211,7 +245,7 @@ function DataTable({
   };
 
   const colCount = columns.length + (rowActions ? 1 : 0);
-  const showEmpty = !loading && sorted.length === 0;
+  const showEmpty = !loading && totalRows === 0;
 
   const emptyBlock = (
     <EmptyBlock
@@ -269,7 +303,7 @@ function DataTable({
           <div className="flex items-center gap-2.5">
             {toolbar}
             <span className="hidden shrink-0 rounded-full border border-line bg-elevated px-2.5 py-1 text-[12px] font-medium tabular-nums text-muted sm:inline">
-              {sorted.length} {sorted.length === 1 ? "record" : "records"}
+              {totalRows} {totalRows === 1 ? "record" : "records"}
             </span>
           </div>
         </div>
@@ -339,7 +373,10 @@ function DataTable({
                 {rowActions && (
                   <th
                     scope="col"
-                    className={cn(headCell, "w-px whitespace-nowrap text-right")}
+                    className={cn(
+                      headCell,
+                      "w-px whitespace-nowrap text-right"
+                    )}
                   >
                     Actions
                   </th>
@@ -492,13 +529,13 @@ function DataTable({
               ))}
             </select>
             <span className="tabular-nums">
-              {sorted.length === 0
+              {totalRows === 0
                 ? "0"
                 : `${safePage * pageSize + 1}–${Math.min(
                     (safePage + 1) * pageSize,
-                    sorted.length
+                    totalRows
                   )}`}{" "}
-              of {sorted.length}
+              of {totalRows}
             </span>
           </div>
 

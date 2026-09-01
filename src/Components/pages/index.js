@@ -1,6 +1,6 @@
 import React, { Suspense, lazy } from "react";
 import { Route, Routes, Navigate, Outlet } from "react-router-dom";
-import { getItem } from "../../config/cookieStorage";
+import { useAuth } from "../../context/AuthContext";
 import { BlockLoader } from "../ui/Spinner";
 import AppShell from "../layout/AppShell";
 import Home from "./Dashboard/Home";
@@ -19,16 +19,25 @@ const BillTable = lazy(() => import("./Bill/BillTable"));
 
 /** Login and sign-up: bounce signed-in visitors back to the dashboard. */
 function PublicOnly() {
-  return getItem("token") ? <Navigate to="/" replace /> : <Outlet />;
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? <Navigate to="/" replace /> : <Outlet />;
 }
 
-/** Everything else: the cookie is read on every render, so a logout or an
- *  expiry handled by the axios interceptor takes effect on the next paint. */
+/** Everything else. The session lives in context, so a logout or an expiry
+ *  picked up by the axios interceptor takes effect on the next render. */
 function RequireAuth() {
-  return getItem("token") ? <AppShell /> : <Navigate to="/login" replace />;
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? <AppShell /> : <Navigate to="/login" replace />;
 }
 
 function Router() {
+  const { isLoading } = useAuth();
+
+  /* The session cookie is httpOnly, so whether someone is signed in is only
+     known once the server has answered. Rendering routes before that would
+     flash the login page at a signed-in user on every reload. */
+  if (isLoading) return <BlockLoader />;
+
   return (
     <Suspense fallback={<BlockLoader />}>
       <Routes>

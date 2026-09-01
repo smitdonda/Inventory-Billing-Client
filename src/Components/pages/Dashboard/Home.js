@@ -1,12 +1,13 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import moment from "moment";
+import { toast } from "react-toastify";
 
 import PageHeader from "../../ui/PageHeader";
 import StatCard from "../../ui/StatCard";
 import BarChart from "../../ui/BarChart";
 import { Button } from "../../ui/Button";
-import { money, number } from "../../ui/format";
+import { money, number, fromPaise } from "../../ui/format";
 import {
   ReceiptIcon,
   UsersIcon,
@@ -17,91 +18,56 @@ import {
   ChevronRightIcon,
   InboxIcon,
 } from "../../ui/Icons";
-import axiosInstance from "../../../config/AxiosInstance";
+import axiosInstance, { errorMessage } from "../../../config/AxiosInstance";
 
-const LOW_STOCK_AT = 5;
+const EMPTY = {
+  counts: { customer: 0, product: 0, billInformation: 0 },
+  billed: 0,
+  stockValue: 0,
+  lowStockAt: 5,
+  lowStockCount: 0,
+  lowStock: [],
+  chart: [],
+  recentBills: [],
+};
 
 function Home() {
-  const [counts, setCounts] = useState({
-    customer: 0,
-    product: 0,
-    billInformation: 0,
-  });
-  const [products, setProducts] = useState([]);
-  const [bills, setBills] = useState([]);
+  const [summary, setSummary] = useState(EMPTY);
   const [loading, setLoading] = useState(true);
 
+  /*
+   * One request for the whole dashboard.
+   *
+   * It used to make three, two of which downloaded every product and every
+   * bill on the account so the browser could add them up and take the top few.
+   * The sums and the top-N lists are the database's job now, so what arrives
+   * is a fixed handful of rows however long the account has been running.
+   */
   useEffect(() => {
     let cancelled = false;
 
-    const load = async () => {
-      setLoading(true);
-      const [countRes, productRes, billRes] = await Promise.allSettled([
-        axiosInstance.get("/dashboard/count"),
-        axiosInstance.get("/products"),
-        axiosInstance.get("/billInformation"),
-      ]);
-      if (cancelled) return;
+    (async () => {
+      try {
+        setLoading(true);
+        const res = await axiosInstance.get("/dashboard/summary");
+        if (cancelled) return;
+        if (res.data?.success) setSummary({ ...EMPTY, ...res.data });
+      } catch (error) {
+        if (!cancelled) {
+          toast.error(errorMessage(error, "Could not load the dashboard"));
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
 
-      if (countRes.status === "fulfilled" && countRes.value.data?.success) {
-        const { customer, product, billInformation } = countRes.value.data;
-        setCounts({ customer, product, billInformation });
-      }
-      if (productRes.status === "fulfilled") {
-        setProducts(productRes.value.data?.products || []);
-      }
-      if (billRes.status === "fulfilled") {
-        setBills(billRes.value.data?.billinfo || []);
-      }
-      setLoading(false);
-    };
-
-    load();
     return () => {
       cancelled = true;
     };
   }, []);
 
-  const stockValue = useMemo(
-    () =>
-      products.reduce(
-        (sum, p) =>
-          sum +
-          (Number(p.unitprice) || 0) * (Number(p.availableproductqty) || 0),
-        0
-      ),
-    [products]
-  );
-
-  const billed = useMemo(
-    () =>
-      bills.reduce((sum, b) => sum + (Number(b.totalproductsprice) || 0), 0),
-    [bills]
-  );
-
-  const chartData = useMemo(
-    () =>
-      products.map((p) => ({
-        label: p.productname,
-        value: Number(p.availableproductqty) || 0,
-      })),
-    [products]
-  );
-
-  const lowStock = useMemo(
-    () =>
-      products
-        .filter((p) => (Number(p.availableproductqty) || 0) <= LOW_STOCK_AT)
-        .sort(
-          (a, b) =>
-            (Number(a.availableproductqty) || 0) -
-            (Number(b.availableproductqty) || 0)
-        )
-        .slice(0, 6),
-    [products]
-  );
-
-  const recentBills = useMemo(() => bills.slice(0, 5), [bills]);
+  const { counts, billed, stockValue, lowStock, lowStockCount, recentBills } =
+    summary;
 
   return (
     <>
@@ -137,9 +103,7 @@ function Home() {
           label="Products"
           value={counts.product}
           caption={
-            lowStock.length
-              ? `${lowStock.length} low on stock`
-              : "All stocked up"
+            lowStockCount ? `${lowStockCount} low on stock` : "All stocked up"
           }
           icon={PackageIcon}
           to="/productsdetails"
@@ -147,7 +111,8 @@ function Home() {
         />
         <StatCard
           label="Stock value"
-          value={stockValue}
+          /* StatCard abbreviates a plain rupee number; the API speaks paise. */
+          value={fromPaise(stockValue)}
           format="money"
           caption="Unit price × quantity on hand"
           icon={WalletIcon}
@@ -164,7 +129,7 @@ function Home() {
                 Stock on hand
               </h2>
               <p className="mt-0.5 text-[13px] text-muted">
-                Units available per product, highest first.
+                Your best-stocked products, highest first.
               </p>
             </div>
             <Link
@@ -189,7 +154,7 @@ function Home() {
               ))}
             </div>
           ) : (
-            <BarChart data={chartData} valueLabel="units in stock" />
+            <BarChart data={summary.chart} valueLabel="units in stock" />
           )}
         </section>
 
@@ -211,36 +176,44 @@ function Home() {
             <div className="flex flex-col items-center gap-2 py-10 text-center">
               <InboxIcon size={20} className="text-faint" />
               <p className="text-sm text-muted">
-                Nothing under {LOW_STOCK_AT} units.
+                Nothing under {summary.lowStockAt} units.
               </p>
             </div>
           ) : (
-            <ul className="divide-y divide-line">
-              {lowStock.map((p) => (
-                <li
-                  key={p._id}
-                  className="flex items-center justify-between gap-3 py-2.5"
-                >
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-fg">
-                      {p.productname}
-                    </p>
-                    <p className="text-[12px] text-faint">
-                      {money(p.unitprice)} per unit
-                    </p>
-                  </div>
-                  <span
-                    className={`shrink-0 rounded-md px-2 py-1 font-mono text-[12px] tabular-nums ${
-                      Number(p.availableproductqty) === 0
-                        ? "bg-danger/10 text-danger"
-                        : "bg-warning/10 text-warning"
-                    }`}
+            <>
+              <ul className="divide-y divide-line">
+                {lowStock.map((p) => (
+                  <li
+                    key={p._id}
+                    className="flex items-center justify-between gap-3 py-2.5"
                   >
-                    {number(p.availableproductqty)} left
-                  </span>
-                </li>
-              ))}
-            </ul>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-fg">
+                        {p.productname}
+                      </p>
+                      <p className="text-[12px] text-faint">
+                        {money(p.unitprice)} per unit
+                      </p>
+                    </div>
+                    <span
+                      className={`shrink-0 rounded-md px-2 py-1 font-mono text-[12px] tabular-nums ${
+                        Number(p.availableproductqty) === 0
+                          ? "bg-danger/10 text-danger"
+                          : "bg-warning/10 text-warning"
+                      }`}
+                    >
+                      {number(p.availableproductqty)} left
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              {lowStockCount > lowStock.length && (
+                <p className="mt-3 text-[12px] text-faint">
+                  {lowStockCount - lowStock.length} more below{" "}
+                  {summary.lowStockAt} units.
+                </p>
+              )}
+            </>
           )}
         </section>
       </div>
@@ -296,8 +269,8 @@ function Home() {
                     </span>
                     <span className="block text-[12px] text-faint">
                       {moment(bill.createdAt).format("DD MMM YYYY")} ·{" "}
-                      {bill.products?.length || 0} item
-                      {bill.products?.length === 1 ? "" : "s"}
+                      {bill.productCount || 0} item
+                      {bill.productCount === 1 ? "" : "s"}
                     </span>
                   </span>
                   <span className="shrink-0 font-mono text-sm tabular-nums text-fg">

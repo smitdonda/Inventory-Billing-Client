@@ -8,7 +8,7 @@ import {
 } from "react-router-dom";
 import cn from "../ui/cn";
 import { IconButton } from "../ui/Button";
-import { removeItem } from "../../config/cookieStorage";
+import { useAuth } from "../../context/AuthContext";
 import {
   HomeIcon,
   UsersIcon,
@@ -203,6 +203,7 @@ function AppShell() {
   const [collapsed, setCollapsed] = useState(readCollapsed);
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
 
@@ -225,8 +226,11 @@ function AppShell() {
     return () => document.removeEventListener("keydown", onEsc);
   }, [drawerOpen]);
 
-  const logOut = () => {
-    removeItem("token");
+  /* Only the server can clear an httpOnly cookie, so signing out is a
+     request. The redirect happens either way — a failed call still ends the
+     session as far as this app is concerned. */
+  const logOut = async () => {
+    await logout();
     navigate("/login", { replace: true });
   };
 
@@ -276,7 +280,9 @@ function AppShell() {
             <LogOutIcon size={18} className={iconMotion(collapsed)} />
             <span
               style={{
-                transitionDelay: collapsed ? "0ms" : `${50 + ORDER.size * 26}ms`,
+                transitionDelay: collapsed
+                  ? "0ms"
+                  : `${50 + ORDER.size * 26}ms`,
               }}
               className={labelMotion(collapsed)}
             >

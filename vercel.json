@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://inventory-billing-server-1.vercel.app/:path*"
+    }
+  ]
+}

@@ -7,7 +7,7 @@ import Modal from "../../ui/Modal";
 import { Button } from "../../ui/Button";
 import { FormikField } from "../../ui/Field";
 import { PackageIcon } from "../../ui/Icons";
-import { money } from "../../ui/format";
+import { money, toPaise, rupeeInput } from "../../ui/format";
 import axiosInstance, { errorMessage } from "../../../config/AxiosInstance";
 
 const schema = yup.object({
@@ -34,7 +34,9 @@ function ProductForm({ id, open, handleClose, editData, getProductsData }) {
       const payload = {
         productname: values.productname.trim(),
         availableproductqty: Number(values.availableproductqty),
-        unitprice: Number(values.unitprice),
+        // The field is in rupees because that is what people type; the API
+        // stores whole paise.
+        unitprice: toPaise(values.unitprice),
       };
       const res = id
         ? await axiosInstance.put(`/products/${id}`, payload)
@@ -62,7 +64,7 @@ function ProductForm({ id, open, handleClose, editData, getProductsData }) {
         editData?.availableproductqty != null
           ? String(editData.availableproductqty)
           : "",
-      unitprice: editData?.unitprice != null ? String(editData.unitprice) : "",
+      unitprice: rupeeInput(editData?.unitprice),
     },
     validationSchema: schema,
     onSubmit: handleSubmit,
@@ -75,7 +77,7 @@ function ProductForm({ id, open, handleClose, editData, getProductsData }) {
 
   const stockValue =
     Number(formik.values.availableproductqty || 0) *
-    Number(formik.values.unitprice || 0);
+    toPaise(formik.values.unitprice);
 
   return (
     <Modal
