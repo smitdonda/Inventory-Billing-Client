@@ -2,18 +2,26 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <!-- SVG first for browsers that take it; the .ico carries 16/32/48 for
+         the rest and for Windows shortcuts. -->
+    <link rel="icon" type="image/svg+xml" href="%PUBLIC_URL%/favicon.svg" />
+    <link
+      rel="icon"
+      type="image/x-icon"
+      sizes="16x16 32x32 48x48"
+      href="%PUBLIC_URL%/favicon.ico"
+    />
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1, viewport-fit=cover"
     />
     <meta name="color-scheme" content="light" />
-    <meta name="theme-color" content="#fafafa" />
+    <meta name="theme-color" content="#f4f6f8" />
     <meta
       name="description"
       content="Bill Book — inventory and GST billing: customers, stock, invoices and PDF exports."
     />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="%PUBLIC_URL%/apple-touch-icon.png" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -28,7 +36,7 @@
     <style>
       /* Paint the page background before the bundle loads. */
       html {
-        background: #fafafa;
+        background: #f4f6f8;
         color-scheme: light;
       }
     </style>

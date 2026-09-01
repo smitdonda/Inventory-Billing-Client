@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Bill Book">
+  <rect width="64" height="64" rx="14" fill="#2d5270"/>
+  <g transform="translate(6.2 6.21) scale(2.15)">
+    <path d="M6 2.6h12v18.8l-2.4-1.8-2.4 1.8-2.4-1.8-2.4 1.8L6 19.6Z" fill="#ffffff"/>
+    <rect x="8.6" y="6.4" width="6.8" height="1.7" rx=".85" fill="#2d5270"/>
+    <rect x="8.6" y="10.1" width="6.8" height="1.7" rx=".85" fill="#2d5270"/>
+    <rect x="8.6" y="13.8" width="4.4" height="1.7" rx=".85" fill="#2d5270"/>
+  </g>
+</svg>
