@@ -48,7 +48,6 @@ function ProducstDetails() {
     server,
   } = useServerTable({
     url: "/products",
-    dataKey: "products",
     errorText: "Could not load products",
   });
 

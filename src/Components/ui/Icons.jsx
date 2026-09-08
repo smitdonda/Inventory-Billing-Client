@@ -294,3 +294,36 @@ export const HashIcon = make(
     <path d="M16 3l-2 18" />
   </>
 );
+
+export const ArrowUpIcon = make(
+  "ArrowUpIcon",
+  <>
+    <path d="M12 20V4" />
+    <path d="m6 10 6-6 6 6" />
+  </>
+);
+
+export const ArrowDownIcon = make(
+  "ArrowDownIcon",
+  <>
+    <path d="M12 4v16" />
+    <path d="m6 14 6 6 6-6" />
+  </>
+);
+
+export const LayersIcon = make(
+  "LayersIcon",
+  <>
+    <path d="m12 2.5 9 4.75-9 4.75-9-4.75Z" />
+    <path d="m3 12 9 4.75L21 12" />
+    <path d="m3 16.75 9 4.75 9-4.75" />
+  </>
+);
+
+export const TrendingUpIcon = make(
+  "TrendingUpIcon",
+  <>
+    <path d="m3 16 5.5-5.5 3.5 3.5L21 5" />
+    <path d="M15 5h6v6" />
+  </>
+);

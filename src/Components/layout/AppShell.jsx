@@ -22,23 +22,56 @@ import {
   ReceiptIcon as BrandIcon,
 } from "../ui/Icons";
 
-/* Grouped so the rail reads as three jobs rather than one flat list of five. */
+/* Grouped so the rail reads as three jobs rather than one flat list of five.
+   Each entry carries its own hue: at a glance the rail is scanned by colour
+   rather than read word by word, which is what makes five near-identical grey
+   rows slow to use. */
 const NAV = [
   {
     title: "Overview",
-    items: [{ to: "/", label: "Dashboard", icon: HomeIcon, end: true }],
+    items: [
+      {
+        to: "/",
+        label: "Dashboard",
+        icon: HomeIcon,
+        end: true,
+        tint: "bg-accent/10 text-accent",
+      },
+    ],
   },
   {
     title: "Records",
     items: [
-      { to: "/customersdetails", label: "Customers", icon: UsersIcon },
-      { to: "/productsdetails", label: "Products", icon: PackageIcon },
-      { to: "/billinformation", label: "Bills", icon: ReceiptIcon },
+      {
+        to: "/customersdetails",
+        label: "Customers",
+        icon: UsersIcon,
+        tint: "bg-teal/10 text-teal",
+      },
+      {
+        to: "/productsdetails",
+        label: "Products",
+        icon: PackageIcon,
+        tint: "bg-rose/10 text-rose",
+      },
+      {
+        to: "/billinformation",
+        label: "Bills",
+        icon: ReceiptIcon,
+        tint: "bg-violet/10 text-violet",
+      },
     ],
   },
   {
     title: "Settings",
-    items: [{ to: "/myprofile", label: "Company", icon: UserCircleIcon }],
+    items: [
+      {
+        to: "/myprofile",
+        label: "Company",
+        icon: UserCircleIcon,
+        tint: "bg-warning/10 text-warning",
+      },
+    ],
   },
 ];
 
@@ -100,14 +133,14 @@ const labelMotion = (collapsed) =>
     collapsed && "lg:ml-0 lg:max-w-0 lg:opacity-0"
   );
 
-/* px-3 inside a px-3 nav puts an icon 24px in; the rail is 72px wide, so a
-   3px nudge is exactly its centre. The icons also grow a little on the way,
-   since at that size they carry the whole rail on their own. */
+/* px-3 inside a px-3 nav puts the badge's left edge 24px in; it is 30px wide,
+   so its centre sits at 39px. The rail is 72px, so pulling it 3px left lands
+   it exactly on centre. */
 const iconMotion = (collapsed) =>
   cn(
-    "shrink-0 transition-transform",
+    "h-[30px] w-[30px] shrink-0 transition-transform",
     RAIL,
-    collapsed && "lg:translate-x-[3px] lg:scale-110"
+    collapsed && "lg:-translate-x-[3px]"
   );
 
 function NavItems({ collapsed, onNavigate }) {
@@ -128,7 +161,7 @@ function NavItems({ collapsed, onNavigate }) {
             {group.title}
           </span>
 
-          {group.items.map(({ to, label, icon: Icon, end }) => (
+          {group.items.map(({ to, label, icon: Icon, end, tint }) => (
             <NavLink
               key={to}
               to={to}
@@ -136,22 +169,36 @@ function NavItems({ collapsed, onNavigate }) {
               onClick={onNavigate}
               className={({ isActive }) =>
                 cn(
-                  "group relative flex items-center rounded-xl px-3 py-2.5 text-sm",
+                  "group relative flex items-center rounded-xl px-3 py-2 text-sm",
                   "transition-colors duration-150 focus-ring",
                   isActive
-                    ? "bg-accent font-semibold text-accent-fg shadow-soft"
+                    ? "bg-accent/10 font-semibold text-accent"
                     : "font-medium text-muted hover:bg-elevated hover:text-fg"
                 )
               }
             >
-              <Icon size={18} className={iconMotion(collapsed)} />
-              <span
-                style={stagger(collapsed, to)}
-                className={labelMotion(collapsed)}
-              >
-                {label}
-              </span>
-              {collapsed && <Tip>{label}</Tip>}
+              {({ isActive }) => (
+                <>
+                  <span
+                    className={cn(
+                      "badge",
+                      iconMotion(collapsed),
+                      isActive
+                        ? "bg-accent text-accent-fg shadow-soft"
+                        : tint || "bg-elevated text-muted"
+                    )}
+                  >
+                    <Icon size={16} />
+                  </span>
+                  <span
+                    style={stagger(collapsed, to)}
+                    className={labelMotion(collapsed)}
+                  >
+                    {label}
+                  </span>
+                  {collapsed && <Tip>{label}</Tip>}
+                </>
+              )}
             </NavLink>
           ))}
         </div>
@@ -166,7 +213,7 @@ function Brand({ collapsed }) {
       {/* A 36px mark sitting 24px in; -6px lands it on the rail's centre. */}
       <span
         className={cn(
-          "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent text-accent-fg shadow-soft",
+          "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-accent to-accent2 text-accent-fg shadow-soft",
           "transition-transform",
           RAIL,
           collapsed && "lg:-translate-x-1.5"
@@ -245,7 +292,7 @@ function AppShell() {
   }, [pathname]);
 
   const logOutClasses =
-    "group relative flex items-center rounded-xl px-3 py-2.5 text-sm font-medium text-muted transition-colors hover:bg-danger/10 hover:text-danger focus-ring";
+    "group relative flex items-center rounded-xl px-3 py-2 text-sm font-medium text-muted transition-colors hover:bg-danger/10 hover:text-danger focus-ring";
 
   return (
     <div className="min-h-screen bg-bg">
@@ -277,7 +324,14 @@ function AppShell() {
             onClick={logOut}
             className={cn(logOutClasses, "w-full")}
           >
-            <LogOutIcon size={18} className={iconMotion(collapsed)} />
+            <span
+              className={cn(
+                "badge bg-elevated text-muted transition-colors group-hover:bg-danger/10 group-hover:text-danger",
+                iconMotion(collapsed)
+              )}
+            >
+              <LogOutIcon size={16} />
+            </span>
             <span
               style={{
                 transitionDelay: collapsed
@@ -316,10 +370,12 @@ function AppShell() {
               <button
                 type="button"
                 onClick={logOut}
-                className={cn(logOutClasses, "w-full gap-3")}
+                className={cn(logOutClasses, "w-full")}
               >
-                <LogOutIcon size={18} />
-                Log out
+                <span className="badge h-[30px] w-[30px] bg-elevated text-muted transition-colors group-hover:bg-danger/10 group-hover:text-danger">
+                  <LogOutIcon size={16} />
+                </span>
+                <span className="ml-3">Log out</span>
               </button>
             </div>
           </aside>

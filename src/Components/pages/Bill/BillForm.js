@@ -58,10 +58,10 @@ function BillForm() {
       ]);
       if (cancelled) return;
       if (customerRes.status === "fulfilled") {
-        setCustomers(customerRes.value.data?.customers || []);
+        setCustomers(customerRes.value.data?.data || []);
       }
       if (productRes.status === "fulfilled") {
-        setProducts(productRes.value.data?.products || []);
+        setProducts(productRes.value.data?.data || []);
       }
     })();
     return () => {
@@ -82,11 +82,11 @@ function BillForm() {
     (async () => {
       try {
         setLoading(true);
-        const res = await axiosInstance.get(`/billInformation/${id}`);
+        const res = await axiosInstance.get(`/bills/${id}`);
         if (cancelled) return;
         if (res.data?.success) {
-          const loaded = res.data.bill?.products || [];
-          setBill(res.data.bill || {});
+          const loaded = res.data.data?.products || [];
+          setBill(res.data.data || {});
           setLines(loaded);
           setOriginalLines(loaded);
         }
@@ -171,8 +171,8 @@ function BillForm() {
           totalproductsprice: totals.total,
         };
         const res = isNew
-          ? await axiosInstance.post("/billInformation", payload)
-          : await axiosInstance.put(`/billInformation/${id}`, payload);
+          ? await axiosInstance.post("/bills", payload)
+          : await axiosInstance.put(`/bills/${id}`, payload);
 
         if (res.data?.success) {
           toast.success(res.data.message || "Bill saved");

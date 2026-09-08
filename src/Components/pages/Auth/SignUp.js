@@ -20,7 +20,7 @@ function SignUp() {
   const handleSubmit = async ({ username, email, password }) => {
     try {
       setLoading(true);
-      const res = await axiosInstance.post("/signup", {
+      const res = await axiosInstance.post("/auth/signup", {
         username,
         email,
         password,

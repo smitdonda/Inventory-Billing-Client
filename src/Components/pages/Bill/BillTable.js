@@ -49,18 +49,18 @@ function BillTable() {
     (async () => {
       setLoading(true);
       const [billRes, profileRes] = await Promise.allSettled([
-        axiosInstance.get(`/billInformation/${id}`),
-        axiosInstance.get("/my-profile"),
+        axiosInstance.get(`/bills/${id}`),
+        axiosInstance.get("/profile"),
       ]);
       if (cancelled) return;
 
       if (billRes.status === "fulfilled" && billRes.value.data?.success) {
-        setInvoice(billRes.value.data.bill || {});
+        setInvoice(billRes.value.data.data || {});
       } else if (billRes.status === "rejected") {
         toast.error(errorMessage(billRes.reason, "Could not load the invoice"));
       }
       if (profileRes.status === "fulfilled") {
-        setProfile(profileRes.value.data?.profile?.[0] || {});
+        setProfile(profileRes.value.data?.data || {});
       }
       setLoading(false);
     })();

@@ -40,9 +40,9 @@ function MyProfile() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await axiosInstance.get("/my-profile");
+        const res = await axiosInstance.get("/profile");
         if (cancelled) return;
-        setProfile(res.data?.profile?.[0] || null);
+        setProfile(res.data?.data || null);
       } catch (error) {
         if (!cancelled) {
           toast.error(
@@ -58,7 +58,7 @@ function MyProfile() {
     };
   }, []);
 
-  const editTarget = `/profileform/${profile?._id || "new"}`;
+  const editTarget = "/profileform";
 
   return (
     <>
@@ -96,7 +96,7 @@ function MyProfile() {
               with the right letterhead.
             </p>
           </div>
-          <Button to="/profileform/new" size="sm" icon={PlusIcon}>
+          <Button to="/profileform" size="sm" icon={PlusIcon}>
             Add details
           </Button>
         </div>

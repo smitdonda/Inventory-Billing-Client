@@ -5,8 +5,12 @@ import axios from "axios";
  * that to the API server (see vercel.json for production, setupProxy.js for
  * the dev server). Same origin is what keeps the session cookie first-party,
  * and therefore what keeps it working in browsers that block third-party
- * cookies. Setting REACT_APP_BACKEND_URL points straight at another domain
- * instead, which needs COOKIE_SAMESITE=none on the API.
+ * cookies.
+ *
+ * The API serves that /api prefix itself, so the path is the same on both
+ * sides of the rewrite. Setting REACT_APP_BACKEND_URL points straight at
+ * another domain instead and must include the prefix —
+ * https://api.example.com/api — and needs COOKIE_SAMESITE=none on the API.
  */
 const axiosInstance = axios.create({
   baseURL: process.env.REACT_APP_BACKEND_URL || "/api",
@@ -33,9 +37,9 @@ axiosInstance.interceptors.response.use(
     const status = error?.response?.status;
     const url = error?.config?.url || "";
 
-    // /me and /login answer 401 to say "not signed in", which is an answer,
-    // not an expiry. Treating those as a session drop would loop.
-    const isAuthProbe = url.endsWith("/me") || url.endsWith("/login");
+    // /auth/me and /auth/login answer 401 to say "not signed in", which is an
+    // answer, not an expiry. Treating those as a session drop would loop.
+    const isAuthProbe = url.endsWith("/auth/me") || url.endsWith("/auth/login");
 
     if (status === 401 && !isAuthProbe && onUnauthorized) {
       onUnauthorized();

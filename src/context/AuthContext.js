@@ -44,10 +44,10 @@ export function AuthProvider({ children }) {
 
     (async () => {
       try {
-        const res = await axiosInstance.get("/me");
+        const res = await axiosInstance.get("/auth/me");
         if (cancelled) return;
-        if (res.data?.success && res.data.user) {
-          setUser(res.data.user);
+        if (res.data?.success && res.data.data) {
+          setUser(res.data.data);
           setStatus(AUTHENTICATED);
           return;
         }
@@ -64,19 +64,19 @@ export function AuthProvider({ children }) {
   }, [clear]);
 
   const login = useCallback(async (credentials) => {
-    const res = await axiosInstance.post("/login", credentials);
-    if (!res.data?.success || !res.data.user) {
+    const res = await axiosInstance.post("/auth/login", credentials);
+    if (!res.data?.success || !res.data.data) {
       throw new Error(res.data?.message || "Could not sign you in");
     }
-    setUser(res.data.user);
+    setUser(res.data.data);
     setStatus(AUTHENTICATED);
-    return res.data.user;
+    return res.data.data;
   }, []);
 
   const logout = useCallback(async () => {
     try {
       // Only the server can delete an httpOnly cookie.
-      await axiosInstance.post("/logout");
+      await axiosInstance.post("/auth/logout");
     } catch {
       // Already expired, or the network is down. Either way this session is
       // over as far as the app is concerned.

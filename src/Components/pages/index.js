@@ -54,7 +54,14 @@ function Router() {
           <Route path="/billinformation" element={<BillInformation />} />
           <Route path="/billtable/:id" element={<BillTable />} />
           <Route path="/myprofile" element={<MyProfile />} />
-          <Route path="/profileform/:id" element={<ProfileForm />} />
+          <Route path="/profileform" element={<ProfileForm />} />
+          {/* The company profile is a singleton and its form lost the id in
+              the path. Old links — /profileform/new, /profileform/<id> —
+              still land on it rather than bouncing to the dashboard. */}
+          <Route
+            path="/profileform/*"
+            element={<Navigate to="/profileform" replace />}
+          />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

@@ -19,7 +19,6 @@ function CustomerDetails() {
     server,
   } = useServerTable({
     url: "/customers",
-    dataKey: "customers",
     errorText: "Could not load customers",
   });
 

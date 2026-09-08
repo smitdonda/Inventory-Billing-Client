@@ -13,12 +13,11 @@ const EMPTY_META = { page: 1, limit: 8, total: 0, pageCount: 1 };
  * sorting and paging now happen in the database; this hook is the thin piece
  * that keeps the query string and the table in step.
  *
- * `dataKey` is the property the endpoint puts its rows under ("products",
- * "customers", "billinfo").
+ * Every list endpoint answers in the same envelope — rows under `data`, paging
+ * under `meta` — so there is nothing per-screen left to configure.
  */
 export default function useServerTable({
   url,
-  dataKey,
   initialPageSize = 8,
   initialSort = null,
   errorText = "Could not load the data",
@@ -65,7 +64,7 @@ export default function useServerTable({
       });
       if (ticket !== latest.current) return;
 
-      setRows(res.data?.[dataKey] || []);
+      setRows(res.data?.data || []);
       setMeta(res.data?.meta || { ...EMPTY_META, limit: pageSize });
     } catch (error) {
       if (ticket !== latest.current) return;
@@ -74,7 +73,7 @@ export default function useServerTable({
     } finally {
       if (ticket === latest.current) setLoading(false);
     }
-  }, [url, dataKey, page, pageSize, search, sort, errorText]);
+  }, [url, page, pageSize, search, sort, errorText]);
 
   useEffect(() => {
     load();

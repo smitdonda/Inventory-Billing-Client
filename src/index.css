@@ -30,6 +30,15 @@
     --success: 39 119 92;
     --warning: 165 118 33;
     --danger: 173 57 57;
+    /* The lighter half of the dashboard header gradient. White on it reads
+       5.87:1, so the greeting and its figures clear AA. */
+    --accent2: 58 106 132;
+    /* Three more hues at the accent's saturation, so the colour-coded tiles
+       and rail icons read as a set with it rather than as stickers on top.
+       All three clear 5.7:1 on white as icon strokes and chip text. */
+    --violet: 92 76 138;
+    --teal: 39 112 112;
+    --rose: 150 70 100;
     color-scheme: light;
   }
 
@@ -104,7 +113,32 @@
   }
 
   .card {
-    @apply bg-surface border border-line rounded-2xl;
+    @apply bg-surface border border-line rounded-2xl shadow-card;
+  }
+
+  /* The dashboard header. Its own gradient rather than a flat accent, because
+     a flat block of the accent at this size reads as an error banner. */
+  .band {
+    @apply relative overflow-hidden bg-gradient-to-br from-accent to-accent2 text-accent-fg;
+  }
+  /* Two soft discs bleeding off the right edge — enough to stop the gradient
+     reading as a plain rectangle, faint enough not to fight the text. */
+  .band::after,
+  .band::before {
+    content: "";
+    @apply pointer-events-none absolute rounded-full bg-white/10;
+  }
+  .band::after {
+    @apply -right-16 -top-28 h-[22rem] w-[22rem];
+  }
+  .band::before {
+    @apply bottom-[-9rem] right-28 h-64 w-64 bg-white/[0.07];
+  }
+
+  /* Square icon badge. The hue is named by the caller — `bg-violet/10
+     text-violet` — because currentColor cannot take an alpha modifier. */
+  .badge {
+    @apply flex shrink-0 items-center justify-center rounded-xl;
   }
 
   .skeleton {

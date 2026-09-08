@@ -17,8 +17,9 @@ module.exports = function setupProxy(app) {
     createProxyMiddleware({
       target: process.env.DEV_API_URL || "http://localhost:5000",
       changeOrigin: false,
-      // The API serves /products, not /api/products.
-      pathRewrite: { "^/api": "" },
+      // No path rewrite: the API serves /api/products itself, so the path the
+      // browser asks for is the path the server answers on, in dev and in
+      // production alike.
       logLevel: "warn",
     })
   );

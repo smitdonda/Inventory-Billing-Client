@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as yup from "yup";
 import { toast } from "react-toastify";
@@ -35,22 +35,24 @@ const schema = yup.object({
     .required("Phone number is required"),
 });
 
+/*
+ * There is one company profile per account, so this form has no id: it always
+ * loads whatever the account has (nothing, the first time) and always saves to
+ * the same place. The "add" and "edit" cases differ in wording only.
+ */
 function ProfileForm() {
   const navigate = useNavigate();
-  const { id } = useParams();
-  const isNew = id === "new";
 
   const [profile, setProfile] = useState({});
-  const [loading, setLoading] = useState(!isNew);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (isNew) return undefined;
     let cancelled = false;
     (async () => {
       try {
-        const res = await axiosInstance.get("/my-profile");
-        if (!cancelled) setProfile(res.data?.profile?.[0] || {});
+        const res = await axiosInstance.get("/profile");
+        if (!cancelled) setProfile(res.data?.data || {});
       } catch (error) {
         if (!cancelled) {
           toast.error(
@@ -64,7 +66,9 @@ function ProfileForm() {
     return () => {
       cancelled = true;
     };
-  }, [id, isNew]);
+  }, []);
+
+  const isNew = !profile?._id;
 
   const formik = useFormik({
     enableReinitialize: true,
@@ -81,9 +85,9 @@ function ProfileForm() {
     onSubmit: async (values) => {
       try {
         setSaving(true);
-        const res = isNew
-          ? await axiosInstance.post("/my-profile", values)
-          : await axiosInstance.put(`/my-profile/${id}`, values);
+        // One profile per account, so saving it is the same request whether it
+        // is the first time or the tenth.
+        const res = await axiosInstance.put("/profile", values);
 
         if (res?.data?.success) {
           toast.success(res.data.message || "Company details saved");
@@ -102,7 +106,16 @@ function ProfileForm() {
   return (
     <>
       <PageHeader
-        title={isNew ? "Add company details" : "Edit company details"}
+        // Whether this is the first save is not known until the profile has
+        // loaded, so the heading stays neutral rather than saying "Add" and
+        // then correcting itself a moment later.
+        title={
+          loading
+            ? "Company details"
+            : isNew
+              ? "Add company details"
+              : "Edit company details"
+        }
         description="Shown as the letterhead on every invoice."
         actions={
           <Button

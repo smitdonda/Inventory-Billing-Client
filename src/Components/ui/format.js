@@ -43,3 +43,20 @@ export const number = (value) => {
   const n = Number(value);
   return Number.isFinite(n) ? n.toLocaleString("en-IN") : "—";
 };
+
+/**
+ * Paise as a short rupee figure in Indian notation — ₹1.3Cr, ₹4.2L, ₹8,400.
+ * For headline figures and chart labels, where the exact paise are noise.
+ * Anything that has to reconcile against a bill uses `money` instead.
+ */
+export const shortMoney = (paise) => {
+  const n = Number(paise);
+  if (!Number.isFinite(n)) return "—";
+  const rupees = n / 100;
+  const abs = Math.abs(rupees);
+  const sign = rupees < 0 ? "-" : "";
+  const trim = (value) => String(value).replace(/\.0$/, "");
+  if (abs >= 1e7) return `${sign}₹${trim((abs / 1e7).toFixed(1))}Cr`;
+  if (abs >= 1e5) return `${sign}₹${trim((abs / 1e5).toFixed(1))}L`;
+  return `${sign}₹${Math.round(abs).toLocaleString("en-IN")}`;
+};

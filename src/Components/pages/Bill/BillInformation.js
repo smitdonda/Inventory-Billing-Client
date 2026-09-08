@@ -20,8 +20,7 @@ function BillInformation() {
     reload,
     server,
   } = useServerTable({
-    url: "/billInformation",
-    dataKey: "billinfo",
+    url: "/bills",
     initialSort: { key: "createdAt", dir: "desc" },
     errorText: "Could not load bills",
   });
@@ -33,9 +32,7 @@ function BillInformation() {
     if (!pendingDelete) return;
     try {
       setDeleting(true);
-      const res = await axiosInstance.delete(
-        `/billInformation/${pendingDelete._id}`
-      );
+      const res = await axiosInstance.delete(`/bills/${pendingDelete._id}`);
       if (res.data?.success) {
         toast.success("Bill deleted");
         setPendingDelete(null);
