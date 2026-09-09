@@ -1,7 +1,6 @@
 import React from "react";
 import { BrowserRouter } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 
 import ErrorBoundary from "./Components/ui/ErrorBoundary";
 import { AuthProvider } from "./context/AuthContext";
@@ -26,7 +25,6 @@ function App() {
           draggable
           pauseOnHover
           theme="light"
-          icon
         />
       </BrowserRouter>
     </ErrorBoundary>

@@ -166,7 +166,10 @@
 /* ------------------------------------------------------------------ */
 /*  react-toastify — repainted with the token palette.                  */
 /* ------------------------------------------------------------------ */
-.Toastify__toast {
+/*  The library's own theme rules carry the same specificity as these        */
+/*  selectors, so each one is doubled to win the tie outright — the cascade  */
+/*  here does not depend on which stylesheet the bundler emits first.        */
+.Toastify__toast.Toastify__toast {
   background: rgb(var(--surface));
   color: rgb(var(--fg));
   border: 1px solid rgb(var(--line));
@@ -175,23 +178,23 @@
   font-family: inherit;
   font-size: 0.875rem;
 }
-.Toastify__toast-body {
+.Toastify__toast-body.Toastify__toast-body {
   font-family: inherit;
 }
-.Toastify__close-button {
+.Toastify__close-button.Toastify__close-button {
   color: rgb(var(--muted));
   opacity: 1;
 }
-.Toastify__progress-bar--success {
+.Toastify__progress-bar--success.Toastify__progress-bar--success {
   background: rgb(var(--success));
 }
-.Toastify__progress-bar--error {
+.Toastify__progress-bar--error.Toastify__progress-bar--error {
   background: rgb(var(--danger));
 }
-.Toastify__progress-bar--warning {
+.Toastify__progress-bar--warning.Toastify__progress-bar--warning {
   background: rgb(var(--warning));
 }
-.Toastify__progress-bar--info {
+.Toastify__progress-bar--info.Toastify__progress-bar--info {
   background: rgb(var(--fg));
 }
 .Toastify__toast-icon svg {
