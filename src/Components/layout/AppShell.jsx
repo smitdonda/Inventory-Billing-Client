@@ -91,7 +91,11 @@ function Tip({ children }) {
   return (
     <span
       role="tooltip"
-      className="pointer-events-none absolute left-full top-1/2 z-50 ml-3 hidden -translate-y-1/2 whitespace-nowrap rounded-lg bg-fg px-2.5 py-1.5 text-[12px] font-medium text-bg opacity-0 shadow-pop transition-opacity duration-150 group-hover:opacity-100 lg:block"
+      className={cn(
+        "pointer-events-none absolute left-full top-1/2 z-50 ml-3 hidden whitespace-nowrap rounded-lg bg-fg px-2.5 py-1.5 text-[12px] font-medium text-bg opacity-0 shadow-pop lg:block",
+        "-translate-x-1 -translate-y-1/2 transition-[opacity,transform] duration-150 ease-out",
+        "group-hover:translate-x-0 group-hover:opacity-100 motion-reduce:transition-none"
+      )}
     >
       {children}
     </span>
@@ -106,6 +110,8 @@ function Tip({ children }) {
    distance across the whole duration, which is what makes it read as motion. */
 const CURVE = "ease-[cubic-bezier(0.4,0,0.2,1)] motion-reduce:transition-none";
 const RAIL = `duration-[380ms] ${CURVE}`;
+/* Matches the drawer-out animation in tailwind.config.js. */
+const DRAWER_EXIT_MS = 200;
 const ITEM = `duration-[260ms] ${CURVE}`;
 
 /* Every label and caption in the rail, top to bottom. Opening deals them out
@@ -124,6 +130,15 @@ const ORDER = (() => {
 const stagger = (collapsed, key) => ({
   transitionDelay: collapsed ? "0ms" : `${50 + (ORDER.get(key) ?? 0) * 26}ms`,
 });
+
+/* The entrance runs once, when the shell mounts, on the same order the labels
+   use — so the rail assembles top to bottom instead of appearing all at once.
+   It is animation, not transition, so a later collapse never replays it. */
+const entrance = (key) => ({
+  animationDelay: `${(ORDER.get(key) ?? 0) * 45}ms`,
+});
+
+const ENTER = "animate-nav-in motion-reduce:animate-none";
 
 const labelMotion = (collapsed) =>
   cn(
@@ -149,9 +164,13 @@ function NavItems({ collapsed, onNavigate }) {
       {NAV.map((group) => (
         <div key={group.title} className="flex flex-col gap-1">
           <span
-            style={stagger(collapsed, group.title)}
+            style={{
+              ...stagger(collapsed, group.title),
+              ...entrance(group.title),
+            }}
             className={cn(
               "block overflow-hidden whitespace-nowrap px-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-faint",
+              ENTER,
               "transition-[max-height,opacity,margin]",
               ITEM,
               "mb-1 max-h-4 opacity-100",
@@ -167,10 +186,12 @@ function NavItems({ collapsed, onNavigate }) {
               to={to}
               end={end}
               onClick={onNavigate}
+              style={entrance(to)}
               className={({ isActive }) =>
                 cn(
                   "group relative flex items-center rounded-xl px-3 py-2 text-sm",
                   "transition-colors duration-150 focus-ring",
+                  ENTER,
                   isActive
                     ? "bg-accent/10 font-semibold text-accent"
                     : "font-medium text-muted hover:bg-elevated hover:text-fg"
@@ -179,10 +200,20 @@ function NavItems({ collapsed, onNavigate }) {
             >
               {({ isActive }) => (
                 <>
+                  {/* The active row is already tinted; this is the edge that
+                      says which one it is from the collapsed rail, where the
+                      label is gone. It grows in on the row it lands on. */}
+                  {isActive && (
+                    <span
+                      aria-hidden="true"
+                      className="absolute left-0 top-1/2 h-5 w-1 origin-center -translate-y-1/2 rounded-r-full bg-accent animate-mark-in motion-reduce:animate-none"
+                    />
+                  )}
                   <span
                     className={cn(
                       "badge",
                       iconMotion(collapsed),
+                      "group-hover:-translate-y-px group-active:translate-y-0",
                       isActive
                         ? "bg-accent text-accent-fg shadow-soft"
                         : tint || "bg-elevated text-muted"
@@ -247,16 +278,38 @@ function Brand({ collapsed }) {
  */
 function AppShell() {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  /* Unmounting on click would cut the exit animation off at frame one, so the
+     drawer is asked to close, plays its slide, and only then goes away. */
+  const [drawerClosing, setDrawerClosing] = useState(false);
   const [collapsed, setCollapsed] = useState(readCollapsed);
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { logout } = useAuth();
 
-  const closeDrawer = useCallback(() => setDrawerOpen(false), []);
+  const closeDrawer = useCallback(() => setDrawerClosing(true), []);
+
+  const openDrawer = useCallback(() => {
+    setDrawerClosing(false);
+    setDrawerOpen(true);
+  }, []);
+
+  /* Kept in step with DRAWER_EXIT_MS below and the drawer-out keyframe. */
+  useEffect(() => {
+    if (!drawerClosing) return undefined;
+    if (!drawerOpen) {
+      setDrawerClosing(false);
+      return undefined;
+    }
+    const timer = setTimeout(() => {
+      setDrawerOpen(false);
+      setDrawerClosing(false);
+    }, DRAWER_EXIT_MS);
+    return () => clearTimeout(timer);
+  }, [drawerClosing, drawerOpen]);
 
   useEffect(() => {
-    setDrawerOpen(false);
-  }, [pathname]);
+    closeDrawer();
+  }, [pathname, closeDrawer]);
 
   useEffect(() => {
     try {
@@ -268,10 +321,10 @@ function AppShell() {
 
   useEffect(() => {
     if (!drawerOpen) return undefined;
-    const onEsc = (event) => event.key === "Escape" && setDrawerOpen(false);
+    const onEsc = (event) => event.key === "Escape" && closeDrawer();
     document.addEventListener("keydown", onEsc);
     return () => document.removeEventListener("keydown", onEsc);
-  }, [drawerOpen]);
+  }, [drawerOpen, closeDrawer]);
 
   /* Only the server can clear an httpOnly cookie, so signing out is a
      request. The redirect happens either way — a failed call still ends the
@@ -351,10 +404,19 @@ function AppShell() {
       {drawerOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <div
-            className="absolute inset-0 bg-zinc-950/50 backdrop-blur-[2px] animate-fade-in"
+            className={cn(
+              "absolute inset-0 bg-zinc-950/50 backdrop-blur-[2px]",
+              drawerClosing ? "animate-fade-out" : "animate-fade-in"
+            )}
             onClick={closeDrawer}
           />
-          <aside className="absolute inset-y-0 left-0 flex w-[17rem] max-w-[85vw] flex-col border-r border-line bg-surface shadow-pop">
+          <aside
+            className={cn(
+              "absolute inset-y-0 left-0 flex w-[17rem] max-w-[85vw] flex-col border-r border-line bg-surface shadow-pop",
+              drawerClosing ? "animate-drawer-out" : "animate-drawer-in",
+              "motion-reduce:animate-none"
+            )}
+          >
             <div className="flex h-16 shrink-0 items-center justify-between border-b border-line/70 px-3">
               <Brand collapsed={false} />
               <IconButton
@@ -394,7 +456,7 @@ function AppShell() {
           <IconButton
             icon={MenuIcon}
             label="Open menu"
-            onClick={() => setDrawerOpen(true)}
+            onClick={openDrawer}
             className="lg:hidden"
           />
           {/* Same corner as the phone menu button above: on desktop the rail is

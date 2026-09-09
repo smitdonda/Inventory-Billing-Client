@@ -76,10 +76,36 @@ module.exports = {
         shimmer: {
           "100%": { transform: "translateX(100%)" },
         },
+        "fade-out": { from: { opacity: 1 }, to: { opacity: 0 } },
+        /* The phone drawer: it comes from the edge it is anchored to, so the
+           gesture that opened it and the motion that answers agree. */
+        "drawer-in": {
+          from: { transform: "translateX(-100%)" },
+          to: { transform: "translateX(0)" },
+        },
+        "drawer-out": {
+          from: { transform: "translateX(0)" },
+          to: { transform: "translateX(-100%)" },
+        },
+        /* Rail rows deal themselves in from the left, one after the next. */
+        "nav-in": {
+          from: { opacity: 0, transform: "translateX(-8px)" },
+          to: { opacity: 1, transform: "translateX(0)" },
+        },
+        /* The active row's marker grows out of its own middle. */
+        "mark-in": {
+          from: { opacity: 0, transform: "translateY(-50%) scaleY(0.2)" },
+          to: { opacity: 1, transform: "translateY(-50%) scaleY(1)" },
+        },
       },
       animation: {
         "fade-in": "fade-in 0.15s ease-out",
+        "fade-out": "fade-out 0.2s ease-in forwards",
         "scale-in": "scale-in 0.16s cubic-bezier(0.16, 1, 0.3, 1)",
+        "drawer-in": "drawer-in 0.26s cubic-bezier(0.16, 1, 0.3, 1)",
+        "drawer-out": "drawer-out 0.2s cubic-bezier(0.4, 0, 1, 1) forwards",
+        "nav-in": "nav-in 0.34s cubic-bezier(0.16, 1, 0.3, 1) both",
+        "mark-in": "mark-in 0.24s cubic-bezier(0.16, 1, 0.3, 1)",
       },
     },
   },
