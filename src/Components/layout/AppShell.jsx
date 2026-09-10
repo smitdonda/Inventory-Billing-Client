@@ -12,7 +12,7 @@ import { useAuth } from "../../context/AuthContext";
 import {
   HomeIcon,
   UsersIcon,
-  PackageIcon,
+  TagIcon,
   ReceiptIcon,
   UserCircleIcon,
   MenuIcon,
@@ -51,7 +51,7 @@ const NAV = [
       {
         to: "/productsdetails",
         label: "Products",
-        icon: PackageIcon,
+        icon: TagIcon,
         tint: "bg-rose/10 text-rose",
       },
       {

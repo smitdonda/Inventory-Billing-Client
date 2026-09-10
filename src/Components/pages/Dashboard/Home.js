@@ -11,7 +11,7 @@ import { useAuth } from "../../../context/AuthContext";
 import {
   ReceiptIcon,
   UsersIcon,
-  PackageIcon,
+  TagIcon,
   UserCircleIcon,
   PlusIcon,
   ArrowUpIcon,
@@ -58,7 +58,7 @@ const QUICK = [
   {
     to: "/productsdetails",
     label: "Products",
-    icon: PackageIcon,
+    icon: TagIcon,
     tint: "bg-rose/10 text-rose",
   },
   {

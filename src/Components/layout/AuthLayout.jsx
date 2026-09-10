@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import {
   CrateIcon,
-  PackageIcon,
+  TagIcon,
   UsersIcon,
   FileTextIcon,
   CheckIcon,
@@ -10,7 +10,7 @@ import {
 
 const HIGHLIGHTS = [
   { icon: UsersIcon, text: "Keep every customer and GST number in one place" },
-  { icon: PackageIcon, text: "Track stock as bills go out" },
+  { icon: TagIcon, text: "Track stock as bills go out" },
   { icon: FileTextIcon, text: "Generate a tax invoice PDF in one click" },
 ];
 

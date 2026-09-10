@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import Modal from "../../ui/Modal";
 import { Button } from "../../ui/Button";
 import { FormikField } from "../../ui/Field";
-import { PackageIcon } from "../../ui/Icons";
+import { TagIcon } from "../../ui/Icons";
 import { money, toPaise, rupeeInput } from "../../ui/format";
 import axiosInstance, { errorMessage } from "../../../config/AxiosInstance";
 
@@ -110,7 +110,7 @@ function ProductForm({ id, open, handleClose, editData, getProductsData }) {
           name="productname"
           label="Product name"
           placeholder="A4 Copier Paper 500 sheets"
-          icon={PackageIcon}
+          icon={TagIcon}
           required
           data-autofocus
         />

@@ -46,12 +46,11 @@ export const UsersIcon = make(
   </>
 );
 
-export const PackageIcon = make(
-  "PackageIcon",
+export const TagIcon = make(
+  "TagIcon",
   <>
-    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-    <path d="m3.3 7 8.7 5 8.7-5" />
-    <path d="M12 22V12" />
+    <path d="M3.6 11.5V4.6a1 1 0 0 1 1-1h6.9a2 2 0 0 1 1.41.58l7.1 7.1a2 2 0 0 1 0 2.83l-6.9 6.9a2 2 0 0 1-2.83 0l-7.1-7.1a2 2 0 0 1-.58-1.41Z" />
+    <circle cx="7.9" cy="7.9" r="1.15" />
   </>
 );
 
@@ -76,7 +75,10 @@ export const CrateIcon = ({ size = 20, className = "", ...rest }) => (
     xmlns="http://www.w3.org/2000/svg"
     width={size}
     height={size}
-    viewBox="0 0 48 48"
+    /* Cropped to the artwork rather than the loader's 48 box, which carried
+       room for the lift animation — inside a badge that padding read as a
+       mark two sizes too small. */
+    viewBox="6.5 2.7 35 35"
     fill="currentColor"
     className={`shrink-0 ${className}`}
     aria-hidden="true"
