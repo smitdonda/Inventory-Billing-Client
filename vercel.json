@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://inventory-billing-server-1.vercel.app/api/:path*"
+      "destination": "https://billbox-api.vercel.app/api/:path*"
     }
   ]
 }
