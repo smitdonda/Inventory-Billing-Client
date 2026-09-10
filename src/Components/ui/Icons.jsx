@@ -65,6 +65,31 @@ export const ReceiptIcon = make(
   </>
 );
 
+/**
+ * The BillBox mark: an isometric carton, its three faces one colour at three
+ * weights. Filled rather than stroked and drawn on a 48 grid, so it is the
+ * one glyph here that does not come from `make` — and it is the same geometry
+ * the loader animates, so the logo and the waiting state are one object.
+ */
+export const CrateIcon = ({ size = 20, className = "", ...rest }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    viewBox="0 0 48 48"
+    fill="currentColor"
+    className={`shrink-0 ${className}`}
+    aria-hidden="true"
+    focusable="false"
+    {...rest}
+  >
+    <polygon points="24,4.2 37.4,11.9 24,19.6 10.6,11.9" />
+    <polygon points="38.2,13.1 38.2,28.4 24.8,36.1 24.8,20.8" opacity="0.72" />
+    <polygon points="9.8,13.1 23.2,20.8 23.2,36.1 9.8,28.4" opacity="0.5" />
+  </svg>
+);
+CrateIcon.displayName = "CrateIcon";
+
 export const UserCircleIcon = make(
   "UserCircleIcon",
   <>

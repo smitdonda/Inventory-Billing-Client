@@ -19,7 +19,7 @@ import {
   XIcon,
   LogOutIcon,
   PanelLeftIcon,
-  ReceiptIcon as BrandIcon,
+  CrateIcon as BrandIcon,
 } from "../ui/Icons";
 
 /* Grouped so the rail reads as three jobs rather than one flat list of five.

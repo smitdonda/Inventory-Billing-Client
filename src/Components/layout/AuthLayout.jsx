@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import {
-  ReceiptIcon,
+  CrateIcon,
   PackageIcon,
   UsersIcon,
   FileTextIcon,
@@ -35,7 +35,7 @@ function AuthLayout({ title, subtitle, children, footer }) {
           className="relative flex items-center gap-2.5 focus-ring rounded-xl"
         >
           <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-accent-fg">
-            <ReceiptIcon size={20} />
+            <CrateIcon size={20} />
           </span>
           <span className="text-lg font-semibold tracking-tight text-fg">
             BillBox
@@ -74,7 +74,7 @@ function AuthLayout({ title, subtitle, children, footer }) {
             className="flex items-center gap-2 rounded-xl focus-ring"
           >
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent text-accent-fg">
-              <ReceiptIcon size={18} />
+              <CrateIcon size={18} />
             </span>
             <span className="font-semibold tracking-tight text-fg">
               BillBox
