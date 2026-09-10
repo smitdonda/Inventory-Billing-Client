@@ -206,11 +206,23 @@ function BlockLoader({
 /**
  * The first paint, before the app knows who is signed in. Holds the whole
  * viewport so the label does not sit against the top edge of a blank page.
+ *
+ * It builds its own stack rather than calling BlockLoader, because the mark
+ * carries this screen alone: at accent on an empty page it has to be the
+ * thing you look at, while the label underneath stays muted.
  */
-function PageLoader({ label = "Loading...", variant = "crate" }) {
+function PageLoader({ label = "Loading...", variant = "crate", size = 56 }) {
+  const render = VARIANTS[variant] || VARIANTS.crate;
   return (
-    <div className="grid min-h-screen place-items-center bg-bg">
-      <BlockLoader label={label} variant={variant} size={38} className="py-0" />
+    <div
+      className="grid min-h-screen place-items-center bg-bg"
+      role="status"
+      aria-live="polite"
+    >
+      <div className="flex flex-col items-center gap-4 text-accent">
+        {render(size)}
+        {label && <span className="text-sm text-muted">{label}</span>}
+      </div>
     </div>
   );
 }
