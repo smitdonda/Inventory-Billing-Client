@@ -32,11 +32,15 @@ import cn from "./cn";
  *
  * The faces are drawn back to front. The hairline gaps between them are the
  * geometry, not strokes, so they hold their weight at 16px.
+ *
+ * At 20px and under the three resting tints collapse into a single grey
+ * speck, so the mark switches to `crate-sm`: higher resting opacities and a
+ * tighter swing, which reads as a solid box first and a moving one second.
  */
 function Crate({ size = 18, className = "" }) {
   return (
     <svg
-      className={cn("crate", className)}
+      className={cn("crate", size <= 20 && "crate-sm", className)}
       width={size}
       height={size}
       viewBox="0 0 48 48"
@@ -206,7 +210,7 @@ function BlockLoader({
 /**
  * The first paint, before the app knows who is signed in. Holds the whole
  * viewport so the label does not sit against the top edge of a blank page.
- *
+  *
  * It builds its own stack rather than calling BlockLoader, because the mark
  * carries this screen alone: at accent on an empty page it has to be the
  * thing you look at, while the label underneath stays muted.

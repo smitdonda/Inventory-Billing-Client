@@ -189,6 +189,51 @@
     animation: crate-light-left 1.35s ease-in-out infinite;
     animation-delay: 0.32s;
   }
+  /* Button size. The tiered tints are what give the box its form at 30px and
+     up; at 18px they average into one flat grey, so the small mark sits on
+     higher opacities and swings through a narrower range instead. */
+  .crate-sm .crate-top {
+    opacity: 0.95;
+    animation-name: crate-light-top-sm;
+  }
+  .crate-sm .crate-right {
+    opacity: 0.72;
+    animation-name: crate-light-right-sm;
+  }
+  .crate-sm .crate-left {
+    opacity: 0.5;
+    animation-name: crate-light-left-sm;
+  }
+  @keyframes crate-light-top-sm {
+    0%,
+    58%,
+    100% {
+      opacity: 0.95;
+    }
+    20% {
+      opacity: 1;
+    }
+  }
+  @keyframes crate-light-right-sm {
+    0%,
+    58%,
+    100% {
+      opacity: 0.72;
+    }
+    20% {
+      opacity: 0.95;
+    }
+  }
+  @keyframes crate-light-left-sm {
+    0%,
+    58%,
+    100% {
+      opacity: 0.5;
+    }
+    20% {
+      opacity: 0.82;
+    }
+  }
   @keyframes crate-lift {
     0%,
     100% {
