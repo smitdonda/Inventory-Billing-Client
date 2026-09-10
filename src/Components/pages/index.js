@@ -1,7 +1,7 @@
 import React, { Suspense, lazy } from "react";
 import { Route, Routes, Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { BlockLoader } from "../ui/Spinner";
+import { BlockLoader, PageLoader } from "../ui/Spinner";
 import AppShell from "../layout/AppShell";
 import Home from "./Dashboard/Home";
 import CustomerDetails from "./Customars/CustomerDetails";
@@ -36,7 +36,7 @@ function Router() {
   /* The session cookie is httpOnly, so whether someone is signed in is only
      known once the server has answered. Rendering routes before that would
      flash the login page at a signed-in user on every reload. */
-  if (isLoading) return <BlockLoader />;
+  if (isLoading) return <PageLoader label="Loading your books..." />;
 
   return (
     <Suspense fallback={<BlockLoader />}>

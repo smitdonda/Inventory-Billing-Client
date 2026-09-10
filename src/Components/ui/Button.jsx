@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import cn from "./cn";
-import { Spinner } from "./Spinner";
+import { Crate } from "./Spinner";
 
 const VARIANTS = {
   primary:
@@ -55,7 +55,7 @@ function Button({
   const content = (
     <>
       {loading ? (
-        <Spinner />
+        <Crate size={size === "sm" || size === "iconSm" ? 16 : 18} />
       ) : (
         Icon && <Icon size={size === "sm" || size === "iconSm" ? 15 : 17} />
       )}

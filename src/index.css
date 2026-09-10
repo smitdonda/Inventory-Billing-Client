@@ -161,6 +161,110 @@
       transform: translateX(100%);
     }
   }
+
+  /* The crate mark. The light travels top, right, left and the box lifts
+     on a slower cycle than the faces, so the two never land together and
+     the loop does not tick. Frozen by the reduced-motion rule it settles on
+     its resting opacities, which is a readable box rather than a blank. */
+  .crate {
+    overflow: visible;
+  }
+  .crate-body {
+    animation: crate-lift 2.7s ease-in-out infinite;
+  }
+  .crate-face {
+    fill: currentColor;
+  }
+  .crate-top {
+    opacity: 0.62;
+    animation: crate-light-top 1.35s ease-in-out infinite;
+  }
+  .crate-right {
+    opacity: 0.46;
+    animation: crate-light-right 1.35s ease-in-out infinite;
+    animation-delay: 0.16s;
+  }
+  .crate-left {
+    opacity: 0.32;
+    animation: crate-light-left 1.35s ease-in-out infinite;
+    animation-delay: 0.32s;
+  }
+  @keyframes crate-lift {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-1.6px);
+    }
+  }
+  @keyframes crate-light-top {
+    0%,
+    58%,
+    100% {
+      opacity: 0.62;
+    }
+    20% {
+      opacity: 1;
+    }
+  }
+  @keyframes crate-light-right {
+    0%,
+    58%,
+    100% {
+      opacity: 0.46;
+    }
+    20% {
+      opacity: 0.95;
+    }
+  }
+  @keyframes crate-light-left {
+    0%,
+    58%,
+    100% {
+      opacity: 0.32;
+    }
+    20% {
+      opacity: 0.85;
+    }
+  }
+
+  /* Loader motion. The spinner and the pulsing ring ride Tailwind's own
+     `animate-spin` and `animate-ping`; these three need their own timing.
+     All of them are stopped by the reduced-motion rule in the base layer. */
+  @keyframes loader-dot {
+    0%,
+    80%,
+    100% {
+      opacity: 0.3;
+      transform: translateY(0);
+    }
+    40% {
+      opacity: 1;
+      transform: translateY(-3px);
+    }
+  }
+  @keyframes loader-bar {
+    0%,
+    100% {
+      transform: scaleY(0.35);
+      opacity: 0.45;
+    }
+    50% {
+      transform: scaleY(1);
+      opacity: 1;
+    }
+  }
+  /* Runs edge to edge: the strip is a third of the track, so it leaves on
+     the right exactly as it would re-enter on the left. */
+  @keyframes loader-slide {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(300%);
+    }
+  }
 }
 
 /* ------------------------------------------------------------------ */
