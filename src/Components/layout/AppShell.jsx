@@ -75,7 +75,7 @@ const NAV = [
   },
 ];
 
-const COLLAPSE_KEY = "billbook-sidebar-collapsed";
+const COLLAPSE_KEY = "billbox-sidebar-collapsed";
 
 const readCollapsed = () => {
   try {
@@ -262,7 +262,7 @@ function Brand({ collapsed }) {
         )}
       >
         <span className="block truncate text-[15px] font-semibold tracking-tight text-fg">
-          Bill Book
+          BillBox
         </span>
         <span className="block truncate text-[11px] text-faint">
           Inventory &amp; billing
@@ -487,7 +487,7 @@ function AppShell() {
                   <span aria-hidden="true">/</span>
                 </span>
               )}
-              {current?.label || "Bill Book"}
+              {current?.label || "BillBox"}
             </span>
           </nav>
           <div className="flex items-center gap-2">

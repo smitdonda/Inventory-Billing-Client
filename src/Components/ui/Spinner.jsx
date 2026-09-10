@@ -210,7 +210,7 @@ function BlockLoader({
 /**
  * The first paint, before the app knows who is signed in. Holds the whole
  * viewport so the label does not sit against the top edge of a blank page.
-  *
+ *
  * It builds its own stack rather than calling BlockLoader, because the mark
  * carries this screen alone: at accent on an empty page it has to be the
  * thing you look at, while the label underneath stays muted.

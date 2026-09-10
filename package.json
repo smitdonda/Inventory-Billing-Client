@@ -1,5 +1,5 @@
 {
-  "name": "inventory-billing",
+  "name": "billbox-client",
   "version": "0.2.0",
   "private": true,
   "engines": {

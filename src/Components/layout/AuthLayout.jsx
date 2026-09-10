@@ -38,7 +38,7 @@ function AuthLayout({ title, subtitle, children, footer }) {
             <ReceiptIcon size={20} />
           </span>
           <span className="text-lg font-semibold tracking-tight text-fg">
-            Bill Book
+            BillBox
           </span>
         </Link>
 
@@ -61,7 +61,7 @@ function AuthLayout({ title, subtitle, children, footer }) {
         </div>
 
         <p className="relative text-[12px] text-faint">
-          &copy; {new Date().getFullYear()} Bill Book
+          &copy; {new Date().getFullYear()} BillBox
         </p>
       </div>
 
@@ -77,7 +77,7 @@ function AuthLayout({ title, subtitle, children, footer }) {
               <ReceiptIcon size={18} />
             </span>
             <span className="font-semibold tracking-tight text-fg">
-              Bill Book
+              BillBox
             </span>
           </Link>
         </div>
