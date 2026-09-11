@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { usePDF, Resolution, Margin } from "react-to-pdf";
 import moment from "moment";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 import { Button } from "../../ui/Button";
 import { money } from "../../ui/format";

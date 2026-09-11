@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import axiosInstance, { errorMessage } from "../config/AxiosInstance";
 
 const EMPTY_META = { page: 1, limit: 8, total: 0, pageCount: 1 };

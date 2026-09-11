@@ -1,10 +1,14 @@
 import React from "react";
 import { BrowserRouter } from "react-router-dom";
-import { ToastContainer } from "react-toastify";
+import { Toaster } from "sonner";
 
 import ErrorBoundary from "./Components/ui/ErrorBoundary";
 import { AuthProvider } from "./context/AuthContext";
 import Main from "./Components/pages";
+
+// The palette is light-only, so the toasts are pinned to it rather than
+// following the system preference into a theme the app does not have.
+const TOAST_DURATION = 3500;
 
 function App() {
   return (
@@ -16,15 +20,17 @@ function App() {
         <AuthProvider>
           <Main />
         </AuthProvider>
-        <ToastContainer
+        <Toaster
           position="top-right"
-          autoClose={3500}
-          newestOnTop
-          closeOnClick
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
           theme="light"
+          duration={TOAST_DURATION}
+          closeButton
+          expand
+          toastOptions={{
+            // Handed to the CSS so the timer bar empties on the same clock
+            // sonner dismisses by.
+            style: { "--toast-duration": `${TOAST_DURATION}ms` },
+          }}
         />
       </BrowserRouter>
     </ErrorBoundary>

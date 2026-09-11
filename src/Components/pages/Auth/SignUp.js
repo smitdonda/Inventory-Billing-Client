@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useFormik } from "formik";
 import * as yup from "yup";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 import AuthLayout from "../../layout/AuthLayout";
 import { Button } from "../../ui/Button";

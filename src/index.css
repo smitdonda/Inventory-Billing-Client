@@ -313,50 +313,167 @@
 }
 
 /* ------------------------------------------------------------------ */
-/*  react-toastify — repainted with the token palette.                  */
+/*  sonner — repainted with the token palette.                          */
 /* ------------------------------------------------------------------ */
-/*  The library's own theme rules carry the same specificity as these        */
-/*  selectors, so each one is doubled to win the tie outright — the cascade  */
-/*  here does not depend on which stylesheet the bundler emits first.        */
-.Toastify__toast.Toastify__toast {
-  background: rgb(var(--surface));
-  color: rgb(var(--fg));
-  border: 1px solid rgb(var(--line));
-  border-radius: 0.75rem;
+/*  sonner appends its stylesheet to <head> at runtime, so it always lands  */
+/*  after this file and wins every tie. Selectors that overwrite one of its  */
+/*  declarations are doubled to out-specify it outright; the custom          */
+/*  properties do not need that, because a value set on the toast itself     */
+/*  beats the one it would otherwise inherit from the toaster.              */
+[data-sonner-toaster][data-sonner-toaster] {
+  font-family: inherit;
+  /*  Resolved once per toast and then reused by the rail, the icon and the  */
+  /*  timer bar, so a new type only needs the one line below. It is declared */
+  /*  up here on the toaster so the per-type rules override it by sitting on */
+  /*  the toast itself, rather than by out-specifying a neighbour.           */
+  --toast-accent: rgb(var(--fg));
+}
+[data-sonner-toast][data-styled="true"][data-styled="true"] {
+  --normal-bg: rgb(var(--surface));
+  --normal-text: rgb(var(--fg));
+  --normal-border: rgb(var(--line));
+  --border-radius: 0.75rem;
   box-shadow: 0 10px 30px -12px rgb(0 0 0 / 0.28);
-  font-family: inherit;
   font-size: 0.875rem;
+  /*  Room on the leading edge for the rail.                               */
+  padding: 16px 16px 18px 20px;
 }
-.Toastify__toast-body.Toastify__toast-body {
-  font-family: inherit;
+[data-sonner-toast][data-type="success"] {
+  --toast-accent: rgb(var(--success));
 }
-.Toastify__close-button.Toastify__close-button {
+[data-sonner-toast][data-type="error"] {
+  --toast-accent: rgb(var(--danger));
+}
+[data-sonner-toast][data-type="warning"] {
+  --toast-accent: rgb(var(--warning));
+}
+[data-sonner-toast][data-styled="true"][data-styled="true"] [data-icon] {
+  color: var(--toast-accent);
+}
+
+/* ---- motion ---- */
+/*  sonner drives the entrance off an inline `--y` on the toast, so the     */
+/*  element's own transform is left untouched and everything below animates  */
+/*  the parts inside it instead.                                            */
+
+/*  Both decorations hang off [data-content], not off the toast itself: the  */
+/*  toast's own ::before and ::after are already taken — sonner uses them as */
+/*  the swipe hit-area and as the bridge that keeps the stack hovered across */
+/*  the gap between toasts. They anchor to the toast all the same, since     */
+/*  [data-content] is not positioned.                                        */
+
+/*  Rail down the leading edge. Inset rather than flush: the close button    */
+/*  overhangs the corner, so `overflow: hidden` here would behead it.       */
+[data-sonner-toast] [data-content]::before {
+  content: "";
+  position: absolute;
+  left: 8px;
+  top: 12px;
+  bottom: 12px;
+  width: 3px;
+  border-radius: 999px;
+  background: var(--toast-accent);
+  animation: toast-rail 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/*  Timer bar. The duration arrives as a custom property from <Toaster>, so  */
+/*  the bar and sonner's own dismissal clock run off the same number.       */
+[data-sonner-toast] [data-content]::after {
+  content: "";
+  position: absolute;
+  left: 20px;
+  right: 16px;
+  bottom: 8px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--toast-accent);
+  opacity: 0.35;
+  transform-origin: left center;
+  animation: toast-timer var(--toast-duration, 4000ms) linear both;
+}
+/*  sonner holds its timer while the stack is hovered or a toast is being   */
+/*  dragged away; the bar holds with it.                                    */
+[data-sonner-toaster]:hover [data-sonner-toast] [data-content]::after,
+[data-sonner-toast][data-swiping="true"] [data-content]::after {
+  animation-play-state: paused;
+}
+/*  A toast that waits on a promise or on a button press has no countdown   */
+/*  left to draw.                                                           */
+[data-sonner-toast][data-promise="true"] [data-content]::after {
+  display: none;
+}
+
+[data-sonner-toast] [data-icon] {
+  animation: toast-icon 460ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+[data-sonner-toast] [data-title] {
+  animation: toast-copy 380ms ease-out both;
+}
+[data-sonner-toast] [data-description] {
+  animation: toast-copy 380ms ease-out 60ms both;
+}
+
+[data-sonner-toast][data-styled="true"][data-styled="true"]
+  [data-close-button] {
   color: rgb(var(--muted));
-  opacity: 1;
+  transition:
+    color 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease,
+    opacity 100ms;
 }
-.Toastify__progress-bar--success.Toastify__progress-bar--success {
-  background: rgb(var(--success));
+[data-sonner-toast][data-styled="true"][data-styled="true"]
+  [data-close-button]:hover {
+  color: rgb(var(--fg));
+  border-color: rgb(var(--strong));
+  transform: var(--toast-close-button-transform) scale(1.08);
 }
-.Toastify__progress-bar--error.Toastify__progress-bar--error {
-  background: rgb(var(--danger));
+
+@keyframes toast-rail {
+  from {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  to {
+    transform: scaleY(1);
+    opacity: 1;
+  }
 }
-.Toastify__progress-bar--warning.Toastify__progress-bar--warning {
-  background: rgb(var(--warning));
+@keyframes toast-icon {
+  from {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
-.Toastify__progress-bar--info.Toastify__progress-bar--info {
-  background: rgb(var(--fg));
+@keyframes toast-copy {
+  from {
+    transform: translateX(-4px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
-.Toastify__toast-icon svg {
-  fill: currentColor;
+@keyframes toast-timer {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
 }
-.Toastify__toast--success .Toastify__toast-icon {
-  color: rgb(var(--success));
-}
-.Toastify__toast--error .Toastify__toast-icon {
-  color: rgb(var(--danger));
-}
-.Toastify__toast--warning .Toastify__toast-icon {
-  color: rgb(var(--warning));
+
+/*  The global reduce-motion rule collapses every duration, which would      */
+/*  leave the timer bar already spent on screen — drop it there instead.    */
+@media (prefers-reduced-motion: reduce) {
+  [data-sonner-toast] [data-content]::after {
+    display: none;
+  }
 }
 
 /* ------------------------------------------------------------------ */

@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import moment from "moment";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 import PageHeader from "../../ui/PageHeader";
 import DataTable from "../../ui/DataTable";

@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 import PageHeader from "../../ui/PageHeader";
 import DataTable from "../../ui/DataTable";
