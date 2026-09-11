@@ -429,6 +429,21 @@
   transform: var(--toast-close-button-transform) scale(1.08);
 }
 
+/*  The button is drawn 20px across, which is fine to click and too small to
+    tap. On a touch pointer an invisible ::before widens the hit area to 44px
+    without moving or resizing anything on screen. The button is positioned,
+    so the pseudo-element measures from its own box; sonner puts nothing on
+    this ::before, unlike the toast's own, which it needs for swiping.        */
+@media (pointer: coarse) {
+  [data-sonner-toast][data-styled="true"][data-styled="true"]
+    [data-close-button]::before {
+    content: "";
+    position: absolute;
+    inset: -12px;
+    border-radius: 50%;
+  }
+}
+
 @keyframes toast-rail {
   from {
     transform: scaleY(0);
