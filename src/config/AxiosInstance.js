@@ -48,8 +48,36 @@ axiosInstance.interceptors.response.use(
   }
 );
 
-/** Pull the most useful message out of an axios error. */
-export const errorMessage = (error, fallback = "Something went wrong") =>
-  error?.response?.data?.message || error?.message || fallback;
+/*
+ * Pull the most useful message out of an axios error.
+ *
+ * The API's own wording comes first. After that it is the caller's fallback,
+ * never error.message: on a failed request that property holds axios's
+ * internal wording — "Network Error", "Request failed with status code 500" —
+ * which reads as a stack trace leaking into the UI and says nothing the
+ * caller's own sentence does not say better.
+ *
+ * The one thing worth saying over the fallback is that the request never
+ * arrived, because that is the case where trying again might work and where
+ * "Could not save the bill" would otherwise imply the server refused it.
+ */
+const NO_REPLY = "Cannot reach the server — check your connection.";
+const TOO_SLOW = "The server took too long to respond. Try again.";
+
+export const errorMessage = (error, fallback = "Something went wrong") => {
+  const fromServer = error?.response?.data?.message;
+  if (fromServer) return fromServer;
+
+  // No response and no status: the request died in transit. Anything else
+  // reaching here — a server that answered without a message of its own, or a
+  // plain Error from a caller's try block — belongs to the fallback.
+  if (error?.isAxiosError && !error.response) {
+    return error.code === "ECONNABORTED" || error.code === "ETIMEDOUT"
+      ? TOO_SLOW
+      : NO_REPLY;
+  }
+
+  return fallback;
+};
 
 export default axiosInstance;
